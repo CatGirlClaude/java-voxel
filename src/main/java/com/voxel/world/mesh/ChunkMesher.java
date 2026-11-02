@@ -183,6 +183,9 @@ public final class ChunkMesher {
 
                     if (block.crossModel) {
                         emitCrossQuads(target, block, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+                        if (block == BlockType.SEAGRASS || block == BlockType.KELP) {
+                            emitWaterloggedFaces(ctx.transData, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+                        }
                         continue;
                     }
 
@@ -217,9 +220,12 @@ public final class ChunkMesher {
         if (nId == BlockType.AIR.id) return true;
         BlockType neighbor = BlockType.fromId(nId);
         if (neighbor.crossModel) {
+            if (current.isWater() && (neighbor == BlockType.SEAGRASS || neighbor == BlockType.KELP)) {
+                return false;
+            }
             return true;
         }
-        if (current.isWater() && neighbor.isWater()) {
+        if (current.isWater() && (neighbor.isWater() || neighbor == BlockType.SEAGRASS || neighbor == BlockType.KELP)) {
             return false;
         }
         if (current == neighbor && current.transparent) {
@@ -230,6 +236,15 @@ public final class ChunkMesher {
             return false;
         }
         return neighbor.transparent;
+    }
+
+    private static void emitWaterloggedFaces(FloatList transData,
+                                             int x, int y, int z, int gx, int gy, int gz,
+                                             long wx, long wy, long wz, World world, MesherContext ctx) {
+        byte aboveId = ctx.scratchBlocks[gridIndex(gx, gy + 1, gz)];
+        if (aboveId == BlockType.AIR.id) {
+            emitFaceFast(transData, BlockType.WATER, 0, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+        }
     }
 
     private static void emitCrossQuads(FloatList out, BlockType block,

@@ -33,10 +33,20 @@
 ## 🛠️ Zadania Uzupełniające (Roadmapa Silnika)
 
 ### 3. Generator Świata i Biomy
-- [ ] **Rzeki i zbiorniki wodne śródlądowe:** Dedykowany szum rzek 2D (`RIVER_FREQ`) z gładkimi korytami wodnymi łączącymi się z oceanem.
-- [ ] **Płynna fizyka wody:** Rozprzestrzenianie się wody na sąsiednie bloki w dół i na boki (automatyczny update poziomu płynu).
-- [ ] **Podwodna roślinność i dekoracje:** Dodanie koralowców w ciepłych oceanach oraz wodorostów / traw morskich.
-- [ ] **Trzcina cukrowa (Sugar Cane):** Dodanie bloku trzciny generującej się na piasku i trawie bezpośrednio przy wodzie.
+- [x] **Rzeki i zbiorniki wodne śródlądowe:**
+  - Wdrożono dedykowany dwuoktawowy szum rzek 2D (`RIVER_FREQ = 0.0022`) oraz biom [`Biome.RIVER`].
+  - Płynne żłobienie koryt rzecznych w terenie do głębokości 3–4 bloków poniżej poziomu morza (`SEA_LEVEL = 28`), naturalnie wypełniających się wodą i łączących się bezpośrednio z oceanem.
+  - Naturalne dno rzek zbudowane ze żwiru (`GRAVEL`), gliny (`CLAY`), piasku i ziemi.
+- [x] **Płynna fizyka wody:**
+  - Zaimplementowano trójtrybową fizykę wody w [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java): modern Minecraft (stany przepływu 1..7, blok źródłowy 8, cofanie przy braku zasilania), preclassic/classic (nieskończone zalewanie) oraz Terraria (zachowanie objętości cieczy).
+  - Płynne wymywanie roślin i dekoracji.
+- [x] **Podwodna roślinność i dekoracje:**
+  - Dodano koralowce ([`CORAL`]) generujące się w ciepłych strefach oceanicznych.
+  - Dodano trawę morską ([`SEAGRASS`]) oraz wysokie kolumny wodorostów ([`KELP`]) rosnące w oceanach i rzekach.
+  - Pełna obsługa waterloggingu – gracz pływający wodorostami i trawą morską płynnie przebywa w wodzie bez przerw w tafli.
+- [x] **Trzcina cukrowa (Sugar Cane):**
+  - Wprowadzono blok [`SugarCaneBlock`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/SugarCaneBlock.java) (ID: 42) generujący się na piasku, ziemi i trawie bezpośrednio przy wodzie wzdłuż brzegów rzek i oceanów na wysokość 2–3 bloków.
+  - Sprawdzanie warunków przetrwania i natychmiastowe niszczenie przy utracie podłoża lub braku wody.
 
 ### 4. Wydajność i Potok Renderowania
 - [x] **Frustum Culling (JOML SIMD):** Zaimplementowano w `World.renderChunks` (odrzuca 75-95% niewidocznych chunków).
@@ -53,7 +63,11 @@
   - Wyświetlanie szczegółowego raportu w oknie czatu (czas generacji terenu, tempo w chunk/s, czas budowy siatek, łączna przepustowość i ocena A+/A/B/C).
   - Wbudowano metryki benchmarku bezpośrednio do panelu Debug HUD (`F3`) pod specyfikacją karty graficznej/GPU na prawej stronie (`BENCHMARK`).
   - Rozszerzono panel debugowania `F3` o metryki na żywo: czasy `Gen/Mesh/GPU`, stan kolejek asynchronicznych oraz potencjalną przepustowość w `ch/s`.
-- [ ] **Occlusion Culling (Chunki zasłonięte terenem):** Test widoczności dla chunków całkowicie zasłoniętych wzgórzami.
+- [x] **Occlusion Culling (Chunki zasłonięte terenem):**
+  - Wdrożono dwustopniowy, zerokosztowy test przesłaniania w [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java) (`isChunkOccluded`):
+    - Subterranean Culling: natychmiastowe odrzucanie głębokich chunków podziemnych i jaskiniowych, gdy gracz porusza się po powierzchni ziemi i nie patrzy w pionowy szyb.
+    - Mountain Ridge Culling: odrzucanie odległych chunków dolin zasłoniętych wysokimi grzbietami górskimi.
+    - Zero narzutu CPU/GPU: operacje czysto arytmetyczne korzystające z prekompilowanego bufora `findTopOpaqueYAt`.
 
 ### 5. UI, Debug HUD, Menu Kreatywne i Lokalizacja
 - [x] **Debug HUD - Modułowa konfiguracja w Opcjach:**
@@ -144,7 +158,9 @@
   - Menu główne [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java) wyświetla teraz przycisk "Select World" / "Wybierz swiat", prowadzący do pełnej listy światów z obsługą grania (w tym podwójne kliknięcie), tworzenia nowych światów oraz bezpiecznego usuwania.
 - [ ] **Dźwięki bloków i otoczenia:** Dźwięki stawiania/niszczenia bloków (trawa, kamień, drewno, piasek, woda) oraz dźwięki kroków i pluskania.
 - [ ] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
-- [ ] **Płynne oświetlenie (Smooth Lighting):** Rozszerzenie cieniowania Ambient Occlusion o propagację światła słonecznego i blokowego (światło zalewowe BFS / Flood-fill).
+- [x] **Płynne oświetlenie (Smooth Lighting):**
+  - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) zaimplementowano propagację światła słonecznego oraz blokowego algorytmem BFS (`propagateLight`).
+  - Wierzchołkowe wygładzanie oświetlenia (`packVertexLight`) uśredniające 4 sąsiednie próbki światła wokół każdego narożnika ścianki wraz z testami przesłaniania krawędzi (Ambient Occlusion + Smooth Lighting).
 
 ---
 

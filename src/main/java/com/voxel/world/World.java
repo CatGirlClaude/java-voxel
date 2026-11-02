@@ -492,7 +492,7 @@ public class World {
         }
     }
 
-    private void tickPhysics(int maxSteps) {
+    public void tickPhysics(int maxSteps) {
         int processed = 0;
         while (processed < maxSteps && !physicsQueue.isEmpty()) {
             BlockPos p = physicsQueue.poll();
@@ -507,7 +507,7 @@ public class World {
             if (blockId == BlockType.AIR.id) continue;
 
             // 1. Falling blocks (Sand, Red Sand)
-            if (blockId == BlockType.SAND.id || blockId == BlockType.RED_SAND.id) {
+            if (blockId == BlockType.SAND.id || blockId == BlockType.RED_SAND.id || blockId == BlockType.GRAVEL.id) {
                 byte below = getBlock(x, y - 1, z);
                 if (below == BlockType.AIR.id) {
                     setBlock(x, y, z, BlockType.AIR.id, true);
@@ -1099,6 +1099,11 @@ public class World {
                 }
             }
 
+            // Occlusion Culling: cull chunks buried completely underground or behind ridges
+            if (isChunkOccluded(c, pcx, pcy, pcz, eyePos)) {
+                continue;
+            }
+
             if (c.hasOpaque()) {
                 visibleOpaque.add(c);
             }
@@ -1142,6 +1147,47 @@ public class World {
         float offsetY = (float) (baseY - eyePos.y);
         float offsetZ = (float) (baseZ - eyePos.z);
         chunkShader.setUniform("uChunkOffset", new Vector3f(offsetX, offsetY, offsetZ));
+    }
+
+    public boolean isChunkOccluded(Chunk c, long pcx, long pcy, long pcz, Vector3d eyePos) {
+        long dx = c.chunkX - pcx;
+        long dy = c.chunkY - pcy;
+        long dz = c.chunkZ - pcz;
+        long distSq = dx * dx + dz * dz;
+
+        // Immediate player neighborhood is never occluded
+        if (distSq <= 2 && Math.abs(dy) <= 1) return false;
+
+        double chunkTopY = (c.chunkY + 1) * Chunk.SIZE_Y;
+
+        // 1. Subterranean occlusion: chunk is completely buried beneath solid ground
+        if (eyePos.y > chunkTopY + 8.0) {
+            long centerWx = c.chunkX * Chunk.SIZE_X + 8;
+            long centerWz = c.chunkZ * Chunk.SIZE_Z + 8;
+            int surfaceY = findTopOpaqueYAt(centerWx, centerWz);
+            if (surfaceY >= chunkTopY + 4 && eyePos.y > surfaceY) {
+                long playerWx = (long) Math.floor(eyePos.x);
+                long playerWz = (long) Math.floor(eyePos.z);
+                int playerGroundY = findTopOpaqueYAt(playerWx, playerWz);
+                if (eyePos.y >= playerGroundY) {
+                    return true;
+                }
+            }
+        }
+
+        // 2. Mountain ridge occlusion for distant chunks (at least 3 chunks away)
+        if (distSq >= 9) {
+            long midCx = pcx + dx / 2;
+            long midCz = pcz + dz / 2;
+            long midWx = midCx * Chunk.SIZE_X + 8;
+            long midWz = midCz * Chunk.SIZE_Z + 8;
+            int ridgeY = findTopOpaqueYAt(midWx, midWz);
+            if (ridgeY > chunkTopY + 8 && ridgeY > eyePos.y + 6) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean saveWorld(Player player) {

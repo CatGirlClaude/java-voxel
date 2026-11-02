@@ -196,6 +196,13 @@
   "block.water_flow_3": "Plynaca woda",
   "block.water_flow_2": "Plynaca woda",
   "block.water_flow_1": "Plynaca woda",
+  "block.sugar_cane": "Trzcina cukrowa",
+  "block.seagrass": "Trawa morska",
+  "block.kelp": "Wodorosty",
+  "block.coral": "Koralowiec",
+  "block.gravel": "Zwir",
+  "block.clay": "Glina",
+  "biome.river": "Rzeka",
 
   "facing.south": "Poludnie",
   "facing.north": "Polnoc",

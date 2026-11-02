@@ -13,6 +13,8 @@ public final class TerrainGenerator {
     private static final double OCEAN_FREQ = 0.0009;
     private static final double CLIMATE_FREQ = 0.00075;
     private static final double MOUNTAIN_FREQ = 0.0014;
+    private static final double RIVER_FREQ = 0.0022;
+    private static final double RIVER_THRESHOLD = 0.046;
 
     // Grid cell size for trees/flora: 1 candidate per 5x5 cell with internal offset 1..2
     // guarantees minimum 4-block and average 5-block spacing between adjacent trees
@@ -24,6 +26,12 @@ public final class TerrainGenerator {
     private static double smoothstep(double edge0, double edge1, double x) {
         double t = Math.max(0.0, Math.min(1.0, (x - edge0) / (edge1 - edge0)));
         return t * t * (3.0 - 2.0 * t);
+    }
+
+    public static double sampleRiver(SimplexNoise noise, long wx, long wz) {
+        double r1 = noise.noise2D(wx * RIVER_FREQ + 1400.0, wz * RIVER_FREQ - 800.0);
+        double r2 = noise.noise2D(wx * (RIVER_FREQ * 2.0) - 950.0, wz * (RIVER_FREQ * 2.0) + 1250.0);
+        return Math.abs((r1 + 0.35 * r2) / 1.35);
     }
 
     public static double sampleTemperature(SimplexNoise noise, long wx, long wz) {
@@ -107,6 +115,11 @@ public final class TerrainGenerator {
             return Biome.MOUNTAINS;
         }
 
+        // River biome for carved inland waterways
+        if (sampleRiver(noise, wx, wz) < 0.038) {
+            return Biome.RIVER;
+        }
+
         double humidity = sampleHumidity(noise, wx, wz);
 
         if (temp < -0.16) {
@@ -183,7 +196,24 @@ public final class TerrainGenerator {
         }
 
         // Anti-terracing micro-dither: eliminates flat concentric steps on shallow slopes
-        return (int) Math.round(baseElevation + microDither);
+        double elevation = baseElevation;
+
+        // Smoothly carve riverbeds into inland terrain down to SEA_LEVEL - 4
+        if (oceanContinental >= -0.055) {
+            double riverVal = sampleRiver(noise, wx, wz);
+            if (riverVal < RIVER_THRESHOLD) {
+                double rFactor = smoothstep(0.0, 1.0, (RIVER_THRESHOLD - riverVal) / RIVER_THRESHOLD);
+                double mDamp = 1.0 - smoothstep(0.28, 0.60, mountainWeight) * 0.40;
+                rFactor *= mDamp;
+
+                double riverBedFloor = SEA_LEVEL - 3.8 + detail * 0.5;
+                if (elevation > riverBedFloor) {
+                    elevation = elevation * (1.0 - rFactor) + riverBedFloor * rFactor;
+                }
+            }
+        }
+
+        return (int) Math.round(elevation + microDither);
     }
 
     /**
@@ -461,6 +491,37 @@ public final class TerrainGenerator {
                     long wz = baseZ + lz;
                     if (isSurfaceCarvedByCave(noise, wx, surfaceY, wz)) continue;
 
+                    // Sugar cane along water edges (rivers, shores, lake borders)
+                    if (surfaceY >= SEA_LEVEL && surfaceY <= SEA_LEVEL + 1) {
+                        byte checkBelow = (ly > 0) ? chunk.getBlock(lx, ly - 1, lz)
+                                : selectBiomeTerrainBlock(noise, ctx.biomeMap[idx2], wx, surfaceY, wz, surfaceY, Chunk.SIZE_Y - 1, null, lx, lz);
+                        if (checkBelow == BlockType.SAND.id || checkBelow == BlockType.DIRT.id
+                                || checkBelow == BlockType.GRASS.id || checkBelow == BlockType.RED_SAND.id) {
+                            boolean nearWater = false;
+                            long[][] cardinal = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                            for (long[] d : cardinal) {
+                                int nH = computeSurfaceHeight(noise, wx + d[0], wz + d[1]);
+                                if (nH < SEA_LEVEL) { // neighbor is water
+                                    nearWater = true;
+                                    break;
+                                }
+                            }
+                            if (nearWater) {
+                                int caneHash = hashCoords(wx, wz);
+                                if (((caneHash >>> 7) & 0xFF) < 60) { // ~23% frequency along banks
+                                    int caneH = ((caneHash >>> 12) & 1) == 0 ? 2 : 3;
+                                    for (int dy = 0; dy < caneH; dy++) {
+                                        int cLy = ly + dy;
+                                        if (cLy < Chunk.SIZE_Y) {
+                                            chunk.setBlock(lx, cLy, lz, BlockType.SUGAR_CANE.id);
+                                        }
+                                    }
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
                     // Trawa NIE MOŻE rosnąć na kamieniu ani podłożu niesprzyjającym
                     if (ctx.steepCliff[idx2]) continue;
 
@@ -579,6 +640,68 @@ public final class TerrainGenerator {
                 }
             }
         }
+
+        // Underwater flora pass (Seagrass, Kelp, Coral) in oceans and rivers
+        if (baseY <= SEA_LEVEL && topY >= SEA_LEVEL - 24) {
+            for (int lz = 0; lz < SIZE_Z; lz++) {
+                for (int lx = 0; lx < SIZE_X; lx++) {
+                    int idx2 = (lx << 4) | lz;
+                    int surfaceY = ctx.heightMap[idx2];
+                    if (surfaceY >= SEA_LEVEL - 1) continue; // must be submerged underwater
+
+                    long decorY = surfaceY + 1L;
+                    if (decorY < baseY || decorY > topY) continue;
+                    int ly = (int) (decorY - baseY);
+                    if (chunk.getBlock(lx, ly, lz) != BlockType.WATER.id) continue;
+
+                    long wx = baseX + lx;
+                    long wz = baseZ + lz;
+                    Biome biome = ctx.biomeMap[idx2];
+                    if (biome == Biome.SNOWY_TUNDRA || biome == Biome.FROZEN_OCEAN) continue;
+
+                    int waterDepth = SEA_LEVEL - surfaceY;
+                    int uHash = hashCoords(wx, wz);
+                    int chance = (uHash >>> 8) & 0xFF;
+
+                    double temp = sampleTemperature(noise, wx, wz);
+
+                    // 1. Coral reefs in warm ocean waters
+                    if (temp > 0.16 && (biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN) && waterDepth >= 3 && waterDepth <= 10) {
+                        double coralNoise = noise.noise2D(wx * 0.08, wz * 0.08);
+                        if (coralNoise > 0.28) {
+                            chunk.setBlock(lx, ly, lz, BlockType.CORAL.id);
+                            if (waterDepth >= 5 && ly + 1 < Chunk.SIZE_Y && ((uHash & 1) == 0)) {
+                                chunk.setBlock(lx, ly + 1, lz, BlockType.CORAL.id);
+                            }
+                            continue;
+                        }
+                    }
+
+                    // 2. Kelp forest columns in deeper ocean waters (3 to 7 blocks tall)
+                    if (waterDepth >= 5 && (biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN)) {
+                        double kelpNoise = noise.noise2D(wx * 0.045, wz * 0.045);
+                        if (kelpNoise > 0.20 && chance < 170) {
+                            int kelpH = Math.min(waterDepth - 2, 3 + (uHash & 3));
+                            for (int dy = 0; dy < kelpH; dy++) {
+                                int kLy = ly + dy;
+                                if (kLy < Chunk.SIZE_Y && (baseY + kLy) < SEA_LEVEL) {
+                                    chunk.setBlock(lx, kLy, lz, BlockType.KELP.id);
+                                }
+                            }
+                            continue;
+                        }
+                    }
+
+                    // 3. Seagrass on shallow to mid ocean floor and riverbeds
+                    if (waterDepth >= 2 && waterDepth <= 14) {
+                        if (chance < 85) { // ~33% coverage
+                            chunk.setBlock(lx, ly, lz, BlockType.SEAGRASS.id);
+                        }
+                    }
+                }
+            }
+        }
+
         chunk.dirty = !chunk.isAllAir();
     }
 
@@ -592,18 +715,25 @@ public final class TerrainGenerator {
                 if (biome == Biome.DEEP_OCEAN && height < SEA_LEVEL - 10) {
                     int h = hashCoords(wx, wz);
                     if ((h & 0xFF) == 0) return BlockType.GLOWSTONE.id;
-                    return ((h & 3) == 0) ? BlockType.COBBLESTONE.id : BlockType.SAND.id;
+                    return ((h & 3) == 0) ? BlockType.GRAVEL.id : BlockType.SAND.id;
                 }
                 if (biome == Biome.FROZEN_OCEAN) {
-                    return ((dither & 1) == 0) ? BlockType.COBBLESTONE.id : BlockType.DIRT.id; // Cold stony/gravel seabed
+                    return ((dither & 1) == 0) ? BlockType.GRAVEL.id : BlockType.DIRT.id; // Cold stony/gravel seabed
                 }
                 if (biome == Biome.OCEAN || biome == Biome.BEACH) {
-                    return BlockType.SAND.id;
+                    return ((dither & 3) == 0) ? BlockType.GRAVEL.id : BlockType.SAND.id;
                 }
-                // Inland submerged waterbed (Minecraft-style: gravel/sand/dirt)
+                if (biome == Biome.RIVER) {
+                    int mod = dither & 7;
+                    if (mod < 3) return BlockType.GRAVEL.id;
+                    if (mod == 3) return BlockType.CLAY.id;
+                    if (mod < 6) return BlockType.SAND.id;
+                    return BlockType.DIRT.id;
+                }
+                // Inland submerged waterbed (Minecraft-style: gravel/clay/sand/dirt)
                 int mod = dither & 3;
-                if (mod == 0) return BlockType.COBBLESTONE.id;
-                if (mod == 1) return BlockType.DIRT.id;
+                if (mod == 0) return BlockType.GRAVEL.id;
+                if (mod == 1) return BlockType.CLAY.id;
                 return BlockType.SAND.id;
             }
 

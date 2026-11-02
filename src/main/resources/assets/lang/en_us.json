@@ -196,6 +196,13 @@
   "block.water_flow_3": "Flowing Water",
   "block.water_flow_2": "Flowing Water",
   "block.water_flow_1": "Flowing Water",
+  "block.sugar_cane": "Sugar Cane",
+  "block.seagrass": "Seagrass",
+  "block.kelp": "Kelp",
+  "block.coral": "Coral Block",
+  "block.gravel": "Gravel",
+  "block.clay": "Clay",
+  "biome.river": "River",
 
   "facing.south": "South",
   "facing.north": "North",

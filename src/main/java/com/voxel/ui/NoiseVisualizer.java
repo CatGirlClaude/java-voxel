@@ -566,6 +566,7 @@ public class NoiseVisualizer {
             case MOUNTAINS -> 0x767D87;
             case JUNGLE -> 0x1A9438;
             case SWAMP -> 0x335C3D;
+            case RIVER -> 0x2E62C4;
         };
     }
 

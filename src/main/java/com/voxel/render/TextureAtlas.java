@@ -62,7 +62,13 @@ public class TextureAtlas {
         "rose",                 // 38
         "dandelion",            // 39
         "blue_orchid",          // 40
-        "allium"                // 41
+        "allium",               // 41
+        "sugar_cane",           // 42
+        "seagrass",             // 43
+        "kelp",                 // 44
+        "coral",                // 45
+        "gravel",               // 46
+        "clay"                  // 47
     };
 
     public static final Path RUN_TEXTURES_DIR = com.voxel.util.GamePaths.resolve("assets/textures/block");
@@ -77,7 +83,7 @@ public class TextureAtlas {
         ensurePngAssetsExist();
 
         int pngLoadedCount = 0;
-        for (int tile = 0; tile <= 41; tile++) {
+        for (int tile = 0; tile < TILE_NAMES.length; tile++) {
             if (loadTileFromPng(pixels, tile)) {
                 pngLoadedCount++;
             } else {
@@ -102,8 +108,8 @@ public class TextureAtlas {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ATLAS_SIZE, ATLAS_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         glBindTexture(GL_TEXTURE_2D, 0);
-        Logger.info("TextureAtlas", "Loaded texture atlas (%dx%d, 42 tiles, %d loaded from PNG files, OpenGL ID: %d)",
-                ATLAS_SIZE, ATLAS_SIZE, pngLoadedCount, textureId);
+        Logger.info("TextureAtlas", "Loaded texture atlas (%dx%d, %d tiles, %d loaded from PNG files, OpenGL ID: %d)",
+                ATLAS_SIZE, ATLAS_SIZE, TILE_NAMES.length, pngLoadedCount, textureId);
     }
 
     public static void ensurePngAssetsExist() {
@@ -117,7 +123,7 @@ public class TextureAtlas {
             }
 
             int[] tempPixels = new int[ATLAS_SIZE * ATLAS_SIZE];
-            for (int t = 0; t <= 41; t++) {
+            for (int t = 0; t < TILE_NAMES.length; t++) {
                 String name = (t < TILE_NAMES.length) ? TILE_NAMES[t] : ("tile_" + t);
                 Path runFile = RUN_TEXTURES_DIR.resolve(name + ".png");
                 Path srcFile = srcDirExists ? SRC_TEXTURES_DIR.resolve(name + ".png") : null;
@@ -660,6 +666,86 @@ public class TextureAtlas {
                         } else {
                             a = 0; r = 0; g = 0; b = 0;
                         }
+                    }
+                    case 42 -> { // Sugar Cane: bamboo/reed vertical stalks with segmented nodes
+                        boolean stalk1 = (x >= 2 && x <= 4);
+                        boolean stalk2 = (x >= 7 && x <= 9);
+                        boolean stalk3 = (x >= 12 && x <= 14);
+                        boolean isNode = (y == 3 || y == 8 || y == 13);
+                        if (stalk1 || stalk2 || stalk3) {
+                            int baseG = isNode ? 145 : (180 + n);
+                            r = clamp(isNode ? 130 : 90 + n / 2);
+                            g = clamp(baseG);
+                            b = clamp(isNode ? 40 : 35 + n / 3);
+                            a = 255;
+                        } else if ((x == 5 && (y == 5 || y == 10)) || (x == 11 && (y == 6 || y == 11))) {
+                            r = clamp(70 + n / 2);
+                            g = clamp(170 + n);
+                            b = clamp(30);
+                            a = 255;
+                        } else {
+                            a = 0; r = 0; g = 0; b = 0;
+                        }
+                    }
+                    case 43 -> { // Seagrass: underwater wavy marine grass blades
+                        int wave1 = (int) (Math.sin(y * 0.5) * 1.5);
+                        int wave2 = (int) (Math.cos(y * 0.4) * 1.5);
+                        boolean blade1 = (x == 4 + wave1 || x == 5 + wave1) && y >= 3;
+                        boolean blade2 = (x == 10 + wave2 || x == 11 + wave2) && y >= 1;
+                        boolean blade3 = (x == 7 || x == 8) && y >= 6;
+                        if (blade1 || blade2 || blade3) {
+                            r = clamp(30 + n / 2);
+                            g = clamp(155 + n + (15 - y) * 2);
+                            b = clamp(55 + n / 3);
+                            a = 230;
+                        } else {
+                            a = 0; r = 0; g = 0; b = 0;
+                        }
+                    }
+                    case 44 -> { // Kelp: tall olive seaweed stalk with side leaves
+                        boolean stalk = (x == 7 || x == 8);
+                        boolean frondL = (x >= 3 && x <= 6) && ((y % 4 == 1) || (y % 4 == 2));
+                        boolean frondR = (x >= 9 && x <= 12) && ((y % 4 == 3) || (y % 4 == 0));
+                        if (stalk || frondL || frondR) {
+                            r = clamp(45 + n / 2);
+                            g = clamp(125 + n + (frondL || frondR ? 20 : 0));
+                            b = clamp(35 + n / 3);
+                            a = 240;
+                        } else {
+                            a = 0; r = 0; g = 0; b = 0;
+                        }
+                    }
+                    case 45 -> { // Coral: vibrant warm ocean polyp reef
+                        int coralPattern = (x * 7 ^ y * 13 ^ n) & 7;
+                        if (coralPattern < 3) {
+                            r = clamp(235 + n / 2);
+                            g = clamp(70 + n / 2);
+                            b = clamp(140 + n);
+                        } else if (coralPattern < 6) {
+                            r = clamp(40 + n / 3);
+                            g = clamp(200 + n);
+                            b = clamp(210 + n / 2);
+                        } else {
+                            r = clamp(240 + n);
+                            g = clamp(180 + n / 2);
+                            b = clamp(40);
+                        }
+                        a = 255;
+                    }
+                    case 46 -> { // Gravel: textured pebbles and slate
+                        int pebble = (x * 3 + y * 7 + (x ^ y)) % 5;
+                        int gVal = 130 + n + pebble * 14;
+                        r = clamp(gVal - 5);
+                        g = clamp(gVal);
+                        b = clamp(gVal + 8);
+                        a = 255;
+                    }
+                    case 47 -> { // Clay: smooth earthy light blue-gray
+                        int cVal = 160 + n / 2;
+                        r = clamp(cVal - 10);
+                        g = clamp(cVal - 4);
+                        b = clamp(cVal + 12);
+                        a = 255;
                     }
                 }
 

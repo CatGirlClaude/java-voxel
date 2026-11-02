@@ -42,7 +42,13 @@ public enum BlockType {
     WATER_FLOW_4(38, "Flowing Water 4", 9, 9, 9, false, true, false),
     WATER_FLOW_3(39, "Flowing Water 3", 9, 9, 9, false, true, false),
     WATER_FLOW_2(40, "Flowing Water 2", 9, 9, 9, false, true, false),
-    WATER_FLOW_1(41, "Flowing Water 1", 9, 9, 9, false, true, false);
+    WATER_FLOW_1(41, "Flowing Water 1", 9, 9, 9, false, true, false),
+    SUGAR_CANE(42, "Trzcina cukrowa", 42, 42, 42, false, false, false, true),
+    SEAGRASS(43, "Trawa morska", 43, 43, 43, false, true, false, true),
+    KELP(44, "Wodorosty", 44, 44, 44, false, true, false, true),
+    CORAL(45, "Koralowiec", 45, 45, 45, true, false, false, false),
+    GRAVEL(46, "Zwir", 46, 46, 46, true, false, false, false),
+    CLAY(47, "Glina", 47, 47, 47, true, false, false, false);
 
     public final byte id;
     public final String name;
@@ -54,7 +60,7 @@ public enum BlockType {
     public final boolean emissive;
     public final boolean crossModel;
 
-    private static final BlockType[] BY_ID = new BlockType[64];
+    private static final BlockType[] BY_ID = new BlockType[128];
 
     public static final BlockType[] HOTBAR_BLOCKS = {
         GRASS, STONE, WOOD, BIRCH_WOOD, JUNGLE_WOOD, TALL_GRASS, JUNGLE_LEAVES, GLASS, GLOWSTONE
@@ -139,6 +145,12 @@ public enum BlockType {
             case "dandelion", "mniszek", "mniszek_lekarski", "zolty_kwiat" -> DANDELION;
             case "blue_orchid", "niebieska_orchidea", "niebieski_kwiat" -> BLUE_ORCHID;
             case "allium", "czosnek", "fioletowy_kwiat" -> ALLIUM;
+            case "sugar_cane", "trzcina", "trzcina_cukrowa" -> SUGAR_CANE;
+            case "seagrass", "trawa_morska" -> SEAGRASS;
+            case "kelp", "wodorosty" -> KELP;
+            case "coral", "koral", "koralowiec" -> CORAL;
+            case "gravel", "zwir" -> GRAVEL;
+            case "clay", "glina" -> CLAY;
             default -> {
                 for (BlockType bt : values()) {
                     if (bt.name().equalsIgnoreCase(s) || bt.name.equalsIgnoreCase(s)) {
@@ -175,7 +187,12 @@ public enum BlockType {
     public static boolean isWashableDecoration(byte id) {
         if (id == AIR.id) return false;
         BlockType bt = fromId(id);
+        if (bt == SEAGRASS || bt == KELP) return false;
         return bt.crossModel;
+    }
+
+    public static boolean isUnderwaterPlant(byte id) {
+        return id == SEAGRASS.id || id == KELP.id;
     }
 
     public String getDisplayName() {

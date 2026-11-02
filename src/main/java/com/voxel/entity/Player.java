@@ -86,7 +86,7 @@ public class Player extends LivingEntity {
     public boolean isHeadUnderwater(World world) {
         Vector3d eye = getEyePosition();
         byte b = world.getBlock((long) Math.floor(eye.x), (long) Math.floor(eye.y), (long) Math.floor(eye.z));
-        return BlockType.isWater(b);
+        return BlockType.isWater(b) || BlockType.isUnderwaterPlant(b);
     }
 
     public boolean isInWater(World world) {
@@ -94,7 +94,7 @@ public class Player extends LivingEntity {
         long bz = (long) Math.floor(position.z);
         byte b1 = world.getBlock(bx, (long) Math.floor(position.y + 0.2), bz);
         byte b2 = world.getBlock(bx, (long) Math.floor(position.y + 1.0), bz);
-        return BlockType.isWater(b1) || BlockType.isWater(b2);
+        return BlockType.isWater(b1) || BlockType.isWater(b2) || BlockType.isUnderwaterPlant(b1) || BlockType.isUnderwaterPlant(b2);
     }
 
     public void update(long window, World world, float dt) {

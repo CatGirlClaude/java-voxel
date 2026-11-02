@@ -14,7 +14,8 @@ public enum Biome {
     SNOWY_TUNDRA("Sniezna tundra", 0.51f, 0.69f, 0.58f),
     JUNGLE("Dzungla", 0.35f, 0.79f, 0.24f),
     SWAMP("Bagna", 0.42f, 0.44f, 0.22f),
-    MOUNTAINS("Gory wysokie", 0.54f, 0.71f, 0.54f);
+    MOUNTAINS("Gory wysokie", 0.54f, 0.71f, 0.54f),
+    RIVER("Rzeka", 0.48f, 0.74f, 0.38f);
 
     public final String displayName;
     public final float grassR;
