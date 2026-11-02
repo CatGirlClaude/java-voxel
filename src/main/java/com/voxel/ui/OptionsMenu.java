@@ -167,7 +167,8 @@ public class OptionsMenu {
         FOV,
         BRIGHTNESS,
         SENSITIVITY,
-        HOLD_DELAY
+        HOLD_DELAY,
+        MASTER_VOLUME
     }
     private ActiveSlider activeSlider = ActiveSlider.NONE;
 
@@ -398,6 +399,10 @@ public class OptionsMenu {
             case HOLD_DELAY -> {
                 float h = 0.05f + progress * 0.40f;
                 GameSettings.mouseHoldDelay = Math.round(h * 100.0f) / 100.0f;
+            }
+            case MASTER_VOLUME -> {
+                int vol = Math.round(progress * 100.0f);
+                GameSettings.masterVolume = Math.max(0, Math.min(100, vol));
             }
             default -> {}
         }
@@ -748,26 +753,35 @@ public class OptionsMenu {
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 36.0f;
 
-        // Row 0: Language toggle
+        // Row 0: Master Volume Slider
         float y0 = startY;
         if (mx >= btnX && mx <= btnX + btnW && my >= y0 && my <= y0 + btnH) {
+            activeSlider = ActiveSlider.MASTER_VOLUME;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            GameSettings.masterVolume = Math.round(progress * 100.0f);
+            return;
+        }
+
+        // Row 1: Language toggle
+        float y1 = y0 + stepY;
+        if (mx >= btnX && mx <= btnX + btnW && my >= y1 && my <= y1 + btnH) {
             GameSettings.language = I18n.getNextLang(GameSettings.language);
             I18n.load(GameSettings.language);
             showStatus(I18n.t("options.language", I18n.getLanguageDisplayName(GameSettings.language)));
             return;
         }
 
-        // Row 1: Save Format Toggle
-        float y1 = y0 + stepY;
-        if (mx >= btnX && mx <= btnX + btnW && my >= y1 && my <= y1 + btnH) {
+        // Row 2: Save Format Toggle
+        float y2 = y1 + stepY;
+        if (mx >= btnX && mx <= btnX + btnW && my >= y2 && my <= y2 + btnH) {
             GameSettings.saveFormat = (GameSettings.saveFormat + 1) % 2;
             showStatus(I18n.t("menu.save_format") + ": " + GameSettings.getSaveFormatName());
             return;
         }
 
-        // Row 2: Log Level Toggle
-        float y2 = y1 + stepY;
-        if (mx >= btnX && mx <= btnX + btnW && my >= y2 && my <= y2 + btnH) {
+        // Row 3: Log Level Toggle
+        float y3 = y2 + stepY;
+        if (mx >= btnX && mx <= btnX + btnW && my >= y3 && my <= y3 + btnH) {
             int curIdx = 0;
             for (int i = 0; i < LOG_LEVELS.length; i++) {
                 if (LOG_LEVELS[i].equalsIgnoreCase(GameSettings.logLevel)) { curIdx = i; break; }
@@ -778,9 +792,9 @@ public class OptionsMenu {
             return;
         }
 
-        // Row 3: Dump Diagnostics Report
-        float y3 = y2 + stepY;
-        if (mx >= btnX && mx <= btnX + btnW && my >= y3 && my <= y3 + btnH) {
+        // Row 4: Dump Diagnostics Report
+        float y4 = y3 + stepY;
+        if (mx >= btnX && mx <= btnX + btnW && my >= y4 && my <= y4 + btnH) {
             Map<String, String> ctx = new HashMap<>();
             if (world != null) {
                 ctx.put("Seed", String.valueOf(world.getSeed()));
@@ -1206,25 +1220,30 @@ public class OptionsMenu {
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 36.0f;
 
-        // Row 0: Language toggle
+        // Row 0: Master Volume Slider
+        float volProg = Math.max(0.0f, Math.min(1.0f, GameSettings.masterVolume / 100.0f));
+        String volStr = I18n.t("options.volume", GameSettings.masterVolume);
+        drawSlider(hud, ortho, btnX, startY, btnW, btnH, volStr, volProg, mx, my);
+
+        // Row 1: Language toggle
         String langName = I18n.getLanguageDisplayName(GameSettings.language);
         String langStr = "< " + I18n.t("options.language", langName) + " >";
-        drawOptionButton(hud, ortho, btnX, startY, btnW, btnH, langStr, mx, my,
+        drawOptionButton(hud, ortho, btnX, startY + stepY, btnW, btnH, langStr, mx, my,
                 new Vector4f(0.20f, 0.40f, 0.60f, 0.95f), new Vector4f(0.30f, 0.55f, 0.85f, 1.0f));
 
-        // Row 1: Save Format Toggle
+        // Row 2: Save Format Toggle
         String formatStr = "< " + I18n.t("menu.save_format") + ": " + GameSettings.getSaveFormatName() + " >";
-        drawOptionButton(hud, ortho, btnX, startY + stepY, btnW, btnH, formatStr, mx, my);
+        drawOptionButton(hud, ortho, btnX, startY + stepY * 2, btnW, btnH, formatStr, mx, my);
 
-        // Row 2: Log Level Toggle
+        // Row 3: Log Level Toggle
         String levelStr = "< " + I18n.t("options.log_level", GameSettings.logLevel) + " >";
-        drawOptionButton(hud, ortho, btnX, startY + stepY * 2, btnW, btnH, levelStr, mx, my);
+        drawOptionButton(hud, ortho, btnX, startY + stepY * 3, btnW, btnH, levelStr, mx, my);
 
-        // Row 3: Manual Crash Dump
-        drawOptionButton(hud, ortho, btnX, startY + stepY * 3, btnW, btnH, I18n.t("options.dump_report"), mx, my);
+        // Row 4: Manual Crash Dump
+        drawOptionButton(hud, ortho, btnX, startY + stepY * 4, btnW, btnH, I18n.t("options.dump_report"), mx, my);
 
-        // Row 4: Live Log preview
-        float logBoxY = startY + stepY * 4 + 8.0f;
+        // Row 5: Live Log preview
+        float logBoxY = startY + stepY * 5 + 8.0f;
         float logBoxW = winW - 50.0f;
         float logBoxH = 100.0f;
         float logBoxX = winX + 25.0f;

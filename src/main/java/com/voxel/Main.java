@@ -520,6 +520,7 @@ public class Main {
         World.RaycastHit hit = world.raycast(player.getEyePosition(), player.getLookDirection(), 6.5f);
         if (hit != null) {
             byte hitId = hit.blockId();
+            com.voxel.audio.SoundSystem.playDigSound(BlockType.fromId(hitId));
             if (BlockType.isUnderwaterPlant(hitId)) {
                 world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.WATER.id, true);
             } else {
@@ -538,6 +539,7 @@ public class Main {
         long pz = hit.prevZ();
         BlockType toPlace = player.getSelectedBlock();
         if (toPlace == BlockType.AIR) {
+            com.voxel.audio.SoundSystem.playDigSound(BlockType.fromId(hit.blockId()));
             world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.AIR.id, true);
         } else {
             BlockType hitBlock = BlockType.fromId(hit.blockId());
@@ -560,6 +562,7 @@ public class Main {
                 if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetX, targetY, targetZ))) {
                     if (Blocks.get(toPlace.id).canSurvive(world, targetX, targetY, targetZ)) {
                         world.setBlock(targetX, targetY, targetZ, toPlace.id, true);
+                        com.voxel.audio.SoundSystem.playPlaceSound(toPlace);
                     }
                 }
                 return;
@@ -583,6 +586,7 @@ public class Main {
             if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetPlaceX, targetPlaceY, targetPlaceZ))) {
                 if (Blocks.get(toPlace.id).canSurvive(world, targetPlaceX, targetPlaceY, targetPlaceZ)) {
                     world.setBlock(targetPlaceX, targetPlaceY, targetPlaceZ, toPlace.id, true);
+                    com.voxel.audio.SoundSystem.playPlaceSound(toPlace);
                 }
             }
         }
@@ -600,6 +604,7 @@ public class Main {
 
     private void initGame() {
         Logger.info("Engine", "Initializing game systems (Atlas, Shaders, HUD, Menus)...");
+        com.voxel.audio.SoundSystem.init();
         textureAtlas = new TextureAtlas();
         chunkShader = ShaderProgram.createChunkShader();
         hudRenderer = new HudRenderer();
@@ -856,6 +861,7 @@ public class Main {
         if (chunkShader != null) chunkShader.cleanup();
         if (textureAtlas != null) textureAtlas.cleanup();
         if (noiseVisualizer != null) noiseVisualizer.cleanup();
+        com.voxel.audio.SoundSystem.cleanup();
 
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);

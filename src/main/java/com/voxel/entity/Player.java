@@ -22,6 +22,9 @@ public class Player extends LivingEntity {
     public boolean noclip = false;
     public boolean sneaking = false;
 
+    private boolean wasInWater = false;
+    private float stepTimer = 0.0f;
+
     public int selectedSlot = 0;
     public final BlockType[] hotbar = java.util.Arrays.copyOf(BlockType.HOTBAR_BLOCKS, 9);
 
@@ -152,6 +155,11 @@ public class Player extends LivingEntity {
             }
         } else {
             boolean inWater = isInWater(world);
+            if (inWater && !wasInWater) {
+                com.voxel.audio.SoundSystem.playSplashSound();
+            }
+            wasInWater = inWater;
+
             this.sneaking = crouchPressed && onGround && !inWater;
             float walkSpeed = (sprint ? 7.4f : (this.sneaking ? 1.75f : 4.8f)) * (inWater ? 0.65f : 1.0f);
             velocity.x = wishDir.x * walkSpeed;
@@ -173,6 +181,28 @@ public class Player extends LivingEntity {
             }
 
             moveWithCollisions(world, (double) velocity.x * dt, (double) velocity.y * dt, (double) velocity.z * dt);
+
+            // Footstep and wading sounds
+            float hSpeed = (float) Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+            if (onGround && !inWater && hSpeed > 0.6f) {
+                stepTimer += dt * (hSpeed / 4.8f);
+                if (stepTimer >= 0.38f) {
+                    stepTimer = 0.0f;
+                    long gx = (long) Math.floor(position.x);
+                    long gy = (long) Math.floor(position.y - 0.25);
+                    long gz = (long) Math.floor(position.z);
+                    byte groundBlock = (world != null) ? world.getBlock(gx, gy, gz) : BlockType.GRASS.id;
+                    com.voxel.audio.SoundSystem.playStepSound(BlockType.fromId(groundBlock));
+                }
+            } else if (inWater && hSpeed > 0.6f) {
+                stepTimer += dt;
+                if (stepTimer >= 0.65f) {
+                    stepTimer = 0.0f;
+                    com.voxel.audio.SoundSystem.playSplashSound();
+                }
+            } else {
+                stepTimer = Math.max(0.0f, stepTimer - dt * 0.5f);
+            }
         }
 
         // Smooth camera eye height interpolation (standing <-> sneaking)

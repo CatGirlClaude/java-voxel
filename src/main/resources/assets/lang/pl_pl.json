@@ -62,7 +62,7 @@
   "options.invert_y": "Odwroc os Y myszy: %s",
   "options.fly_default": "Latanie domyslnie: %s",
   "options.eye_height": "Wysokosc oczu gracza: %.2fm",
-  "options.volume": "Glosnosc glowna: %d%%",
+  "options.volume": "Glosnosc glowna: %s%%",
   "options.log_level": "Poziom logowania: %s",
   "options.language": "Jezyk: %s",
 

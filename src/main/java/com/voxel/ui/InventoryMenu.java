@@ -157,10 +157,12 @@ public class InventoryMenu {
         if (button == GLFW_MOUSE_BUTTON_LEFT && my >= tabY && my <= tabY + tabH) {
             if (mx >= tab0X && mx <= tab0X + tabW) {
                 currentTab = 0;
+                com.voxel.audio.SoundSystem.playClickSound();
                 return true;
             }
             if (mx >= tab1X && mx <= tab1X + tabW) {
                 currentTab = 1;
+                com.voxel.audio.SoundSystem.playClickSound();
                 return true;
             }
         }
@@ -201,6 +203,7 @@ public class InventoryMenu {
             if (button == GLFW_MOUSE_BUTTON_LEFT && mx >= modeBtnX && mx <= modeBtnX + modeBtnW &&
                     my >= modeBtnY && my <= modeBtnY + modeBtnH) {
                 craftingMode = 1 - craftingMode;
+                com.voxel.audio.SoundSystem.playClickSound();
                 return true;
             }
 
@@ -212,6 +215,7 @@ public class InventoryMenu {
             if (button == GLFW_MOUSE_BUTTON_LEFT && mx >= clearBtnX && mx <= clearBtnX + clearBtnW &&
                     my >= clearBtnY && my <= clearBtnY + clearBtnH) {
                 clearCraftGrid();
+                com.voxel.audio.SoundSystem.playClickSound();
                 return true;
             }
 
@@ -249,6 +253,7 @@ public class InventoryMenu {
                     CraftingManager.CraftResult res = getActiveCraftResult();
                     if (res != null) {
                         player.setHotbarSlot(player.selectedSlot, res.result());
+                        com.voxel.audio.SoundSystem.playCraftSound();
                         // Consume 1 of each ingredient from active grid
                         for (int r = 0; r < gridSize; r++) {
                             for (int c = 0; c < gridSize; c++) {

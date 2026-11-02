@@ -156,7 +156,12 @@
 - [x] **Ekran wyboru świata w stylu Minecraft:**
   - Usunięto podwójny komunikat o wczytaniu świata na czacie (usunięto nadmiarowe ładowanie wstępne w `Main.java` oraz dodano `chatSystem.clear()`).
   - Menu główne [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java) wyświetla teraz przycisk "Select World" / "Wybierz swiat", prowadzący do pełnej listy światów z obsługą grania (w tym podwójne kliknięcie), tworzenia nowych światów oraz bezpiecznego usuwania.
-- [ ] **Dźwięki bloków i otoczenia:** Dźwięki stawiania/niszczenia bloków (trawa, kamień, drewno, piasek, woda) oraz dźwięki kroków i pluskania.
+- [x] **Dźwięki bloków i otoczenia:**
+  - W [`SoundSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/audio/SoundSystem.java) zaimplementowano w 100% proceduralną syntezę dźwięku PCM 22050 Hz (brak zewnętrznych zależności DLL/OpenAL, zgodność z czystym Java SE/Windows).
+  - Dźwięki niszczenia i stawiania bloków z podziałem na materiały (`GRASS`, `STONE`, `WOOD`, `SAND`, `GRAVEL`, `GLASS`, `PLANT`, `WATER`) oraz modulacją wysokości tonu.
+  - Dźwięki kroków i pluskania przy poruszaniu się i skokach w wodzie w [`Player.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/Player.java).
+  - Dźwięki interfejsu (kliknięcie i crafting) w [`InventoryMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/InventoryMenu.java).
+  - Suwak Master Volume (0%–100%) w zakładce System w [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) z natychmiastowym skalowaniem próbek bufora PCM.
 - [x] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
 - [x] **Płynne oświetlenie (Smooth Lighting):**
   - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) zaimplementowano propagację światła słonecznego oraz blokowego algorytmem BFS (`propagateLight`).

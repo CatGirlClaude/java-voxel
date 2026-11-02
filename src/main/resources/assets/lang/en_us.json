@@ -62,7 +62,7 @@
   "options.invert_y": "Invert Mouse Y: %s",
   "options.fly_default": "Fly by Default: %s",
   "options.eye_height": "Player Eye Height: %.2fm",
-  "options.volume": "Master Volume: %d%%",
+  "options.volume": "Master Volume: %s%%",
   "options.log_level": "Log Level: %s",
   "options.language": "Language: %s",
 
