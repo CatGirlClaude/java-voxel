@@ -61,5 +61,6 @@
 - [x] 56. Napraw: nie mozna stawiac blokow pod woda (solidne bloki moga byc stawiane pod woda, prawidlowo wypierajac wode)
 - [x] 57. Sea grass nie powinno dac sie stackowac (wylaczenie stackowania dla trawy morskiej, tylko Kelp jest roslina rosnaca wielosegmentowo w gore)
 - [x] 58. Napraw szachownice koryta rzeki i zapadniete plytki wody (poglebienie kanalu rzeki ponizej poziomu morza do Y=24..26 oraz wzniesienie brzegow do Y>=29, eliminacja oscylacji trawa/woda na poziomie Y=28)
+- [x] 59. Napraw przenikanie efektu wody na sasiednie bloki w atlasie (grass_block, dirt, sand, planks, cactus) oraz wyciek wody z wodorostow (kelp/seagrass) na ladzie (wprowadzenie uniformu uIsWaterPass, zawezenie detekcji UV scisle do kafelka 9, zakaz sadzenia i usuwanie kafelka wody wodorostow powyzej SEA_LEVEL)
 
 

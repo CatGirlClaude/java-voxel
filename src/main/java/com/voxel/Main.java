@@ -519,7 +519,12 @@ public class Main {
         if (world == null || player == null) return;
         World.RaycastHit hit = world.raycast(player.getEyePosition(), player.getLookDirection(), 6.5f);
         if (hit != null) {
-            world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.AIR.id, true);
+            byte hitId = hit.blockId();
+            if (BlockType.isUnderwaterPlant(hitId)) {
+                world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.WATER.id, true);
+            } else {
+                world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.AIR.id, true);
+            }
         }
     }
 
@@ -549,8 +554,9 @@ public class Main {
                     targetY++;
                 }
                 byte atTarget = world.getBlock(targetX, targetY, targetZ);
-                boolean canOccupy = (atTarget == BlockType.AIR.id)
-                        || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget));
+                boolean canOccupy = BlockType.isUnderwaterPlant(toPlace.id)
+                        ? BlockType.isWater(atTarget)
+                        : (atTarget == BlockType.AIR.id);
                 if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetX, targetY, targetZ))) {
                     if (Blocks.get(toPlace.id).canSurvive(world, targetX, targetY, targetZ)) {
                         world.setBlock(targetX, targetY, targetZ, toPlace.id, true);
@@ -565,10 +571,14 @@ public class Main {
             long targetPlaceZ = isReplaceable ? hit.z() : pz;
 
             byte atTarget = world.getBlock(targetPlaceX, targetPlaceY, targetPlaceZ);
-            boolean canOccupy = (atTarget == BlockType.AIR.id)
-                    || (targetPlaceX == hit.x() && targetPlaceY == hit.y() && targetPlaceZ == hit.z() && isReplaceable)
-                    || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget))
-                    || (toPlace.solid && BlockType.isWater(atTarget));
+            boolean canOccupy;
+            if (BlockType.isUnderwaterPlant(toPlace.id)) {
+                canOccupy = BlockType.isWater(atTarget);
+            } else {
+                canOccupy = (atTarget == BlockType.AIR.id)
+                        || (targetPlaceX == hit.x() && targetPlaceY == hit.y() && targetPlaceZ == hit.z() && isReplaceable)
+                        || (toPlace.solid && BlockType.isWater(atTarget));
+            }
 
             if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetPlaceX, targetPlaceY, targetPlaceZ))) {
                 if (Blocks.get(toPlace.id).canSurvive(world, targetPlaceX, targetPlaceY, targetPlaceZ)) {
@@ -783,6 +793,7 @@ public class Main {
         chunkShader.setUniform("uFogStart", fogStart);
         chunkShader.setUniform("uFogEnd", fogEnd);
         chunkShader.setUniform("uTime", (float) glfwGetTime());
+        chunkShader.setUniform("uIsWaterPass", 0.0f);
 
         glActiveTexture(GL_TEXTURE0);
         textureAtlas.bind();

@@ -1163,6 +1163,7 @@ public class World {
         lastRenderedChunkCount = visibleOpaque.size() + visibleTransparent.size();
 
         // 1. Render visible opaque chunks (Early-Z hardware optimization)
+        chunkShader.setUniform("uIsWaterPass", 0.0f);
         for (Chunk c : visibleOpaque) {
             setChunkOffsetUniform(c, eyePos, chunkShader);
             c.renderOpaque();
@@ -1183,10 +1184,12 @@ public class World {
                 return Double.compare(dbx * dbx + dby * dby + dbz * dbz, dax * dax + day * day + daz * daz);
             });
 
+            chunkShader.setUniform("uIsWaterPass", 1.0f);
             for (Chunk c : visibleTransparent) {
                 setChunkOffsetUniform(c, eyePos, chunkShader);
                 c.renderTransparent();
             }
+            chunkShader.setUniform("uIsWaterPass", 0.0f);
 
             glDisable(GL_BLEND);
         }

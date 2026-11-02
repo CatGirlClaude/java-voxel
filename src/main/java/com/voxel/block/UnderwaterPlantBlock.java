@@ -30,4 +30,13 @@ public class UnderwaterPlantBlock extends PlantBlock {
         Block groundBlock = Blocks.get(ground);
         return groundBlock != null && groundBlock.isSolid() && ground != Blocks.AIR.getRawId() && !com.voxel.block.BlockType.isWater(ground);
     }
+
+    @Override
+    public void neighborChanged(World world, long x, long y, long z, long fromX, long fromY, long fromZ) {
+        if (fromY == y - 1 && fromX == x && fromZ == z) {
+            if (!canSurvive(world, x, y, z)) {
+                world.setBlock(x, y, z, (byte) com.voxel.block.BlockType.WATER.id, true);
+            }
+        }
+    }
 }

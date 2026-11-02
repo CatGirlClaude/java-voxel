@@ -296,5 +296,16 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
     - Brzegi rzek wznoszą się płynnie i zdecydowanie ponad taflę wody na poziom suchego lądu (Y >= 29).
     - Wyeliminowano zatrzymywanie się generowania powierzchni na poziomie Y=28, usuwając szachownicę zapadniętych o 0.10f kałuż wodnych w trawie, zjawisko ucinania/migotania ścianek bloków brzegowych oraz clipping fal wodnych.
   - W [`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java) dostosowano amplitudę falowania wody do bezpiecznych, organicznych wartości (+/- 0.05f).
+- [x] **#59. Izolacja shadera wody i eliminacja artefaktów na blokach lądowych i wodorostach:**
+  - Rozwiązano problem niebieskich łat wody, falowania wierzchołków i przezroczystości na sąsiednich kafelkach atlasu teksturowego ([`grass_block`], [`dirt`], [`sand`], [`oak_planks`], [`cactus`]):
+    - W [`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java) dodano uniform `uniform float uIsWaterPass`.
+    - W vertex shaderze warunek detekcji wody aktywowany jest wyłącznie podczas passu przezroczystego (`uIsWaterPass > 0.5`) oraz zawężony rygorystycznie do wnętrza kafelka 9 (`aTexCoord.x >= 0.1265 && aTexCoord.x <= 0.2485 && aTexCoord.y >= 0.1265 && aTexCoord.y <= 0.2485`), całkowicie uniemożliwiając przenikanie efektów falowania, clampingu UV oraz koloru na wierzchołki bloków nieprzezroczystych.
+    - W [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java) przed renderowaniem `visibleOpaque` uniform ustawiany jest na `0.0f`, a dla `visibleTransparent` na `1.0f`.
+  - Naprawiono mechanikę wodorostów ([`KELP`]) i trawy morskiej ([`SEAGRASS`]):
+    - W [`UnderwaterPlantBlock.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/UnderwaterPlantBlock.java) wprowadzono wymóg `y <= Chunk.SEA_LEVEL` w `canSurvive`, uniemożliwiający sadzenie i przetrwanie roślin podwodnych na suchym lądzie powyżej poziomu wody.
+    - Zaimplementowano `neighborChanged`, dzięki czemu zniszczenie bloku nośnego pod wodorostami przywraca w tym miejscu czysty blok wody.
+    - W [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) niszczenie wodorostów/trawy morskiej LPM przywraca wodę (`BlockType.WATER.id`) zamiast tworzyć kieszeń powietrza, a stawianie PPM zezwala wyłącznie na zastępowanie wody (`BlockType.isWater(atTarget)`).
+    - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) metoda `emitWaterloggedFaces` pomija jakiekolwiek ścianki wody powyżej poziomu morza (`wy > Chunk.SEA_LEVEL`) oraz uszczelnia ścianki boczne przy styku z powietrzem.
+
 
 

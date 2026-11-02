@@ -100,6 +100,7 @@ public class ShaderProgram {
                 uniform mat4 uProjView;
                 uniform vec3 uChunkOffset;
                 uniform float uTime;
+                uniform float uIsWaterPass;
 
                 out vec2 vTexCoord;
                 out vec3 vWorldPos;
@@ -111,9 +112,10 @@ public class ShaderProgram {
 
                 void main() {
                     vec3 relPos = aPos + uChunkOffset;
-                    // Detect water vertices: tile 9 in 8x8 atlas has UVs in [0.120, 0.255]
-                    bool isWater = (aTexCoord.x >= 0.120 && aTexCoord.x <= 0.255 &&
-                                    aTexCoord.y >= 0.120 && aTexCoord.y <= 0.255);
+                    // Strictly detect water vertices: ONLY active in water pass AND inside tile 9 UV range
+                    bool isWater = (uIsWaterPass > 0.5) &&
+                                   (aTexCoord.x >= 0.1265 && aTexCoord.x <= 0.2485 &&
+                                    aTexCoord.y >= 0.1265 && aTexCoord.y <= 0.2485);
                     vIsWater = isWater ? 1.0 : 0.0;
                     if (isWater) {
                         float wave1 = sin(relPos.x * 1.2 + uTime * 2.0) * cos(relPos.z * 1.2 + uTime * 1.7) * 0.032;

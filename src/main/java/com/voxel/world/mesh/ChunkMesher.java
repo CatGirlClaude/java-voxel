@@ -261,9 +261,30 @@ public final class ChunkMesher {
     private static void emitWaterloggedFaces(FloatList transData,
                                              int x, int y, int z, int gx, int gy, int gz,
                                              long wx, long wy, long wz, World world, MesherContext ctx) {
+        boolean isInWater = (wy <= Chunk.SEA_LEVEL)
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx, gy + 1, gz)])
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx, gy - 1, gz)])
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx + 1, gy, gz)])
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx - 1, gy, gz)])
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx, gy, gz + 1)])
+                || BlockType.isWater(ctx.scratchBlocks[gridIndex(gx, gy, gz - 1)]);
+        if (!isInWater) return;
+
         byte aboveId = ctx.scratchBlocks[gridIndex(gx, gy + 1, gz)];
         if (aboveId == BlockType.AIR.id) {
             emitFaceFast(transData, BlockType.WATER, 0, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+        }
+        if (ctx.scratchBlocks[gridIndex(gx, gy, gz + 1)] == BlockType.AIR.id) {
+            emitFaceFast(transData, BlockType.WATER, 2, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+        }
+        if (ctx.scratchBlocks[gridIndex(gx, gy, gz - 1)] == BlockType.AIR.id) {
+            emitFaceFast(transData, BlockType.WATER, 3, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+        }
+        if (ctx.scratchBlocks[gridIndex(gx + 1, gy, gz)] == BlockType.AIR.id) {
+            emitFaceFast(transData, BlockType.WATER, 4, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
+        }
+        if (ctx.scratchBlocks[gridIndex(gx - 1, gy, gz)] == BlockType.AIR.id) {
+            emitFaceFast(transData, BlockType.WATER, 5, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
         }
     }
 
