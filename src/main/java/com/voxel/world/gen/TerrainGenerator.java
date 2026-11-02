@@ -560,69 +560,71 @@ public final class TerrainGenerator {
                             if (chance < 14) decorId = BlockType.TALL_GRASS.id;
                         }
                         case JUNGLE -> {
-                            // Extra lush, overgrown tropical vegetation (68% total coverage)
-                            if (chance < 135) decorId = BlockType.TALL_GRASS.id;
-                            else if (chance < 175) {
-                                decorId = ((hash & 0x400) == 0) ? BlockType.FLOWER.id : BlockType.BLUE_ORCHID.id;
+                            // Extra lush tropical vegetation with orchid patches
+                            if (isInFlowerPatch(wx, wz)) {
+                                if (chance < 175) {
+                                    decorId = ((hash & 3) == 0) ? BlockType.TALL_GRASS.id : getFlowerPatchSpecies(wx, wz, biome);
+                                }
+                            } else {
+                                if (chance < 135) decorId = BlockType.TALL_GRASS.id;
+                                else if (chance < 145) decorId = getFlowerPatchSpecies(wx, wz, biome);
                             }
                         }
                         case PLAINS -> {
-                            // Dense waving prairie grass (58% coverage) with flower meadow patches
+                            // Dense waving prairie grass with clustered flower patches
+                            boolean inPatch = isInFlowerPatch(wx, wz);
                             double flowerNoise = noise.noise2D(wx * 0.06, wz * 0.06);
-                            if (flowerNoise > 0.32) {
-                                if (chance < 160) {
+                            if (inPatch) {
+                                // Inside a flower cluster: dominant flower species of this patch
+                                if (chance < 170) {
                                     if ((hash & 3) == 0) {
                                         decorId = BlockType.TALL_GRASS.id;
                                     } else {
-                                        int fType = (hash >>> 10) & 7;
-                                        decorId = switch (fType) {
-                                            case 0, 1 -> BlockType.DANDELION.id;
-                                            case 2, 3 -> BlockType.ROSE.id;
-                                            case 4 -> BlockType.BLUE_ORCHID.id;
-                                            case 5 -> BlockType.ALLIUM.id;
-                                            default -> BlockType.FLOWER.id;
-                                        };
+                                        decorId = getFlowerPatchSpecies(wx, wz, biome);
                                     }
                                 }
+                            } else if (flowerNoise > 0.32) {
+                                // Meadow zones between dense patches: tall grass with scattered patch flowers
+                                if (chance < 150) {
+                                    decorId = ((hash & 7) == 0) ? getFlowerPatchSpecies(wx, wz, biome) : BlockType.TALL_GRASS.id;
+                                }
                             } else {
-                                if (chance < 130) decorId = BlockType.TALL_GRASS.id;
-                                else if (chance < 148) {
-                                    int fType = (hash >>> 10) & 3;
-                                    decorId = (fType == 0) ? BlockType.DANDELION.id : ((fType == 1) ? BlockType.ROSE.id : BlockType.FLOWER.id);
+                                // Standard open plains
+                                if (chance < 130) {
+                                    decorId = BlockType.TALL_GRASS.id;
+                                } else if (chance < 138) {
+                                    decorId = getFlowerPatchSpecies(wx, wz, biome);
                                 }
                             }
                         }
                         case FOREST, BIRCH_FOREST -> {
-                            // Lush woodland undergrowth (44% coverage)
-                            if (chance < 100) decorId = BlockType.TALL_GRASS.id;
-                            else if (chance < 114) {
-                                int fType = (hash >>> 10) & 3;
-                                decorId = switch (fType) {
-                                    case 0 -> BlockType.ROSE.id;
-                                    case 1 -> BlockType.ALLIUM.id;
-                                    case 2 -> BlockType.DANDELION.id;
-                                    default -> BlockType.FLOWER.id;
-                                };
+                            // Lush woodland undergrowth with clustered woodland flower clearings
+                            if (isInFlowerPatch(wx, wz)) {
+                                if (chance < 120) {
+                                    decorId = ((hash & 3) == 0) ? BlockType.TALL_GRASS.id : getFlowerPatchSpecies(wx, wz, biome);
+                                }
+                            } else {
+                                if (chance < 100) decorId = BlockType.TALL_GRASS.id;
                             }
                         }
                         case TAIGA -> {
-                            // Pine needles, ferns and wild tall grass (36% coverage)
-                            if (chance < 90) decorId = BlockType.TALL_GRASS.id;
-                            else if (chance < 96) {
-                                int fType = (hash >>> 10) & 1;
-                                decorId = (fType == 0) ? BlockType.BLUE_ORCHID.id : BlockType.FLOWER.id;
+                            // Pine needles, ferns and wild tall grass with occasional orchid patches
+                            if (isInFlowerPatch(wx, wz)) {
+                                if (chance < 95) {
+                                    decorId = ((hash & 3) == 0) ? BlockType.TALL_GRASS.id : getFlowerPatchSpecies(wx, wz, biome);
+                                }
+                            } else {
+                                if (chance < 90) decorId = BlockType.TALL_GRASS.id;
                             }
                         }
                         case MOUNTAINS -> {
-                            // Green mountain meadows below rock peaks (30% coverage)
-                            if (chance < 70) decorId = BlockType.TALL_GRASS.id;
-                            else if (chance < 82) {
-                                int fType = (hash >>> 10) & 3;
-                                decorId = switch (fType) {
-                                    case 0 -> BlockType.BLUE_ORCHID.id;
-                                    case 1 -> BlockType.ROSE.id;
-                                    default -> BlockType.DANDELION.id;
-                                };
+                            // Green mountain meadows below rock peaks with alpine flower patches
+                            if (isInFlowerPatch(wx, wz)) {
+                                if (chance < 85) {
+                                    decorId = ((hash & 3) == 0) ? BlockType.TALL_GRASS.id : getFlowerPatchSpecies(wx, wz, biome);
+                                }
+                            } else {
+                                if (chance < 70) decorId = BlockType.TALL_GRASS.id;
                             }
                         }
                         case SNOWY_TUNDRA -> {
@@ -630,18 +632,13 @@ public final class TerrainGenerator {
                             if (chance < 36) decorId = BlockType.TALL_GRASS.id;
                         }
                         case RIVER -> {
-                            // Lush riverbank vegetation and riverside hills (tall grass & wildflowers)
-                            if (chance < 120) {
-                                decorId = BlockType.TALL_GRASS.id;
-                            } else if (chance < 142) {
-                                int fType = (hash >>> 10) & 7;
-                                decorId = switch (fType) {
-                                    case 0, 1 -> BlockType.DANDELION.id;
-                                    case 2, 3 -> BlockType.ROSE.id;
-                                    case 4, 5 -> BlockType.BLUE_ORCHID.id; // Riverbank wetland flower
-                                    case 6 -> BlockType.ALLIUM.id;
-                                    default -> BlockType.FLOWER.id;
-                                };
+                            // Lush riverbank vegetation with flower patches along banks
+                            if (isInFlowerPatch(wx, wz)) {
+                                if (chance < 145) {
+                                    decorId = ((hash & 3) == 0) ? BlockType.TALL_GRASS.id : getFlowerPatchSpecies(wx, wz, biome);
+                                }
+                            } else {
+                                if (chance < 120) decorId = BlockType.TALL_GRASS.id;
                             }
                         }
                         default -> {
@@ -1218,6 +1215,54 @@ public final class TerrainGenerator {
         double c0 = c00 * (1.0 - fy) + c10 * fy;
         double c1 = c01 * (1.0 - fy) + c11 * fy;
         return c0 * (1.0 - fz) + c1 * fz;
+    }
+
+    private static boolean isInFlowerPatch(long wx, long wz) {
+        long cellX = Math.floorDiv(wx, 20L);
+        long cellZ = Math.floorDiv(wz, 20L);
+        int cellHash = hashCoords(cellX * 31L, cellZ * 47L);
+        long centerX = cellX * 20L + 4L + ((cellHash & 0xF) % 12L);
+        long centerZ = cellZ * 20L + 4L + (((cellHash >>> 4) & 0xF) % 12L);
+        long dx = wx - centerX;
+        long dz = wz - centerZ;
+        return (dx * dx + dz * dz) <= 28L; // Circular cluster radius ~5.3 blocks
+    }
+
+    private static byte getFlowerPatchSpecies(long wx, long wz, Biome biome) {
+        long cellX = Math.floorDiv(wx, 20L);
+        long cellZ = Math.floorDiv(wz, 20L);
+        int cellHash = hashCoords(cellX * 31L, cellZ * 47L);
+        int species = (cellHash >>> 8) & 7;
+
+        return switch (biome) {
+            case PLAINS -> switch (species % 5) {
+                case 0 -> BlockType.DANDELION.id;
+                case 1 -> BlockType.ROSE.id;
+                case 2 -> BlockType.BLUE_ORCHID.id;
+                case 3 -> BlockType.ALLIUM.id;
+                default -> BlockType.FLOWER.id;
+            };
+            case FOREST, BIRCH_FOREST -> switch (species % 4) {
+                case 0 -> BlockType.ROSE.id;
+                case 1 -> BlockType.ALLIUM.id;
+                case 2 -> BlockType.DANDELION.id;
+                default -> BlockType.FLOWER.id;
+            };
+            case TAIGA -> ((species & 1) == 0) ? BlockType.BLUE_ORCHID.id : BlockType.FLOWER.id;
+            case JUNGLE -> ((species & 1) == 0) ? BlockType.FLOWER.id : BlockType.BLUE_ORCHID.id;
+            case MOUNTAINS -> switch (species % 3) {
+                case 0 -> BlockType.BLUE_ORCHID.id;
+                case 1 -> BlockType.ROSE.id;
+                default -> BlockType.DANDELION.id;
+            };
+            case RIVER -> switch (species % 4) {
+                case 0 -> BlockType.BLUE_ORCHID.id;
+                case 1 -> BlockType.DANDELION.id;
+                case 2 -> BlockType.ROSE.id;
+                default -> BlockType.FLOWER.id;
+            };
+            default -> BlockType.FLOWER.id;
+        };
     }
 
     private static int hashCoords(long x, long z) {

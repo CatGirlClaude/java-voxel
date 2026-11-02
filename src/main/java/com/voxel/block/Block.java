@@ -167,6 +167,10 @@ public class Block {
         return true;
     }
 
+    public boolean isStackable() {
+        return false;
+    }
+
     public void onPlaced(World world, long x, long y, long z) {}
 
     public void onBroken(World world, long x, long y, long z) {}

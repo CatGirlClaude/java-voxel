@@ -99,6 +99,7 @@ public class ShaderProgram {
 
                 uniform mat4 uProjView;
                 uniform vec3 uChunkOffset;
+                uniform float uTime;
 
                 out vec2 vTexCoord;
                 out vec3 vWorldPos;
@@ -106,9 +107,19 @@ public class ShaderProgram {
                 out float vBlockLight;
                 out float vDist;
                 out vec3 vColor;
+                out float vIsWater;
 
                 void main() {
                     vec3 relPos = aPos + uChunkOffset;
+                    // Detect water vertices: tile 9 in 8x8 atlas has UVs in [0.120, 0.255]
+                    bool isWater = (aTexCoord.x >= 0.120 && aTexCoord.x <= 0.255 &&
+                                    aTexCoord.y >= 0.120 && aTexCoord.y <= 0.255);
+                    vIsWater = isWater ? 1.0 : 0.0;
+                    if (isWater) {
+                        float wave1 = sin(relPos.x * 1.2 + uTime * 2.0) * cos(relPos.z * 1.2 + uTime * 1.7) * 0.06;
+                        float wave2 = sin((relPos.x + relPos.z) * 0.7 + uTime * 1.2) * 0.04;
+                        relPos.y += wave1 + wave2;
+                    }
                     gl_Position = uProjView * vec4(relPos, 1.0);
                     vTexCoord = aTexCoord;
                     vWorldPos = relPos;
@@ -127,6 +138,7 @@ public class ShaderProgram {
                 in float vBlockLight;
                 in float vDist;
                 in vec3 vColor;
+                in float vIsWater;
 
                 uniform sampler2D uTexture;
                 uniform float uSunIntensity;
@@ -139,11 +151,29 @@ public class ShaderProgram {
                 out vec4 FragColor;
 
                 void main() {
-                    vec4 texColor = texture(uTexture, vTexCoord);
+                    vec2 uv = vTexCoord;
+                    if (vIsWater > 0.5) {
+                        // Dynamic water ripple UV displacement kept within tile 9
+                        float rippleU = sin(vWorldPos.z * 2.2 + uTime * 2.2) * 0.003;
+                        float rippleV = cos(vWorldPos.x * 2.2 + uTime * 2.2) * 0.003;
+                        uv.x = clamp(uv.x + rippleU, 0.127, 0.248);
+                        uv.y = clamp(uv.y + rippleV, 0.127, 0.248);
+                    }
+
+                    vec4 texColor = texture(uTexture, uv);
 
                     if (texColor.a < 0.05) {
                         discard;
                     }
+
+                    if (vIsWater > 0.5) {
+                        // Fluid azure ocean tint and sunlight specular glint
+                        texColor.rgb = mix(texColor.rgb, vec3(0.12, 0.38, 0.75), 0.30);
+                        float specular = pow(max(0.0, sin(vWorldPos.x * 2.5 + uTime * 2.4) * cos(vWorldPos.z * 2.5 + uTime * 1.9)), 6.0);
+                        texColor.rgb += vec3(0.15 * specular * uSunIntensity);
+                        texColor.a = 0.82;
+                    }
+
                     float light = max(vSkyLight * uSunIntensity, vBlockLight);
                     vec3 litColor = texColor.rgb * vColor * light * uTintColor;
 

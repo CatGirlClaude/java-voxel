@@ -55,4 +55,7 @@
 - [x] 50. Dodaj mozliwosc zmiany keybindow w menu opcji
 - [x] 51. Zdiagnozuj dlaczego stojac w kanionie rzeki teren sie nie renderuje (naprawienie okluzji wzgorz cullingujacej doliny, przywrocenie w pelni widocznego terenu)
 - [x] 52. Dodaj trawe oraz roslinnosc do pagorkow i zboczy kolo rzek (bogata roslinnosc tall grass i kwiatow w Biome.RIVER)
+- [x] 53. Dodaj mozliwosc stackowania sugar cane, kelp i innych takich (stawianie roslin jedna na drugiej w gore, prawidlowe canSurvive i brak zastepowania bloku)
+- [x] 54. Dodaj "plynnosc" wody (falowanie tafli wody uTime w shaderze wierzcholkow, dynamiczny ripple UV, specular glint oraz plynna przezroczystosc z blendingiem)
+- [x] 55. Kwiaty powinny rosnac w patchach (deterministyczne klastry/gaje okreslonego gatunku per strefa 20x20 zamiast losowego confetti na kazdym 1 bloku)
 

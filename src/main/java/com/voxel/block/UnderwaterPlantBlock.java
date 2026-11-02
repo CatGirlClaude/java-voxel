@@ -9,6 +9,11 @@ public class UnderwaterPlantBlock extends PlantBlock {
     }
 
     @Override
+    public boolean isStackable() {
+        return true;
+    }
+
+    @Override
     public boolean canSurvive(World world, long x, long y, long z) {
         if (world == null) return true;
         byte ground = world.getBlock(x, y - 1, z);

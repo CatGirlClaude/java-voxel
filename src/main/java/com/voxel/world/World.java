@@ -11,6 +11,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
+import static org.lwjgl.opengl.GL11.*;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1168,6 +1170,9 @@ public class World {
 
         // 2. Sort and render visible transparent chunks (only the few chunks with water/ice in view)
         if (!visibleTransparent.isEmpty()) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
             visibleTransparent.sort((a, b) -> {
                 double dax = (a.chunkX * Chunk.SIZE_X + 8.0) - eyePos.x;
                 double day = (a.chunkY * Chunk.SIZE_Y + 8.0) - eyePos.y;
@@ -1182,6 +1187,8 @@ public class World {
                 setChunkOffsetUniform(c, eyePos, chunkShader);
                 c.renderTransparent();
             }
+
+            glDisable(GL_BLEND);
         }
     }
 

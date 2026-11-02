@@ -1,6 +1,7 @@
 package com.voxel;
 
 import com.voxel.block.BlockType;
+import com.voxel.block.Blocks;
 import com.voxel.config.GameSettings;
 import com.voxel.entity.Player;
 import com.voxel.i18n.I18n;
@@ -535,23 +536,42 @@ public class Main {
             world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.AIR.id, true);
         } else {
             BlockType hitBlock = BlockType.fromId(hit.blockId());
-            if (toPlace.crossModel) {
-                long targetPlaceX = hitBlock.crossModel ? hit.x() : px;
-                long targetPlaceY = hitBlock.crossModel ? hit.y() : py;
-                long targetPlaceZ = hitBlock.crossModel ? hit.z() : pz;
-                byte groundBlock = world.getBlock(targetPlaceX, targetPlaceY - 1, targetPlaceZ);
-                if (groundBlock == BlockType.STONE.id || groundBlock == BlockType.COBBLESTONE.id
-                        || groundBlock == BlockType.SAND.id || groundBlock == BlockType.SANDSTONE.id
-                        || groundBlock == BlockType.TERRACOTTA.id || groundBlock == BlockType.RED_SAND.id
-                        || groundBlock == BlockType.AIR.id || groundBlock == BlockType.WATER.id
-                        || groundBlock == BlockType.ICE.id) {
-                    return;
+            boolean isStackable = (toPlace == BlockType.SUGAR_CANE || toPlace == BlockType.KELP
+                    || toPlace == BlockType.CACTUS || Blocks.get(toPlace.id).isStackable());
+
+            // Stacking on top of the same plant block
+            if (isStackable && hitBlock == toPlace) {
+                long targetX = hit.x();
+                long targetY = hit.y() + 1;
+                long targetZ = hit.z();
+                while (world.getBlock(targetX, targetY, targetZ) == toPlace.id) {
+                    targetY++;
                 }
+                byte atTarget = world.getBlock(targetX, targetY, targetZ);
+                boolean canOccupy = (atTarget == BlockType.AIR.id)
+                        || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget));
+                if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetX, targetY, targetZ))) {
+                    if (Blocks.get(toPlace.id).canSurvive(world, targetX, targetY, targetZ)) {
+                        world.setBlock(targetX, targetY, targetZ, toPlace.id, true);
+                    }
+                }
+                return;
             }
-            if (hitBlock.crossModel && (!toPlace.solid || !player.intersectsBlock(hit.x(), hit.y(), hit.z()))) {
-                world.setBlock(hit.x(), hit.y(), hit.z(), toPlace.id, true);
-            } else if (!toPlace.solid || !player.intersectsBlock(px, py, pz)) {
-                world.setBlock(px, py, pz, toPlace.id, true);
+
+            boolean isReplaceable = (hitBlock == BlockType.TALL_GRASS);
+            long targetPlaceX = isReplaceable ? hit.x() : px;
+            long targetPlaceY = isReplaceable ? hit.y() : py;
+            long targetPlaceZ = isReplaceable ? hit.z() : pz;
+
+            byte atTarget = world.getBlock(targetPlaceX, targetPlaceY, targetPlaceZ);
+            boolean canOccupy = (atTarget == BlockType.AIR.id)
+                    || (targetPlaceX == hit.x() && targetPlaceY == hit.y() && targetPlaceZ == hit.z() && isReplaceable)
+                    || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget));
+
+            if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetPlaceX, targetPlaceY, targetPlaceZ))) {
+                if (Blocks.get(toPlace.id).canSurvive(world, targetPlaceX, targetPlaceY, targetPlaceZ)) {
+                    world.setBlock(targetPlaceX, targetPlaceY, targetPlaceZ, toPlace.id, true);
+                }
             }
         }
     }
