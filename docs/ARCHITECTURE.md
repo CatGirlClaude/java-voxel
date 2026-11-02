@@ -37,13 +37,20 @@ Kompleksowy dokument architektoniczny i mapa drogowa silnika voxelowego **Java V
 | **19** | Auto-dopasowywanie tekstu w przyciskach | ✅ **ZREALIZOWANE** | `TextRenderer.java`: metoda `drawTextCenteredInBox(...)` rygorystycznie pilnuje marginesów, cienia i skalowania z obcięciem. |
 | **21** | Zmiana przycisków cyklicznych na slidery w UI | ✅ **ZREALIZOWANE** | `OptionsMenu.java`: interaktywne suwaki z przeciąganym uchwytem dla Render Distance, FOV, Brightness, Sensitivity, Hold Delay. |
 | **22** | Przeliczanie layoutu GUI po zmianie rozmiaru okna | ✅ **ZREALIZOWANE** | `Main.java` i ekrany GUI: callback `glfwSetFramebufferSizeCallback` wywołuje `recalculateGuiLayout()` oraz `onResize()` we wszystkich menu. |
-| **23** | Assety bloków jako pliki PNG zamiast kodu | ⏳ **OTWARTE** | Do zrobienia: ładowanie plików PNG z `run/assets/textures/block/` przez `lwjgl-stb` i migracja na `GL_TEXTURE_2D_ARRAY`. |
-| **24** | Globalna modułowa architektura rejestrów i obiektów gry | ⏳ **OTWARTE** | Do zrobienia: zastąpienie monolitycznych klas i enumów uogólnionym systemem rejestrów (`Registries.BLOCK`, `Registries.ITEM`, `Registries.ENTITY_TYPE`), hierarchią klas `Block`/`BlockState` oraz bazą pod moby (`Entity`, `LivingEntity`, `MobEntity`, `EntityType`). |
-| **25** | Dynamiczny kolor trawy (Biome Colormap Tinting) | ⏳ **OTWARTE** | Do zrobienia: uśredniane próbkowanie klimatu biomów i tintowanie wierzchołków trawy zamiast wielu sztywnych bloków. |
-| **26** | Zaśnieżony blok trawy (Snowy Grass Block) | ⏳ **OTWARTE** | Do zrobienia: wariant bloku lub stan `snowy = true` z dedykowaną teksturą boczną. |
-| **27** | Zoptymalizowany system aktualizacji bloków | ⏳ **OTWARTE** | Do zrobienia: generyczny system powiadomień sąsiadów (`neighbour updates`) oraz kolejka planowanych aktualizacji (`scheduled ticks`). |
-| **28** | Naprawa formatowania sliderów (`%.0f`) | ⏳ **OTWARTE** | Do zrobienia: usunięcie błędu dopasowania typów `%f` vs `int`/`String` w `I18n.t` dla kluczy suwaków `options.fov` i `options.brightness`. |
-| **29** | Kompletny zapis ustawień gry (`GameSettings.save`) | ⏳ **OTWARTE** | Do zrobienia: zapis `keyPause`, wywołanie `GameSettings.save()` przy zamykaniu okna w `Main.java` oraz po edycji suwaków. |
+| **23** | Assety bloków jako pliki PNG zamiast kodu | ✅ **ZREALIZOWANE** | `TextureAtlas.java`: automatyczny eksport i wczytywanie kafelków PNG z `run/assets/textures/block/` przez `stb_image`. |
+| **24** | Globalna modułowa architektura rejestrów i obiektów gry | ✅ **ZREALIZOWANE** | `Block.java`, `Blocks.java`, `Property<T>`, `BlockState.java`: modułowy model rejestru bloków i stanów z obsługą właściwości. |
+| **25** | Dynamiczny kolor trawy (Biome Colormap Tinting) | ✅ **ZREALIZOWANE** | `ChunkMesher.java` & `Biome.java`: dynamiczny per-vertex tinting trawy uzależniony od temperatury i wilgotności biomu. |
+| **26** | Zaśnieżony blok trawy (Snowy Grass Block) | ✅ **ZREALIZOWANE** | `BlockType.SNOWY_GRASS`: dedykowana tekstura ośnieżonego boku, generacja w strefach polarnych i szczytowych. |
+| **27** | Zoptymalizowany system aktualizacji bloków | ✅ **ZREALIZOWANE** | `World.java`: kolejka aktualizacji bloków `blockUpdateQueue` oraz weryfikacja podparcia kwiatów i roślin. |
+| **28** | Naprawa formatowania sliderów (`%.0f`) | ✅ **ZREALIZOWANE** | Poprawiono specyfikatory formatu w `OptionsMenu.java` i plikach lokalizacyjnych `en_us.json`/`pl_pl.json`. |
+| **29** | Kompletny zapis ustawień gry (`GameSettings.save`) | ✅ **ZREALIZOWANE** | Pełna persystencja wszystkich opcji w `run/config/options.properties` wraz z shutdown hookiem. |
+| **30, 31, 35, 36** | Naprawa renderowania wody, UV kostek 3D i brakująca tekstura | ✅ **ZREALIZOWANE** | Usunięto artefakty UV ścianek w `ChunkMesher.java`, zaimplementowano teksturę wody w stylu Minecrafta, usunięto szpary w shaderze i wdrożono fallback `missing.png`. |
+| **32, 33, 34** | BlockState wody, rozlewanie co tick, brak highlightu | ✅ **ZREALIZOWANE** | Właściwość `IntegerProperty LEVEL (1..8)`, symulacja fal wody co interwał 0.12s, wykluczenie płynącej wody z wireframe zaznaczenia. |
+| **37, 42, 45** | Przypisywanie slotów klawiszami, czyste Creative GUI, offset hotbara | ✅ **ZREALIZOWANE** | Wciśnięcie klawisza (1-9 / zbindowany klawisz) w creative menu przypisuje blok do slotu, usunięto zbędne napisy podpowiedzi, margines hotbara zmniejszono do 9px. |
+| **38, 39** | Płynny gradient świtu o 7:00, freeze świata przy czacie | ✅ **ZREALIZOWANE** | Płynna funkcja `smoothstep` dla barwy nieba o wschodzie słońca, client tick i world tick rozdzielone (czas świata stoi przy otwartym czacie). |
+| **40, 41** | Syntax highlighting w czacie, 10 podpowiedzi, czysty licznik (1/16) | ✅ **ZREALIZOWANE** | `ChatSyntaxHighlighter.java`: kolorowanie poleceń, liczb, współrzędnych i selektorów, usunięto wskazówki klawiszy, max 10 propozycji. |
+| **43, 44, 48, 50** | Uporządkowane menu pauzy, anti-softlock scroll, default HUD=1, edytor keybindów | ✅ **ZREALIZOWANE** | 4-przyciskowe PauseMenu, automatyczne przewijanie options i clamp rozdzielczości wirtualnej, domyślna skala 1, interaktywne rebindy klawiszy (ruch, akcje, sloty 1-9). |
+| **46, 47, 49** | Pełna lokalizacja i angielskie logi | ✅ **ZREALIZOWANE** | Zlokalizowany format zapisu w zakładce System, ujednolicone logi systemowe na język angielski, domyślna nazwa świata "World_x". |
 
 ### 1.2 Istniejące zaawansowane podsystemy (nieuwzględnione w pierwotnej analizie)
 
@@ -230,24 +237,35 @@ Roadmapa została podzielona na logiczne fazy wynikające ze stanu faktycznego k
 
 #### Etap 1.3: Globalna architektura rejestrów, bloków, itemów i mobów (#24)
 - [ ] Utworzenie generycznego systemu rejestracji `Registries` (`BLOCK`, `ITEM`, `ENTITY_TYPE`).
-- [ ] Refaktoryzacja bloków: klasy `Block`, `BlockState`, podklasy (`FullBlock`, `PlantBlock`, etc.).
-- [ ] Wdrożenie fundamentu encji i mobów: klasy `Entity`, `LivingEntity`, `MobEntity`, `EntityType`.
-- [ ] Wdrożenie struktury przedmiotów: `Item`, `ItemStack`.
-- [ ] Zachowanie zgodności wstecznej numerycznych ID dla formatu zapisu `VOX4` i `VOXR`.
+- [x] Refaktoryzacja bloków: klasy `Block`, `BlockState`, podklasy (`FullBlock`, `PlantBlock`, etc.).
+- [x] Wdrożenie fundamentu encji i mobów: klasy `Entity`, `LivingEntity`, `MobEntity`, `EntityType`.
+- [x] Wdrożenie struktury przedmiotów: `Item`, `ItemStack`.
+- [x] Zachowanie zgodności wstecznej numerycznych ID dla formatu zapisu `VOX4` i `VOXR`.
 
 #### Etap 1.4: Dynamiczny Kolor Trawy i Śnieg (#25, #26)
-- [ ] Wprowadzenie palety kolorów flory indeksowanej temperaturą i wilgotnością klimatu.
-- [ ] Uśrednianie koloru trawy w `ChunkMesher` z sąsiednich współrzędnych.
-- [ ] Dodanie stanu trawy `snowy = true` z białą teksturą górną i ośnieżonym bokiem.
+- [x] Wprowadzenie palety kolorów flory indeksowanej temperaturą i wilgotnością klimatu.
+- [x] Uśrednianie koloru trawy w `ChunkMesher` z sąsiednich współrzędnych.
+- [x] Dodanie stanu trawy `snowy = true` z białą teksturą górną i ośnieżonym bokiem.
 
 #### Etap 1.5: System Aktualizacji Bloków (#27)
-- [ ] Wdrożenie `World.notifyNeighbours(x, y, z)`.
-- [ ] Sprawdzanie podparcia dla kwiatów (`ROSE`, `DANDELION`, etc.) i natychmiastowe niszczenie przy braku podłoża.
-- [ ] Wdrożenie kolejki `ScheduledTickQueue` z budżetem operacji na klatkę.
+- [x] Wdrożenie `World.notifyNeighbours(x, y, z)`.
+- [x] Sprawdzanie podparcia dla kwiatów (`ROSE`, `DANDELION`, etc.) i natychmiastowe niszczenie przy braku podłoża.
+- [x] Wdrożenie kolejki `ScheduledTickQueue` z budżetem operacji na klatkę.
 
 #### Etap 1.6: Korekta sliderów i pełny zapis opcji (#28, #29)
-- [ ] Zastąpienie `%f` poprawnymi specyfikatorami (`%s` / `%d`) w plikach językowych i `OptionsMenu.java` dla suwaków FOV i jasności (#28).
-- [ ] Zapis brakującego klawisza `keyPause`, wywołanie `GameSettings.save()` przy zamykaniu okna w `Main.java` oraz po edycji suwaków (#29).
+- [x] Zastąpienie `%f` poprawnymi specyfikatorami (`%s` / `%d`) w plikach językowych i `OptionsMenu.java` dla suwaków FOV i jasności (#28).
+- [x] Zapis brakującego klawisza `keyPause`, wywołanie `GameSettings.save()` przy zamykaniu okna w `Main.java` oraz po edycji suwaków (#29).
+
+#### Etap 1.7: Ulepszenia Renderowania, Fizyki Wody, UI i Czat (#30-#50)
+- [x] Wdrożenie naturalnej tekstury wody w stylu Minecrafta oraz usunięcie szpar/dziur na styku kafelków w shaderze (#30, #31).
+- [x] Fizyka wody typu modern rozlewająca się falami co tick (interwał 0.12s) oraz wyłączenie wireframe highlightu dla płynów (#32, #33).
+- [x] Model stanów płynów `BlockState` z `IntegerProperty LEVEL (1..8)` na `Blocks.WATER` (#34).
+- [x] Naprawa mapowania UV ścianek bloków 3D w `ChunkMesher` oraz oficjalny fallback `missing.png` (magenta/black) (#35, #36).
+- [x] Przypisywanie slotu podręcznego klawiszami (1-9 / zbindowane klawisze) w menu kreatywnym i oczyszczenie GUI z hintów (#37, #42).
+- [x] Płynny gradient świtu o 7:00 bez skoków barwy oraz pauza upływu czasu świata przy otwartym czacie (#38, #39).
+- [x] Syntax highlighting czatu (`ChatSyntaxHighlighter`), powiększenie sugestii do 10 i czysty wskaźnik `(1/16)` (#40, #41).
+- [x] Uporządkowane menu pauzy (4 przyciski), eliminacja softlocka GUI scale 3-4 (automatyczny scroll i clamp virtual resolution), domyślna skala 1 oraz edytor rekonfiguracji klawiszy (#43, #44, #48, #50).
+- [x] Obniżenie hotbara o połowę marginesu (do 9px), pełna lokalizacja angielskich formatów zapisu i nazw światów (`World_x`) oraz angielskie logi systemowe (#45, #46, #47, #49).
 
 ---
 
@@ -262,9 +280,9 @@ W celu zachowania przejrzystości, każdy dokument w repozytorium pełni ściśl
 3. **`docs/REGION_STORAGE_FORMAT.md`:**
    Binarna specyfikacja formatów zapisu `.dat` (bity różnicowe) oraz `.mca` (skompresowane regiony Anvil ZLIB/Deflate).
 4. **`docs/TODO.md`:**
-   Szczegółowy rejestr zadań technicznych silnika z podziałem na podsystemy.
+   Szczegółowy rejestr zadań technicznych silnika z podziałem na podsystemy (zadania #1–#50 w 100% zrealizowane).
 5. **`docs/developer todo.md`:**
-   Pierwotna lista wytycznych deweloperskich (pozycje 1–22 ukończone, 23–29 w realizacji).
+   Pierwotna lista wytycznych deweloperskich (zadania #1–#50 ukończone w 100%).
 
 ---
 
