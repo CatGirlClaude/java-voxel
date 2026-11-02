@@ -727,40 +727,36 @@ public final class TerrainGenerator {
                 if (biome == Biome.DEEP_OCEAN && height < SEA_LEVEL - 10) {
                     int h = hashCoords(wx, wz);
                     if ((h & 0xFF) == 0) return BlockType.GLOWSTONE.id;
-                    return ((h & 3) == 0) ? BlockType.GRAVEL.id : BlockType.SAND.id;
+                    return ((h & 3) == 0) ? BlockType.GRAVEL.id : BlockType.DIRT.id;
                 }
                 if (biome == Biome.FROZEN_OCEAN) {
                     return ((dither & 1) == 0) ? BlockType.GRAVEL.id : BlockType.DIRT.id; // Cold stony/gravel seabed
                 }
-                if (biome == Biome.OCEAN || biome == Biome.BEACH) {
-                    return ((dither & 3) == 0) ? BlockType.GRAVEL.id : BlockType.SAND.id;
+                if (biome == Biome.BEACH) {
+                    return BlockType.SAND.id;
+                }
+                if (biome == Biome.OCEAN) {
+                    return ((dither & 3) == 0) ? BlockType.GRAVEL.id : BlockType.DIRT.id;
                 }
                 if (biome == Biome.RIVER) {
                     int mod = dither & 7;
-                    if (mod < 3) return BlockType.GRAVEL.id;
-                    if (mod == 3) return BlockType.CLAY.id;
-                    if (mod < 6) return BlockType.SAND.id;
+                    if (mod < 4) return BlockType.GRAVEL.id;
+                    if (mod == 4) return BlockType.CLAY.id;
                     return BlockType.DIRT.id;
                 }
-                // Inland submerged waterbed (Minecraft-style: gravel/clay/sand/dirt)
+                // Inland submerged waterbed (Minecraft-style: gravel/clay/dirt - strictly no sand in inland plains/forests)
                 int mod = dither & 3;
                 if (mod == 0) return BlockType.GRAVEL.id;
                 if (mod == 1) return BlockType.CLAY.id;
-                return BlockType.SAND.id;
+                return BlockType.DIRT.id;
             }
 
             // Mountain peaks (high altitude perpetual snow and exposed rock)
             if (height + hJitter >= 94) return BlockType.SNOW.id;
             if (height + hJitter >= 84) return BlockType.STONE.id;
 
-            // Coastal beach with natural edge dithering into grass and pebble patches
+            // Coastal beach: 100% sand without exceptions
             if (biome == Biome.BEACH) {
-                if (height >= SEA_LEVEL + 2 && dither < 3) {
-                    return BlockType.GRASS.id; // Feathered organic blend into land
-                }
-                if (height == SEA_LEVEL + 1 && dither == 0) {
-                    return BlockType.COBBLESTONE.id; // Natural pebble patch on beach
-                }
                 return BlockType.SAND.id;
             }
 
@@ -797,13 +793,7 @@ public final class TerrainGenerator {
                     }
                     yield BlockType.GRASS.id;
                 }
-                case PLAINS, FOREST, BIRCH_FOREST -> {
-                    // Natural dithering of sand tufts into coastal grassland edge
-                    if (height <= SEA_LEVEL + 2 && dither == 7) {
-                        yield BlockType.SAND.id;
-                    }
-                    yield BlockType.GRASS.id;
-                }
+                case PLAINS, FOREST, BIRCH_FOREST -> BlockType.GRASS.id;
                 default -> BlockType.GRASS.id;
             };
         } else if (wy >= height - 4) {
@@ -812,17 +802,7 @@ public final class TerrainGenerator {
             return switch (biome) {
                 case BEACH, DESERT -> (wy >= height - 2) ? BlockType.SAND.id : BlockType.SANDSTONE.id;
                 case MESA -> (wy > SEA_LEVEL + 9) ? BlockType.TERRACOTTA.id : BlockType.RED_SAND.id;
-                default -> {
-                    // Coastal scarp transition: prevent raw dirt faces from showing on 1-block steps next to beach
-                    if (height <= SEA_LEVEL + 3 && wy >= height - 3) {
-                        double cont = sampleContinental(noise, wx, wz);
-                        if (cont >= -0.055 && cont <= -0.010) {
-                            yield (wy >= height - 1) ? BlockType.SAND.id : BlockType.SANDSTONE.id;
-                        }
-                    }
-                    yield (height < SEA_LEVEL && (biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN))
-                            ? BlockType.SAND.id : BlockType.DIRT.id;
-                }
+                default -> BlockType.DIRT.id;
             };
         } else {
             int h3 = hash3D(wx, wy, wz);

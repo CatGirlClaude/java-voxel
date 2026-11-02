@@ -27,6 +27,7 @@ public class WorldGenEnhancementsTest {
         testUnderwaterFloraAndWaterlogging(world, noise);
         testFallingGravelPhysics(world);
         testPngTextureExportAndAtlas();
+        testSandStrictlyOnBeach(noise, world);
 
         System.out.println("\n>>> ALL WORLD GEN ENHANCEMENTS TESTS PASSED (100% PASS)! <<<");
         world.cleanup();
@@ -214,5 +215,61 @@ public class WorldGenEnhancementsTest {
         }
 
         System.out.println("Texture Atlas PNG assets OK.");
+    }
+
+    private static void testSandStrictlyOnBeach(SimplexNoise noise, World world) {
+        System.out.println("\n--- TEST 6: Strict Sand Placement (Only On Beaches, Never On Plains) ---");
+
+        int plainsBlocksChecked = 0;
+        int beachBlocksChecked = 0;
+
+        // Check 1000 sample columns across world coordinates
+        for (long x = -500; x <= 500; x += 32) {
+            for (long z = -500; z <= 500; z += 32) {
+                Biome b = TerrainGenerator.computeBiome(noise, x, z);
+                int h = TerrainGenerator.computeSurfaceHeight(noise, x, z);
+
+                if (b == Biome.PLAINS || b == Biome.FOREST || b == Biome.BIRCH_FOREST) {
+                    // Check surface and sub-surface blocks
+                    Chunk c = world.getOrCreateChunk(Math.floorDiv(x, 16), Math.floorDiv(h, 16), Math.floorDiv(z, 16));
+                    int lx = (int) Math.floorMod(x, 16);
+                    int ly = (int) Math.floorMod(h, 16);
+                    int lz = (int) Math.floorMod(z, 16);
+
+                    byte surfaceBlock = c.getBlock(lx, ly, lz);
+                    if (surfaceBlock == BlockType.SAND.id) {
+                        throw new AssertionError(String.format("Piasek nie moze wystepowac w biomie %s na powierzchni! Pos: (%d, %d, %d)", b, x, h, z));
+                    }
+
+                    // Check subsurface blocks
+                    for (int dy = 1; dy <= 4; dy++) {
+                        int wy = h - dy;
+                        if (wy < 0) break;
+                        Chunk subC = world.getOrCreateChunk(Math.floorDiv(x, 16), Math.floorDiv(wy, 16), Math.floorDiv(z, 16));
+                        int subLy = (int) Math.floorMod(wy, 16);
+                        byte subBlock = subC.getBlock(lx, subLy, lz);
+                        if (subBlock == BlockType.SAND.id) {
+                            throw new AssertionError(String.format("Piasek nie moze wystepowac w podglebiu biomu %s! Pos: (%d, %d, %d)", b, x, wy, z));
+                        }
+                    }
+                    plainsBlocksChecked++;
+                } else if (b == Biome.BEACH && h >= Chunk.SEA_LEVEL) {
+                    Chunk c = world.getOrCreateChunk(Math.floorDiv(x, 16), Math.floorDiv(h, 16), Math.floorDiv(z, 16));
+                    int lx = (int) Math.floorMod(x, 16);
+                    int ly = (int) Math.floorMod(h, 16);
+                    int lz = (int) Math.floorMod(z, 16);
+                    byte surfaceBlock = c.getBlock(lx, ly, lz);
+                    if (surfaceBlock != BlockType.SAND.id) {
+                        throw new AssertionError(String.format("Plaza powinna miec na powierzchni piasek! Pos: (%d, %d, %d), Block: %s",
+                                x, h, z, BlockType.fromId(surfaceBlock).name));
+                    }
+                    beachBlocksChecked++;
+                }
+            }
+        }
+
+        System.out.printf("Checked %d columns in Plains/Forests (0 sand found, guaranteed 100%% clean).\n", plainsBlocksChecked);
+        System.out.printf("Checked %d columns in Beaches (100%% sand verified).\n", beachBlocksChecked);
+        System.out.println("Strict sand placement verification OK.");
     }
 }
