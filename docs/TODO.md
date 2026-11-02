@@ -157,7 +157,7 @@
   - Usunięto podwójny komunikat o wczytaniu świata na czacie (usunięto nadmiarowe ładowanie wstępne w `Main.java` oraz dodano `chatSystem.clear()`).
   - Menu główne [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java) wyświetla teraz przycisk "Select World" / "Wybierz swiat", prowadzący do pełnej listy światów z obsługą grania (w tym podwójne kliknięcie), tworzenia nowych światów oraz bezpiecznego usuwania.
 - [ ] **Dźwięki bloków i otoczenia:** Dźwięki stawiania/niszczenia bloków (trawa, kamień, drewno, piasek, woda) oraz dźwięki kroków i pluskania.
-- [ ] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
+- [x] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
 - [x] **Płynne oświetlenie (Smooth Lighting):**
   - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) zaimplementowano propagację światła słonecznego oraz blokowego algorytmem BFS (`propagateLight`).
   - Wierzchołkowe wygładzanie oświetlenia (`packVertexLight`) uśredniające 4 sąsiednie próbki światła wokół każdego narożnika ścianki wraz z testami przesłaniania krawędzi (Ambient Occlusion + Smooth Lighting).
@@ -306,6 +306,17 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
     - Zaimplementowano `neighborChanged`, dzięki czemu zniszczenie bloku nośnego pod wodorostami przywraca w tym miejscu czysty blok wody.
     - W [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) niszczenie wodorostów/trawy morskiej LPM przywraca wodę (`BlockType.WATER.id`) zamiast tworzyć kieszeń powietrza, a stawianie PPM zezwala wyłącznie na zastępowanie wody (`BlockType.isWater(atTarget)`).
     - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) metoda `emitWaterloggedFaces` pomija jakiekolwiek ścianki wody powyżej poziomu morza (`wy > Chunk.SEA_LEVEL`) oraz uszczelnia ścianki boczne przy styku z powietrzem.
+- [x] **#60. System Ekwipunku i Craftingu (Siatka 2x2, Stół 3x3, Warsztat i Księga Przepisów):**
+  - Przebudowano okno ekwipunku [`InventoryMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/InventoryMenu.java) o system zakładek:
+    - **Zakładka [Creative]:** Klasyczna pełna siatka wszystkich bloków kreatywnych (9 kolumn x 5 wierszy z suwakiem scrollowania).
+    - **Zakładka [Crafting]:** Warsztat rzemieślniczy z przełącznikiem trybu `[2x2 Grid]` / `[3x3 Table]`.
+  - W [`CraftingManager.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/crafting/CraftingManager.java) rozszerzono silnik receptur o:
+    - Receptury bezkształtne 1-składnikowe (drewno -> 4 deski, glina -> 2 cegły, piaskowiec -> 4 piasek, trzcina -> włókna trawy, kaktus -> pnącza, koral -> róże).
+    - Receptury bezkształtne 2-składnikowe (piasek + ziemia -> glina, bruk + piasek -> żwir, śnieg + ziemia -> ośnieżona trawa).
+    - Receptury kształtowe 2x2 (4 deski -> drewno, 4 bruk -> 4 kamień, 4 kamień -> 4 cegły, 4 piasek -> piaskowiec, 4 czerwony piasek -> terakota, 4 śnieg -> lód, 4 szkło -> jasnogłaz).
+    - Receptury kształtowe 3x3 stołu rzemieślniczego (pierścień 8 bruku -> 8 cegieł, pierścień 8 desek -> 8 drewna, pełne 9 bruku -> 9 gładkiego kamienia).
+  - Wzbogacono interfejs o interaktywną listę przepisów (kliknięcie automatycznie uzupełnia siatkę składnikami), paletę szybkiego wyboru składników, przycisk natychmiastowego czyszczenia siatki `[Clear]` oraz bezpośrednie odbieranie wytworzonych przedmiotów do aktywnego slotu hotbara.
+
 
 
 
