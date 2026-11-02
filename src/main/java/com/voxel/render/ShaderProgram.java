@@ -116,8 +116,8 @@ public class ShaderProgram {
                                     aTexCoord.y >= 0.120 && aTexCoord.y <= 0.255);
                     vIsWater = isWater ? 1.0 : 0.0;
                     if (isWater) {
-                        float wave1 = sin(relPos.x * 1.2 + uTime * 2.0) * cos(relPos.z * 1.2 + uTime * 1.7) * 0.06;
-                        float wave2 = sin((relPos.x + relPos.z) * 0.7 + uTime * 1.2) * 0.04;
+                        float wave1 = sin(relPos.x * 1.2 + uTime * 2.0) * cos(relPos.z * 1.2 + uTime * 1.7) * 0.032;
+                        float wave2 = sin((relPos.x + relPos.z) * 0.7 + uTime * 1.2) * 0.018;
                         relPos.y += wave1 + wave2;
                     }
                     gl_Position = uProjView * vec4(relPos, 1.0);

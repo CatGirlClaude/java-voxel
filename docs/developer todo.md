@@ -58,4 +58,8 @@
 - [x] 53. Dodaj mozliwosc stackowania sugar cane, kelp i innych takich (stawianie roslin jedna na drugiej w gore, prawidlowe canSurvive i brak zastepowania bloku)
 - [x] 54. Dodaj "plynnosc" wody (falowanie tafli wody uTime w shaderze wierzcholkow, dynamiczny ripple UV, specular glint oraz plynna przezroczystosc z blendingiem)
 - [x] 55. Kwiaty powinny rosnac w patchach (deterministyczne klastry/gaje okreslonego gatunku per strefa 20x20 zamiast losowego confetti na kazdym 1 bloku)
+- [x] 56. Napraw: nie mozna stawiac blokow pod woda (solidne bloki moga byc stawiane pod woda, prawidlowo wypierajac wode)
+- [x] 57. Sea grass nie powinno dac sie stackowac (wylaczenie stackowania dla trawy morskiej, tylko Kelp jest roslina rosnaca wielosegmentowo w gore)
+- [x] 58. Napraw szachownice koryta rzeki i zapadniete plytki wody (poglebienie kanalu rzeki ponizej poziomu morza do Y=24..26 oraz wzniesienie brzegow do Y>=29, eliminacja oscylacji trawa/woda na poziomie Y=28)
+
 

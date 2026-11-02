@@ -283,4 +283,18 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
   - W [`TerrainGenerator.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/gen/TerrainGenerator.java) zastąpiono losowe confetti per-blok deterministycznym podziałem świata na komórki patchów o wymiarach 20x20 bloków (`Math.floorDiv(wx, 20L)`).
   - Wprowadzono `getFlowerPatchSpecies(wx, wz, biome)` oraz `isInFlowerPatch(wx, wz)`, tworzące organiczne klastry o promieniu ~5 bloków ze spójnym gatunkiem kwiatów (np. całe zagajniki róż, allium, dębów, orchidei czy mniszka).
   - W biomach `PLAINS`, `FOREST`, `BIRCH_FOREST`, `TAIGA`, `MOUNTAINS` i `RIVER` kwiaty rosną teraz w skupiskach tego samego gatunku, poprzetykane wysoką trawą.
+- [x] **#56. Podwodne stawianie bloków (wypieranie wody):**
+  - W [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) w procedurze `handleBlockPlace()` rozszerzono warunek `canOccupy` o solidne bloki stawiane w wodzie (`toPlace.solid && BlockType.isWater(atTarget)`).
+  - Gracz może stawiać pod wodą ziemię, kamień, drewno, piasek, szkło i dowolne inne bloki konstrukcyjne, które poprawnie zastępują (wypierają) blok wody.
+- [x] **#57. Wyłączenie stackowania dla trawy morskiej (Seagrass):**
+  - W [`UnderwaterPlantBlock.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/UnderwaterPlantBlock.java) wprowadzono flagę konstruktora `stackable`.
+  - W [`Blocks.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/Blocks.java) `SEAGRASS` skonfigurowano jako niestackowalny (`stackable = false`), podczas gdy `KELP` pozostał w pełni stackowalny (`stackable = true`).
+  - Kliknięcie trawy morskiej nie tworzy już lewitujących segmentów z lukami pod wodą.
+- [x] **#58. Czyste koryta rzeczne i eliminacja zniekształceń na poziomie morza:**
+  - W [`TerrainGenerator.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/gen/TerrainGenerator.java) w `computeSurfaceHeight()` gruntownie przebudowano profil koryta rzecznego i linii brzegowej:
+    - Koryto rzeki (`riverVal <= 0.030`) jest wycinane w głąb poniżej poziomu morza (dno na poziomie Y=24..25.5), dzięki czemu rzeka stanowi jednolity, żeglowny akwen o głębokości 2.5-4 bloków wody przy SEA_LEVEL=28.
+    - Brzegi rzek wznoszą się płynnie i zdecydowanie ponad taflę wody na poziom suchego lądu (Y >= 29).
+    - Wyeliminowano zatrzymywanie się generowania powierzchni na poziomie Y=28, usuwając szachownicę zapadniętych o 0.10f kałuż wodnych w trawie, zjawisko ucinania/migotania ścianek bloków brzegowych oraz clipping fal wodnych.
+  - W [`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java) dostosowano amplitudę falowania wody do bezpiecznych, organicznych wartości (+/- 0.05f).
+
 

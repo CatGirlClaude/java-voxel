@@ -537,7 +537,8 @@ public class Main {
         } else {
             BlockType hitBlock = BlockType.fromId(hit.blockId());
             boolean isStackable = (toPlace == BlockType.SUGAR_CANE || toPlace == BlockType.KELP
-                    || toPlace == BlockType.CACTUS || Blocks.get(toPlace.id).isStackable());
+                    || toPlace == BlockType.CACTUS
+                    || (toPlace != BlockType.SEAGRASS && Blocks.get(toPlace.id) != null && Blocks.get(toPlace.id).isStackable()));
 
             // Stacking on top of the same plant block
             if (isStackable && hitBlock == toPlace) {
@@ -566,7 +567,8 @@ public class Main {
             byte atTarget = world.getBlock(targetPlaceX, targetPlaceY, targetPlaceZ);
             boolean canOccupy = (atTarget == BlockType.AIR.id)
                     || (targetPlaceX == hit.x() && targetPlaceY == hit.y() && targetPlaceZ == hit.z() && isReplaceable)
-                    || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget));
+                    || (BlockType.isUnderwaterPlant(toPlace.id) && BlockType.isWater(atTarget))
+                    || (toPlace.solid && BlockType.isWater(atTarget));
 
             if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetPlaceX, targetPlaceY, targetPlaceZ))) {
                 if (Blocks.get(toPlace.id).canSurvive(world, targetPlaceX, targetPlaceY, targetPlaceZ)) {

@@ -90,8 +90,8 @@ public final class Blocks {
 
     // Natural flora and geography blocks (42..47)
     public static final SugarCaneBlock SUGAR_CANE = register(42, "sugar_cane", new SugarCaneBlock(Identifier.of("sugar_cane"), 42, Block.Properties.of().textures(42)));
-    public static final UnderwaterPlantBlock SEAGRASS = register(43, "seagrass", new UnderwaterPlantBlock(Identifier.of("seagrass"), 43, Block.Properties.of().textures(43)));
-    public static final UnderwaterPlantBlock KELP = register(44, "kelp", new UnderwaterPlantBlock(Identifier.of("kelp"), 44, Block.Properties.of().textures(44)));
+    public static final UnderwaterPlantBlock SEAGRASS = register(43, "seagrass", new UnderwaterPlantBlock(Identifier.of("seagrass"), 43, Block.Properties.of().textures(43), false));
+    public static final UnderwaterPlantBlock KELP = register(44, "kelp", new UnderwaterPlantBlock(Identifier.of("kelp"), 44, Block.Properties.of().textures(44), true));
     public static final SolidBlock CORAL = register(45, "coral", new SolidBlock(Identifier.of("coral"), 45, Block.Properties.of().textures(45)));
     public static final FallingBlock GRAVEL = register(46, "gravel", new FallingBlock(Identifier.of("gravel"), 46, Block.Properties.of().textures(46)));
     public static final SolidBlock CLAY = register(47, "clay", new SolidBlock(Identifier.of("clay"), 47, Block.Properties.of().textures(47)));

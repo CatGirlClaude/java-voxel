@@ -166,7 +166,7 @@ public final class TerrainGenerator {
             double totalDepth = shelfDepth * (1.0 - drop) + deepOceanDepth * drop;
             double detailScale = smoothstep(0.04, 0.12, u);
             double oceanFloor = SEA_LEVEL - totalDepth + detail * 0.8 * detailScale;
-            return (int) Math.round(oceanFloor + microDither * 0.4 * detailScale);
+            return Math.min(SEA_LEVEL - 1, (int) Math.round(oceanFloor + microDither * 0.4 * detailScale));
         }
 
         double continental = noise.fbm2D(wx * 0.0040, wz * 0.0040, 4, 0.5, 2.0);
@@ -177,10 +177,10 @@ public final class TerrainGenerator {
         double humidity = sampleHumidity(noise, wx, wz);
 
         // Smooth C1 transition from shoreline (-0.05) to inland (+0.01)
-        // Shoreline land edge at -0.05 is exactly SEA_LEVEL (28), guaranteeing <= 1 block drop to water floor (27)
+        // Coastline dry land edge is strictly at SEA_LEVEL + 1 (29), providing a clean 1-block step above water (28)
         double tCoast = smoothstep(-0.05, 0.01, oceanContinental);
-        double coastEdge = SEA_LEVEL + 0.25 + detail * 0.20;
-        double inlandElevation = SEA_LEVEL + 4.8 + continental * 16.0 + detail * 4.0 + mountainWeight * mountainWeight * 72.0;
+        double coastEdge = SEA_LEVEL + 1.20 + detail * 0.25;
+        double inlandElevation = SEA_LEVEL + 5.0 + continental * 16.0 + detail * 4.0 + mountainWeight * mountainWeight * 72.0;
         double baseElevation = coastEdge * (1.0 - tCoast) + inlandElevation * tCoast;
 
         // Smoothly blended Mesa plateaus (only inside core Mesa climate region)
@@ -198,22 +198,39 @@ public final class TerrainGenerator {
         // Anti-terracing micro-dither: eliminates flat concentric steps on shallow slopes
         double elevation = baseElevation;
 
-        // Smoothly carve riverbeds into inland terrain down to SEA_LEVEL - 4
+        // Smoothly carve riverbeds into inland terrain: continuous waterbed across channel, clean bank step up to dry land (>= 29)
         if (oceanContinental >= -0.055) {
             double riverVal = sampleRiver(noise, wx, wz);
             if (riverVal < RIVER_THRESHOLD) {
-                double rFactor = smoothstep(0.0, 1.0, (RIVER_THRESHOLD - riverVal) / RIVER_THRESHOLD);
-                double mDamp = 1.0 - smoothstep(0.28, 0.60, mountainWeight) * 0.40;
-                rFactor *= mDamp;
-
                 double riverBedFloor = SEA_LEVEL - 3.8 + detail * 0.5;
-                if (elevation > riverBedFloor) {
-                    elevation = elevation * (1.0 - rFactor) + riverBedFloor * rFactor;
+
+                double channelLimit = 0.030;
+                if (riverVal <= channelLimit) {
+                    // River channel: water depth 2.5..4 blocks (floor at 24..25.5)
+                    double channelT = riverVal / channelLimit;
+                    double channelElev = riverBedFloor + channelT * 1.3;
+                    elevation = Math.min(elevation, channelElev);
+                } else {
+                    // River bank: smooth rise from SEA_LEVEL - 1 (27) up to surrounding dry land (>= 29)
+                    double bankT = (riverVal - channelLimit) / (RIVER_THRESHOLD - channelLimit);
+                    double bankCurve = smoothstep(0.0, 1.0, bankT);
+                    double bankStart = SEA_LEVEL - 1.2 + detail * 0.3; // 26.8 -> rounds to 27 (1 block water at 28)
+                    double targetBank = bankStart * (1.0 - bankCurve) + elevation * bankCurve;
+                    // Snap bank to prevent flat 28 oscillations
+                    if (targetBank >= SEA_LEVEL - 0.45 && targetBank <= SEA_LEVEL + 0.45) {
+                        targetBank = (bankCurve < 0.5) ? (SEA_LEVEL - 0.55) : (SEA_LEVEL + 0.55);
+                    }
+                    elevation = Math.min(elevation, targetBank);
                 }
             }
         }
 
-        return (int) Math.round(elevation + microDither);
+        int h = (int) Math.round(elevation + microDither);
+        // Guarantee: no inland dry ground stalls at SEA_LEVEL (28) right on water boundaries
+        if (h == SEA_LEVEL) {
+            h = (elevation < SEA_LEVEL) ? (SEA_LEVEL - 1) : (SEA_LEVEL + 1);
+        }
+        return h;
     }
 
     /**
