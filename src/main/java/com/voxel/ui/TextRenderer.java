@@ -265,10 +265,10 @@ public class TextRenderer {
 
     public void drawTextCenteredInBox(Matrix4f orthoProj, String rawText, float x, float y, float w, float h, float baseScale, float padding, Vector4f color) {
         if (rawText == null || rawText.isEmpty()) return;
-        // Global button text fitting: ensure at least 14px horizontal breathing room so text never touches button borders
-        float effectivePadding = Math.max(padding, 14.0f);
-        float maxAllowedW = Math.max(8.0f, w - effectivePadding);
-        float maxAllowedH = Math.max(8.0f, h - 4.0f);
+        // Global button text fitting: ensure strict horizontal margins so text + shadow NEVER touch or bleed past button borders
+        float hMargin = Math.max(padding * 0.5f, 6.0f);
+        float maxAllowedW = Math.max(4.0f, w - hMargin * 2.0f);
+        float maxAllowedH = Math.max(4.0f, h - 4.0f);
 
         float textW = getTextWidth(rawText, baseScale);
         float scale = baseScale;
@@ -277,25 +277,30 @@ public class TextRenderer {
         if (textW > maxAllowedW && textW > 0.0f) {
             scale = baseScale * (maxAllowedW / textW);
         }
-        if (CHAR_H * scale > maxAllowedH) {
-            scale = maxAllowedH / CHAR_H;
+        if ((CHAR_H + 1) * scale > maxAllowedH) {
+            scale = maxAllowedH / (CHAR_H + 1);
         }
-        // Allow crisp downscaling down to 0.45f before resorting to truncation
-        scale = Math.max(0.45f, scale);
+        // Allow crisp downscaling down to 0.40f before resorting to truncation
+        scale = Math.max(0.40f, scale);
 
         String textToDraw = rawText;
         float curW = getTextWidth(textToDraw, scale);
-        if (curW > maxAllowedW && textToDraw.length() > 3) {
-            while (textToDraw.length() > 2 && getTextWidth(textToDraw + "...", scale) > maxAllowedW) {
+        if (curW + scale > maxAllowedW && textToDraw.length() > 3) {
+            while (textToDraw.length() > 2 && (getTextWidth(textToDraw + "...", scale) + scale) > maxAllowedW) {
                 textToDraw = textToDraw.substring(0, textToDraw.length() - 1);
             }
             textToDraw = textToDraw + "...";
             curW = getTextWidth(textToDraw, scale);
         }
 
-        // Center within box with safety bounds so text never bleeds outside button borders
+        // Strictly guarantee bounds: text + shadow will NEVER cross left or right border!
         float tx = x + (w - curW) * 0.5f;
-        if (tx < x + 3.0f) tx = x + 3.0f;
+        if (tx < x + hMargin) {
+            tx = x + hMargin;
+        }
+        if (tx + curW + scale > x + w - 2.0f) {
+            tx = Math.max(x + 2.0f, x + w - 2.0f - curW - scale);
+        }
         float ty = y + (h - CHAR_H * scale) * 0.5f;
         drawTextWithShadow(orthoProj, textToDraw, tx, ty, scale, color);
     }

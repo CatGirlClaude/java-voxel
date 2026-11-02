@@ -224,8 +224,17 @@ public class MainMenu {
         return Result.NONE;
     }
 
+    public void onResize(int screenW, int screenH) {
+        if (saveList != null) {
+            float rowStep = 54.0f + 8.0f;
+            float listH = screenH - 185.0f;
+            float maxScroll = Math.max(0.0f, saveList.size() * rowStep - listH);
+            saveScroll = Math.max(0.0f, Math.min(maxScroll, saveScroll));
+        }
+    }
+
     private Result handleClickSaves(float mx, float my, int screenW, int screenH) {
-        float listW = 600.0f;
+        float listW = Math.min(680.0f, screenW - 40.0f);
         float listX = (screenW - listW) * 0.5f;
         float listY = 95.0f;
         float listH = screenH - 185.0f;
@@ -266,14 +275,14 @@ public class MainMenu {
             }
         }
 
-        // Bottom action buttons
+        // Bottom action buttons: dynamically adapted with generous widths
         float btnY = screenH - 74.0f;
         float btnH = 40.0f;
-        float gap = 10.0f;
+        float gap = 8.0f;
         float availW = listW - gap * 3.0f;
-        float btnW1 = Math.round(availW * 0.30f);
-        float btnW2 = Math.round(availW * 0.30f);
-        float btnW3 = Math.round(availW * 0.22f);
+        float btnW1 = Math.round(availW * 0.33f);
+        float btnW2 = Math.round(availW * 0.31f);
+        float btnW3 = Math.round(availW * 0.21f);
         float btnW4 = availW - btnW1 - btnW2 - btnW3;
 
         float b1X = listX;
@@ -445,7 +454,7 @@ public class MainMenu {
         hud.getTextRenderer().drawTextWithShadow(ortho, title, (screenW - tw) * 0.5f, 36.0f, 2.5f,
                 new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
 
-        float listW = 600.0f;
+        float listW = Math.min(680.0f, screenW - 40.0f);
         float listX = (screenW - listW) * 0.5f;
         float listY = 95.0f;
         float listH = screenH - 185.0f;
@@ -516,14 +525,14 @@ public class MainMenu {
             }
         }
 
-        // Action buttons
+        // Action buttons: dynamically adapted with generous widths
         float btnY = screenH - 74.0f;
         float btnH = 40.0f;
-        float gap = 10.0f;
+        float gap = 8.0f;
         float availW = listW - gap * 3.0f;
-        float btnW1 = Math.round(availW * 0.30f);
-        float btnW2 = Math.round(availW * 0.30f);
-        float btnW3 = Math.round(availW * 0.22f);
+        float btnW1 = Math.round(availW * 0.33f);
+        float btnW2 = Math.round(availW * 0.31f);
+        float btnW3 = Math.round(availW * 0.21f);
         float btnW4 = availW - btnW1 - btnW2 - btnW3;
 
         float b1X = listX;
@@ -615,6 +624,6 @@ public class MainMenu {
         hud.getColorShader().unbind();
 
         Vector4f col = hover ? new Vector4f(1.0f, 0.95f, 0.45f, 1.0f) : new Vector4f(0.92f, 0.95f, 0.98f, 1.0f);
-        hud.getTextRenderer().drawTextCenteredInBox(ortho, text, x, y, w, h, 1.45f, 8.0f, col);
+        hud.getTextRenderer().drawTextCenteredInBox(ortho, text, x, y, w, h, 1.30f, 12.0f, col);
     }
 }

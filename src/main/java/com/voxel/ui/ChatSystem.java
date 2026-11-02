@@ -697,4 +697,8 @@ public class ChatSystem {
         player.position.set(x, y, z);
         player.velocity.set(0, 0, 0);
     }
+
+    public void onResize(int screenW, int screenH) {
+        // Chat dynamically adapts box dimensions in render(hud, screenW, screenH)
+    }
 }

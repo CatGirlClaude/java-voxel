@@ -22,8 +22,8 @@
 - [x] 19. "Play selected w" to wciaz niemieszczacy sie w przycisku tekst. nie naprawiaj problemu dla dla tylko tego przycisku, azmiasdt tego zrob globalny fix
 - [x] 20. Czas nie zatrzymuje sie przy odpaleniu chatu, ale movement gracza sie zatrzymuje. Rozdziel gre na dwa ticki: client tick oraz world tick
 
-- [ ] 21. zmien cycle buttons na slidery
-- [ ] 22. gui powinno byc kalkulowane jeszcze raz po zmienieniu wielkosci okna
+- [x] 21. zmien cycle buttons na slidery
+- [x] 22. gui powinno byc kalkulowane jeszcze raz po zmienieniu wielkosci okna
 - [ ] 23. assety zamiast generowac dynamicznie w kodzie powinny byc przetrzymywane jako png
 - [ ] 24. modularnosc kodu calego projektu !!! zastap monolityczne klasy/enumy globalnym obiektowym systemem rejestrow (rejestry blokow, itemow oraz encji/mobow w stylu minecrafta z klasami bazowymi Entity, LivingEntity, Mob, Block, BlockState, zamiast trzymac wszystko w pojedynczych klasach)
 - [ ] 25. grass block powinien miec mozliwosc latwego alterowania koloru trawy, dla plynnych przejsc miedzy biomami, wtedy duzo rodzajow trawy mozna by zastapic jedna wspolna

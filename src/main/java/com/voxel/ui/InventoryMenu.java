@@ -136,6 +136,11 @@ public class InventoryMenu {
     private float lastScreenW = 1280;
     private float lastScreenH = 720;
 
+    public void onResize(int screenW, int screenH) {
+        this.lastScreenW = screenW;
+        this.lastScreenH = screenH;
+    }
+
     public void render(HudRenderer hud, int screenW, int screenH, double mouseX, double mouseY,
                        Player player, TextureAtlas atlas) {
         if (!open) return;

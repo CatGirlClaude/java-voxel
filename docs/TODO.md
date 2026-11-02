@@ -84,7 +84,20 @@
   - Pliki tłumaczeń: `assets/lang/en_us.json` (domyślny angielski) oraz `assets/lang/pl_pl.json` (polski) - dostępne zarówno z zasobów JAR, jak i do bezpośredniej edycji w katalogu roboczym `assets/lang/`.
   - Przełącznik języka w menu opcji w zakładce `System i Język` z natychmiastowym przeładowaniem wszystkich interfejsów (Menu Główne, Pauza, Opcje, Ekwipunek, HUD, Czat).
 - [x] **Automatyczne dopasowywanie tekstu w przyciskach (Auto-fit Button Text):**
-  - W [`TextRenderer.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/TextRenderer.java) dodano metodę `drawTextCenteredInBox(...)` dynamicznie skalującą tekst w dół z zachowaniem marginesów bocznych i pionowego centrowania, eliminując ucinanie i nakładanie się etykiet przycisków oraz zakładek opcji.
+  - W [`TextRenderer.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/TextRenderer.java) metoda `drawTextCenteredInBox(...)` rygorystycznie pilnuje marginesów wewnętrznych (`hMargin >= 6.0px`), uwzględnia cień tekstu (`+scale`) oraz automatycznie skaluje tekst w dół z obcięciem wielokropkiem `...` jako ostatecznym zabezpieczeniem, uniemożliwiając wyjście tekstu poza ramki przycisków i zakładek.
+  - Na ekranie wyboru świata w [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java) dolne przyciski akcji otrzymały proporcjonalne, dynamiczne szerokości dostosowane do długości etykiet (np. "Play Selected World" / "Graj na wybranym swiecie").
+  - Zakładki w [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) otrzymały 4px odstępy separujące i rygorystyczne centrowanie wewnątrz własnych pól, eliminując nakładanie się sąsiadujących kategorii.
+- [x] **Interaktywne poziome suwaki (Sliders) w menu opcji (Task 21):**
+  - W [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) zastąpiono przyciski cykliczne `< Value >` ciągłymi suwakami poziomymi z przeciąganym uchwytem dla opcji ciągłych:
+    - *Render Distance* (2 do 16 chunków)
+    - *FOV* (60° do 110° Quake Pro)
+    - *Brightness* (50% do 150%)
+    - *Mouse Sensitivity* (0.04 do 0.40)
+    - *Mouse Hold Delay* (50ms do 450ms)
+  - Obsłużono klikanie w dowolny punkt paska suwaka oraz płynne przeciąganie myszą (`handleMouseMove` i `handleMouseRelease`).
+- [x] **Dynamiczne przeliczanie układu GUI przy zmianie rozmiaru okna (Task 22):**
+  - W [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) w wywołaniu zwrotnym `glfwSetFramebufferSizeCallback` dodano metodę `recalculateGuiLayout()`.
+  - Wprowadzono metodę `onResize(int vWidth, int vHeight)` we wszystkich interfejsach (`MainMenu`, `OptionsMenu`, `PauseMenu`, `InventoryMenu`, `ChatSystem`, `NoiseVisualizer`), gwarantującą natychmiastową adaptację okien, suwaków i stref klikalnych do nowej rozdzielczości lub skali GUI.
 - [x] **Płynne przewijanie list (Scroll zamiast stron poza głównym menu opcji):**
   - W konfiguratorze Debug HUD w [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) usunięto przyciski stron (`< Page 1/2`, `Page 2 >`) na rzecz płynnej listy przewijanej rolką myszy z paskiem przewijania (scrollbar).
   - Na ekranie wyboru światów w [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java) zastąpiono sztywny limit 6 zapisów pełnym przewijaniem z suwakiem.

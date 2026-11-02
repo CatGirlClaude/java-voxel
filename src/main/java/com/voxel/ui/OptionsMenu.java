@@ -53,6 +53,32 @@ public class OptionsMenu {
     private long openCooldownUntil = 0;
     private float hudScroll = 0.0f;
 
+    public enum ActiveSlider {
+        NONE,
+        RENDER_DISTANCE,
+        FOV,
+        BRIGHTNESS,
+        SENSITIVITY,
+        HOLD_DELAY
+    }
+    private ActiveSlider activeSlider = ActiveSlider.NONE;
+
+    public float getWinW(int screenW) {
+        return Math.min(840.0f, Math.max(580.0f, screenW - 32.0f));
+    }
+
+    public float getWinH(int screenH) {
+        return Math.min(540.0f, Math.max(340.0f, screenH - 24.0f));
+    }
+
+    public void onResize(int screenW, int screenH) {
+        float winH = getWinH(screenH);
+        float listH = winH - 180.0f;
+        int count = DebugHudConfig.getItems().size();
+        float maxScroll = Math.max(0.0f, count * 36.0f - listH);
+        hudScroll = Math.max(0.0f, Math.min(maxScroll, hudScroll));
+    }
+
     // Available render distances
     private static final int[] RENDER_DISTANCES = {2, 4, 6, 8, 10, 12, 14, 16};
     // Available max FPS limits
@@ -134,21 +160,23 @@ public class OptionsMenu {
         float mx = (float) mouseX;
         float my = (float) mouseY;
 
-        float winW = 740.0f;
-        float winH = 520.0f;
+        float winW = getWinW(screenW);
+        float winH = getWinH(screenH);
         float winX = (screenW - winW) * 0.5f;
         float winY = (screenH - winH) * 0.5f;
 
-        // 1. Tab Bar Buttons
+        // 1. Tab Bar Buttons with spacing
         Tab[] tabs = Tab.values();
-        float tabW = (winW - 32.0f) / tabs.length;
+        float tabSpacing = 4.0f;
+        float tabW = (winW - 32.0f - (tabs.length - 1) * tabSpacing) / tabs.length;
         float tabH = 32.0f;
         float tabY = winY + 54.0f;
 
         for (int i = 0; i < tabs.length; i++) {
-            float tx = winX + 16.0f + i * tabW;
-            if (mx >= tx && mx <= tx + tabW - 4.0f && my >= tabY && my <= tabY + tabH) {
+            float tx = winX + 16.0f + i * (tabW + tabSpacing);
+            if (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH) {
                 currentTab = tabs[i];
+                activeSlider = ActiveSlider.NONE;
                 return true;
             }
         }
@@ -177,11 +205,13 @@ public class OptionsMenu {
         float btnDefX = winX + 20.0f;
 
         if (mx >= btnSaveX && mx <= btnSaveX + btnW && my >= bottomY && my <= bottomY + btnH) {
+            activeSlider = ActiveSlider.NONE;
             saveAndClose(world);
             return true;
         }
 
         if (mx >= btnDefX && mx <= btnDefX + btnW && my >= bottomY && my <= bottomY + btnH) {
+            activeSlider = ActiveSlider.NONE;
             GameSettings.resetToDefaults();
             if (world != null) {
                 world.setRenderDistance(GameSettings.renderDistance);
@@ -196,34 +226,75 @@ public class OptionsMenu {
         return true;
     }
 
+    public boolean handleMouseMove(double mouseX, double mouseY, int screenW, int screenH, World world) {
+        if (!open || activeSlider == ActiveSlider.NONE) return false;
+
+        float winW = getWinW(screenW);
+        float winX = (screenW - winW) * 0.5f;
+        float btnW = 360.0f;
+        float btnX = winX + (winW - btnW) * 0.5f;
+        float mx = (float) mouseX;
+        float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+
+        switch (activeSlider) {
+            case RENDER_DISTANCE -> {
+                int dist = 2 + Math.round(progress * 14.0f);
+                dist = Math.max(2, Math.min(16, dist));
+                GameSettings.renderDistance = dist;
+                if (world != null) {
+                    world.setRenderDistance(dist);
+                }
+            }
+            case FOV -> {
+                float fov = 60.0f + progress * 50.0f;
+                GameSettings.fov = Math.round(fov);
+            }
+            case BRIGHTNESS -> {
+                float b = 0.50f + progress * 1.0f;
+                GameSettings.brightness = Math.round(b * 100.0f) / 100.0f;
+            }
+            case SENSITIVITY -> {
+                float s = 0.04f + progress * 0.36f;
+                GameSettings.mouseSensitivity = Math.round(s * 100.0f) / 100.0f;
+            }
+            case HOLD_DELAY -> {
+                float h = 0.05f + progress * 0.40f;
+                GameSettings.mouseHoldDelay = Math.round(h * 100.0f) / 100.0f;
+            }
+            default -> {}
+        }
+        return true;
+    }
+
+    public void handleMouseRelease() {
+        activeSlider = ActiveSlider.NONE;
+    }
+
     private void handleGraphicsClick(float mx, float my, float winX, float startY, float winW, World world) {
-        float btnW = 340.0f;
+        float btnW = 360.0f;
         float btnH = 30.0f;
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 38.0f;
 
-        // Row 0: Render Distance
+        // Row 0: Render Distance Slider
         float y0 = startY;
         if (mx >= btnX && mx <= btnX + btnW && my >= y0 && my <= y0 + btnH) {
-            int curIdx = getRenderDistanceIndex(GameSettings.renderDistance);
-            boolean isLeft = mx < btnX + btnW * 0.5f;
-            curIdx = isLeft ? Math.max(0, curIdx - 1) : Math.min(RENDER_DISTANCES.length - 1, curIdx + 1);
-            GameSettings.renderDistance = RENDER_DISTANCES[curIdx];
+            activeSlider = ActiveSlider.RENDER_DISTANCE;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            int dist = 2 + Math.round(progress * 14.0f);
+            GameSettings.renderDistance = Math.max(2, Math.min(16, dist));
             if (world != null) {
                 world.setRenderDistance(GameSettings.renderDistance);
             }
             return;
         }
 
-        // Row 1: FOV
+        // Row 1: FOV Slider
         float y1 = y0 + stepY;
         if (mx >= btnX && mx <= btnX + btnW && my >= y1 && my <= y1 + btnH) {
-            boolean isLeft = mx < btnX + btnW * 0.5f;
-            if (isLeft) {
-                GameSettings.fov = Math.max(60.0f, GameSettings.fov - 5.0f);
-            } else {
-                GameSettings.fov = Math.min(110.0f, GameSettings.fov + 5.0f);
-            }
+            activeSlider = ActiveSlider.FOV;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            GameSettings.fov = Math.round(60.0f + progress * 50.0f);
             return;
         }
 
@@ -255,15 +326,12 @@ public class OptionsMenu {
             return;
         }
 
-        // Row 5: Brightness
+        // Row 5: Brightness Slider
         float y5 = y4 + stepY;
         if (mx >= btnX && mx <= btnX + btnW && my >= y5 && my <= y5 + btnH) {
-            boolean isLeft = mx < btnX + btnW * 0.5f;
-            if (isLeft) {
-                GameSettings.brightness = Math.max(0.5f, Math.round((GameSettings.brightness - 0.1f) * 10.0f) / 10.0f);
-            } else {
-                GameSettings.brightness = Math.min(1.5f, Math.round((GameSettings.brightness + 0.1f) * 10.0f) / 10.0f);
-            }
+            activeSlider = ActiveSlider.BRIGHTNESS;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            GameSettings.brightness = Math.round((0.50f + progress * 1.0f) * 100.0f) / 100.0f;
             return;
         }
 
@@ -287,20 +355,17 @@ public class OptionsMenu {
     private static final float[] MOUSE_HOLD_PRESETS = { 0.10f, 0.15f, 0.18f, 0.22f, 0.25f, 0.30f, 0.35f, 0.40f };
 
     private void handleControlsClick(float mx, float my, float winX, float startY, float winW) {
-        float btnW = 340.0f;
+        float btnW = 360.0f;
         float btnH = 30.0f;
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 38.0f;
 
-        // Row 0: Mouse Sensitivity
+        // Row 0: Mouse Sensitivity Slider
         float y0 = startY;
         if (mx >= btnX && mx <= btnX + btnW && my >= y0 && my <= y0 + btnH) {
-            boolean isLeft = mx < btnX + btnW * 0.5f;
-            if (isLeft) {
-                GameSettings.mouseSensitivity = Math.max(0.04f, Math.round((GameSettings.mouseSensitivity - 0.02f) * 100.0f) / 100.0f);
-            } else {
-                GameSettings.mouseSensitivity = Math.min(0.40f, Math.round((GameSettings.mouseSensitivity + 0.02f) * 100.0f) / 100.0f);
-            }
+            activeSlider = ActiveSlider.SENSITIVITY;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            GameSettings.mouseSensitivity = Math.round((0.04f + progress * 0.36f) * 100.0f) / 100.0f;
             return;
         }
 
@@ -326,8 +391,14 @@ public class OptionsMenu {
             return;
         }
 
-        // Row 2: Mouse Hold Delay (Minecraft continuous place/break rate)
+        // Row 2: Mouse Hold Delay Slider
         float y2 = y1 + stepY;
+        if (mx >= btnX && mx <= btnX + btnW && my >= y2 && my <= y2 + btnH) {
+            activeSlider = ActiveSlider.HOLD_DELAY;
+            float progress = Math.max(0.0f, Math.min(1.0f, (mx - btnX) / btnW));
+            GameSettings.mouseHoldDelay = Math.round((0.05f + progress * 0.40f) * 100.0f) / 100.0f;
+            return;
+        }
         if (mx >= btnX && mx <= btnX + btnW && my >= y2 && my <= y2 + btnH) {
             boolean isLeft = mx < btnX + btnW * 0.5f;
             int curIdx = 3; // default 0.22f
@@ -638,9 +709,9 @@ public class OptionsMenu {
         hud.getColorShader().setUniform("uColor", new Vector4f(0.04f, 0.06f, 0.10f, 0.88f));
         hud.drawRect2D(0, 0, screenW, screenH);
 
-        // 2. Main Window Box
-        float winW = 740.0f;
-        float winH = 520.0f;
+        // 2. Main Window Box: dynamically responsive to screen size
+        float winW = getWinW(screenW);
+        float winH = getWinH(screenH);
         float winX = (screenW - winW) * 0.5f;
         float winY = (screenH - winH) * 0.5f;
 
@@ -658,16 +729,17 @@ public class OptionsMenu {
         hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("options.title"), winX + 18.0f, winY + 12.0f, 1.8f,
                 new Vector4f(0.40f, 0.85f, 1.0f, 1.0f));
 
-        // 3. Tab Buttons
+        // 3. Tab Buttons with clean spacing and no overlapping
         Tab[] tabs = Tab.values();
-        float tabW = (winW - 32.0f) / tabs.length;
+        float tabSpacing = 4.0f;
+        float tabW = (winW - 32.0f - (tabs.length - 1) * tabSpacing) / tabs.length;
         float tabH = 32.0f;
         float tabY = winY + 54.0f;
 
         for (int i = 0; i < tabs.length; i++) {
-            float tx = winX + 16.0f + i * tabW;
+            float tx = winX + 16.0f + i * (tabW + tabSpacing);
             boolean isCur = (tabs[i] == currentTab);
-            boolean hovered = (mx >= tx && mx <= tx + tabW - 4.0f && my >= tabY && my <= tabY + tabH);
+            boolean hovered = (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH);
 
             hud.getColorShader().bind();
             if (isCur) {
@@ -677,11 +749,11 @@ public class OptionsMenu {
             } else {
                 hud.getColorShader().setUniform("uColor", new Vector4f(0.12f, 0.16f, 0.24f, 0.85f));
             }
-            hud.drawRect2D(tx, tabY, tabW - 4.0f, tabH);
+            hud.drawRect2D(tx, tabY, tabW, tabH);
             hud.getColorShader().unbind();
 
             Vector4f tabColor = isCur ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : (hovered ? new Vector4f(0.9f, 0.9f, 0.9f, 0.9f) : new Vector4f(0.65f, 0.75f, 0.85f, 0.85f));
-            hud.getTextRenderer().drawTextCenteredInBox(ortho, "[" + (i + 1) + "] " + tabs[i].getTitle(), tx, tabY, tabW - 4.0f, tabH, 1.10f, 6.0f, tabColor);
+            hud.getTextRenderer().drawTextCenteredInBox(ortho, "[" + (i + 1) + "] " + tabs[i].getTitle(), tx, tabY, tabW, tabH, 1.10f, 8.0f, tabColor);
         }
 
         // 4. Tab Content Area
@@ -729,25 +801,29 @@ public class OptionsMenu {
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 38.0f;
 
-        // Render Distance
+        // Row 0: Render Distance (Slider: 2 to 16 chunks)
+        float rDistProg = (GameSettings.renderDistance - 2) / 14.0f;
         int rDist = GameSettings.renderDistance;
-        String rDistStr = "< " + I18n.t("options.render_distance", rDist) + String.format(" (%d m) >", rDist * 16);
-        drawOptionButton(hud, ortho, btnX, startY, btnW, btnH, rDistStr, mx, my);
+        String rDistStr = I18n.t("options.render_distance", rDist) + String.format(" (%d m)", rDist * 16);
+        drawSlider(hud, ortho, btnX, startY, btnW, btnH, rDistStr, rDistProg, mx, my);
 
-        // FOV
-        String fovStr = "< " + I18n.t("options.fov", GameSettings.fov) + " >";
-        drawOptionButton(hud, ortho, btnX, startY + stepY, btnW, btnH, fovStr, mx, my);
+        // Row 1: FOV (Slider: 60 to 110 deg)
+        float fovProg = (GameSettings.fov - 60.0f) / 50.0f;
+        int fovVal = Math.round(GameSettings.fov);
+        String fovSuffix = (fovVal == 70) ? " (Normal)" : (fovVal == 110 ? " (Quake Pro)" : "");
+        String fovStr = I18n.t("options.fov", fovVal) + fovSuffix;
+        drawSlider(hud, ortho, btnX, startY + stepY, btnW, btnH, fovStr, fovProg, mx, my);
 
-        // V-Sync
+        // Row 2: V-Sync
         String vsyncStr = I18n.t("options.vsync", GameSettings.vsync ? I18n.t("options.on") : I18n.t("options.off"));
         drawOptionButton(hud, ortho, btnX, startY + stepY * 2, btnW, btnH, vsyncStr, mx, my);
 
-        // FPS Limit
+        // Row 3: FPS Limit
         String fpsVal = GameSettings.maxFps == 0 ? I18n.t("options.fps_unlimited") : (GameSettings.maxFps + " FPS");
         String fpsStr = "< " + I18n.t("options.max_fps", fpsVal) + " >";
         drawOptionButton(hud, ortho, btnX, startY + stepY * 3, btnW, btnH, fpsStr, mx, my);
 
-        // Fog
+        // Row 4: Fog
         String fogVal = switch (GameSettings.fogMode) {
             case 0 -> I18n.t("options.fog.off");
             case 1 -> I18n.t("options.fog.near");
@@ -758,11 +834,14 @@ public class OptionsMenu {
         String fogStr = "< " + I18n.t("options.fog", fogVal) + " >";
         drawOptionButton(hud, ortho, btnX, startY + stepY * 4, btnW, btnH, fogStr, mx, my);
 
-        // Brightness
-        String brightStr = "< " + I18n.t("options.brightness", GameSettings.brightness * 100.0f) + " >";
-        drawOptionButton(hud, ortho, btnX, startY + stepY * 5, btnW, btnH, brightStr, mx, my);
+        // Row 5: Brightness (Slider: 50% to 150%)
+        float brightProg = (GameSettings.brightness - 0.50f) / 1.0f;
+        int brightPercent = Math.round(GameSettings.brightness * 100.0f);
+        String brightSuffix = (brightPercent == 100) ? " (Normal)" : (brightPercent >= 140 ? " (Bright)" : (brightPercent <= 60 ? " (Moody)" : ""));
+        String brightStr = I18n.t("options.brightness", brightPercent + "%") + brightSuffix;
+        drawSlider(hud, ortho, btnX, startY + stepY * 5, btnW, btnH, brightStr, brightProg, mx, my);
 
-        // View Bobbing
+        // Row 6: View Bobbing
         String bobStr = I18n.t("options.view_bobbing", GameSettings.viewBobbing ? I18n.t("options.on") : I18n.t("options.off"));
         drawOptionButton(hud, ortho, btnX, startY + stepY * 6, btnW, btnH, bobStr, mx, my);
 
@@ -783,18 +862,21 @@ public class OptionsMenu {
         float btnX = winX + (winW - btnW) * 0.5f;
         float stepY = 38.0f;
 
-        // Row 0: Mouse Sensitivity
-        String sensStr = "< " + I18n.t("options.sensitivity", GameSettings.mouseSensitivity) + " >";
-        drawOptionButton(hud, ortho, btnX, startY, btnW, btnH, sensStr, mx, my);
+        // Row 0: Mouse Sensitivity (Slider: 0.04 to 0.40)
+        float sensProg = (GameSettings.mouseSensitivity - 0.04f) / 0.36f;
+        int sensPercent = Math.round(sensProg * 100.0f);
+        String sensStr = I18n.t("options.sensitivity", String.format("%.2f (%d%%)", GameSettings.mouseSensitivity, sensPercent));
+        drawSlider(hud, ortho, btnX, startY, btnW, btnH, sensStr, sensProg, mx, my);
 
         // Row 1: Eye Height
-        String eyeStr = "< " + I18n.t("options.eye_height", GameSettings.eyeHeight) + " >";
+        String eyeStr = "< " + I18n.t("options.eye_height", String.format("%.2f m", GameSettings.eyeHeight)) + " >";
         drawOptionButton(hud, ortho, btnX, startY + stepY, btnW, btnH, eyeStr, mx, my);
 
-        // Row 2: Mouse Hold Delay (Minecraft continuous mining / placement)
+        // Row 2: Mouse Hold Delay (Slider: 50ms to 450ms)
+        float holdProg = (GameSettings.mouseHoldDelay - 0.05f) / 0.40f;
         int holdMs = Math.round(GameSettings.mouseHoldDelay * 1000.0f);
-        String holdStr = "< " + I18n.t("options.mouse_hold_delay", holdMs) + " >";
-        drawOptionButton(hud, ortho, btnX, startY + stepY * 2, btnW, btnH, holdStr, mx, my);
+        String holdStr = I18n.t("options.mouse_hold_delay", holdMs + "ms");
+        drawSlider(hud, ortho, btnX, startY + stepY * 2, btnW, btnH, holdStr, holdProg, mx, my);
 
         // Row 3: Invert Y
         String invStr = I18n.t("options.invert_y", GameSettings.invertMouseY ? I18n.t("options.on") : I18n.t("options.off"));
@@ -1043,6 +1125,40 @@ public class OptionsMenu {
         hud.getTextRenderer().drawTextWithShadow(ortho, key, kx + 8.0f, y + 4.0f, 1.15f, new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
     }
 
+    private void drawSlider(HudRenderer hud, Matrix4f ortho, float x, float y, float w, float h,
+                            String text, float progress, float mx, float my) {
+        progress = Math.max(0.0f, Math.min(1.0f, progress));
+        boolean hovered = (mx >= x && mx <= x + w && my >= y && my <= y + h);
+
+        // 1. Background track
+        hud.getColorShader().bind();
+        hud.getColorShader().setUniform("uColor", new Vector4f(0.10f, 0.14f, 0.22f, 0.95f));
+        hud.drawRect2D(x, y, w, h);
+
+        // 2. Filled track portion
+        float filledW = w * progress;
+        hud.getColorShader().setUniform("uColor", hovered ? new Vector4f(0.20f, 0.45f, 0.75f, 0.70f) : new Vector4f(0.16f, 0.35f, 0.60f, 0.60f));
+        hud.drawRect2D(x, y, filledW, h);
+
+        // 3. Draggable thumb handle (12px wide)
+        float thumbW = 12.0f;
+        float thumbX = x + (w - thumbW) * progress;
+        hud.getColorShader().setUniform("uColor", hovered ? new Vector4f(0.40f, 0.75f, 1.0f, 1.0f) : new Vector4f(0.28f, 0.55f, 0.85f, 0.95f));
+        hud.drawRect2D(thumbX, y - 1, thumbW, h + 2);
+
+        // 4. Border outline
+        hud.getColorShader().setUniform("uColor", hovered ? new Vector4f(0.45f, 0.80f, 1.0f, 1.0f) : new Vector4f(0.25f, 0.35f, 0.50f, 0.85f));
+        hud.drawRect2D(x, y, w, 1);
+        hud.drawRect2D(x, y + h - 1, w, 1);
+        hud.drawRect2D(x, y, 1, h);
+        hud.drawRect2D(x + w - 1, y, 1, h);
+        hud.getColorShader().unbind();
+
+        // 5. Centered auto-fitting text
+        Vector4f txtCol = hovered ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : new Vector4f(0.92f, 0.95f, 0.98f, 0.95f);
+        hud.getTextRenderer().drawTextCenteredInBox(ortho, text, x, y, w, h, 1.25f, 16.0f, txtCol);
+    }
+
     private void drawOptionButton(HudRenderer hud, Matrix4f ortho, float x, float y, float w, float h, String text,
                                   float mx, float my) {
         drawOptionButton(hud, ortho, x, y, w, h, text, mx, my,
@@ -1066,7 +1182,7 @@ public class OptionsMenu {
         hud.getColorShader().unbind();
 
         Vector4f txtCol = hovered ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : new Vector4f(0.90f, 0.94f, 0.98f, 0.90f);
-        hud.getTextRenderer().drawTextCenteredInBox(ortho, text, x, y, w, h, 1.25f, 8.0f, txtCol);
+        hud.getTextRenderer().drawTextCenteredInBox(ortho, text, x, y, w, h, 1.25f, 12.0f, txtCol);
     }
 
     private int getRenderDistanceIndex(int val) {

@@ -5,6 +5,7 @@ import com.voxel.config.GameSettings;
 import com.voxel.ui.InventoryMenu;
 import com.voxel.ui.MainMenu;
 import com.voxel.ui.OptionsMenu;
+import com.voxel.ui.PauseMenu;
 import com.voxel.ui.TextRenderer;
 import com.voxel.util.Logger;
 import org.joml.Matrix4f;
@@ -21,6 +22,8 @@ public class GuiScaleAndScrollTest {
         test3_DebugHudScrollReplacesPages();
         test4_MainMenuWorldSelectionScroll();
         test5_InventoryMenuScroll();
+        test6_OptionsMenuSliders();
+        test7_DynamicGuiWindowResizeRecalculation();
 
         System.out.println("\n>>> ALL GUI SCALE & SCROLL TESTS PASSED (100% PASS)! <<<");
     }
@@ -152,5 +155,88 @@ public class GuiScaleAndScrollTest {
 
         System.out.printf("Inventory scroll down: %b | scroll up: %b%n", scrolledDown, scrolledUp);
         System.out.println("Creative inventory scroll OK.");
+    }
+
+    private static void test6_OptionsMenuSliders() {
+        System.out.println("\n--- TEST 6: Interactive Options Menu Sliders ---");
+        OptionsMenu options = new OptionsMenu();
+        options.setOpen(true, OptionsMenu.Source.MAIN_MENU);
+        try {
+            Thread.sleep(260); // Wait out open cooldown
+        } catch (InterruptedException ignored) {}
+
+        int screenW = 1280;
+        int screenH = 720;
+        float winW = options.getWinW(screenW);
+        float winX = (screenW - winW) * 0.5f;
+        float btnW = 360.0f;
+        float btnX = winX + (winW - btnW) * 0.5f;
+        float startY = (screenH - options.getWinH(screenH)) * 0.5f + 54.0f + 32.0f + 16.0f;
+
+        // 1. Click on Render Distance slider at 50%
+        float clickMidX = btnX + btnW * 0.5f;
+        options.handleMouseClick(clickMidX, startY + 10.0f, org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT, screenW, screenH, null, null);
+        System.out.printf("Render Distance after 50%% slider click: %d chunks%n", GameSettings.renderDistance);
+        if (GameSettings.renderDistance != 9 && GameSettings.renderDistance != 8) {
+            throw new AssertionError("Render Distance slider click unexpected value: " + GameSettings.renderDistance);
+        }
+
+        // 2. Drag slider to 100% (16 chunks)
+        options.handleMouseMove(btnX + btnW + 20.0f, startY + 10.0f, screenW, screenH, null);
+        System.out.printf("Render Distance after dragging to max: %d chunks%n", GameSettings.renderDistance);
+        if (GameSettings.renderDistance != 16) {
+            throw new AssertionError("Render Distance slider drag to max failed: " + GameSettings.renderDistance);
+        }
+        options.handleMouseRelease();
+
+        // 3. Switch to Controls tab and test Sensitivity slider
+        options.handleKey(org.lwjgl.glfw.GLFW.GLFW_KEY_2, null, null);
+        options.handleMouseClick(btnX + btnW * 0.25f, startY + 10.0f, org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT, screenW, screenH, null, null);
+        System.out.printf("Sensitivity after slider click at 25%%: %.2f%n", GameSettings.mouseSensitivity);
+        if (GameSettings.mouseSensitivity < 0.10f || GameSettings.mouseSensitivity > 0.16f) {
+            throw new AssertionError("Sensitivity slider click unexpected value: " + GameSettings.mouseSensitivity);
+        }
+        options.handleMouseRelease();
+
+        // Reset to default
+        GameSettings.renderDistance = 6;
+        GameSettings.mouseSensitivity = 0.15f;
+        System.out.println("Options Menu interactive sliders OK.");
+    }
+
+    private static void test7_DynamicGuiWindowResizeRecalculation() {
+        System.out.println("\n--- TEST 7: Dynamic GUI Window Resize Recalculation ---");
+        MainMenu mainMenu = new MainMenu();
+        OptionsMenu optionsMenu = new OptionsMenu();
+        InventoryMenu inventoryMenu = new InventoryMenu();
+        PauseMenu pauseMenu = new PauseMenu();
+
+        // Simulate resize to small window (800x600)
+        mainMenu.onResize(800, 600);
+        optionsMenu.onResize(800, 600);
+        inventoryMenu.onResize(800, 600);
+        pauseMenu.onResize(800, 600);
+
+        float winW800 = optionsMenu.getWinW(800);
+        float winH600 = optionsMenu.getWinH(600);
+        System.out.printf("Options Menu at 800x600: WinW=%.1f px, WinH=%.1f px%n", winW800, winH600);
+        if (winW800 > 800 - 32 || winH600 > 600 - 24) {
+            throw new AssertionError("Options window overflows 800x600 viewport!");
+        }
+
+        // Simulate resize to 1920x1080
+        mainMenu.onResize(1920, 1080);
+        optionsMenu.onResize(1920, 1080);
+        inventoryMenu.onResize(1920, 1080);
+        pauseMenu.onResize(1920, 1080);
+
+        float winW1080 = optionsMenu.getWinW(1920);
+        float winH1080 = optionsMenu.getWinH(1080);
+        System.out.printf("Options Menu at 1920x1080: WinW=%.1f px, WinH=%.1f px%n", winW1080, winH1080);
+        if (winW1080 > 840.0f || winH1080 > 540.0f) {
+            throw new AssertionError("Options window exceeded max bounds at 1080p!");
+        }
+
+        System.out.println("Dynamic GUI window resize recalculation OK.");
     }
 }

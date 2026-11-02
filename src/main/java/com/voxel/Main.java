@@ -104,12 +104,23 @@ public class Main {
                 width = w;
                 height = h;
                 glViewport(0, 0, width, height);
+                recalculateGuiLayout();
             }
         });
 
         glfwSetCursorPosCallback(window, (win, xpos, ypos) -> {
             currentMouseX = xpos;
             currentMouseY = ypos;
+
+            if (optionsMenu != null && optionsMenu.isOpen()) {
+                float gScale = GameSettings.getEffectiveGuiScale(width, height);
+                int vWidth = Math.max(1, Math.round(width / gScale));
+                int vHeight = Math.max(1, Math.round(height / gScale));
+                double vMouseX = currentMouseX / gScale;
+                double vMouseY = currentMouseY / gScale;
+                optionsMenu.handleMouseMove(vMouseX, vMouseY, vWidth, vHeight, world);
+                return;
+            }
 
             if (mainMenu != null && mainMenu.isActive()) return;
 
@@ -173,6 +184,9 @@ public class Main {
             double vMouseY = currentMouseY / gScale;
 
             if (optionsMenu != null && optionsMenu.isOpen()) {
+                if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT) {
+                    optionsMenu.handleMouseRelease();
+                }
                 if (action == GLFW_PRESS) {
                     optionsMenu.handleMouseClick(vMouseX, vMouseY, button, vWidth, vHeight, world, player);
                     if (!optionsMenu.isOpen()) {
@@ -670,6 +684,19 @@ public class Main {
         if (world != null && player != null) {
             world.update(player.position, dt);
         }
+    }
+
+    private void recalculateGuiLayout() {
+        float gScale = GameSettings.getEffectiveGuiScale(width, height);
+        int vWidth = Math.max(1, Math.round(width / gScale));
+        int vHeight = Math.max(1, Math.round(height / gScale));
+
+        if (mainMenu != null) mainMenu.onResize(vWidth, vHeight);
+        if (optionsMenu != null) optionsMenu.onResize(vWidth, vHeight);
+        if (pauseMenu != null) pauseMenu.onResize(vWidth, vHeight);
+        if (inventoryMenu != null) inventoryMenu.onResize(vWidth, vHeight);
+        if (chatSystem != null) chatSystem.onResize(vWidth, vHeight);
+        if (noiseVisualizer != null) noiseVisualizer.onResize(vWidth, vHeight);
     }
 
     private void render() {

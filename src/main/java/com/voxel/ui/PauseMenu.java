@@ -65,6 +65,10 @@ public class PauseMenu {
         return open;
     }
 
+    public void onResize(int screenW, int screenH) {
+        // Dynamic centering is calculated per frame and event
+    }
+
     public void setOpen(boolean open) {
         this.open = open;
         if (open) {

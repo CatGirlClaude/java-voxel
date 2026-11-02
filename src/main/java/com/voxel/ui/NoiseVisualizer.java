@@ -1043,6 +1043,10 @@ public class NoiseVisualizer {
         return String.format("Klimat umiarkowany: W (%.3f) >= 0.16 -> Las debowy", hum);
     }
 
+    public void onResize(int screenW, int screenH) {
+        // Minimap and diagnostic panels adapt dynamically during render and click
+    }
+
     public void cleanup() {
         if (mapTextureId != 0) {
             glDeleteTextures(mapTextureId);
