@@ -1,5 +1,8 @@
 package com.voxel.block;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum BlockType {
     AIR(0, "Powietrze", -1, -1, -1, false, true, false),
     GRASS(1, "Trawa", 0, 2, 1, true, false, false),
@@ -171,17 +174,32 @@ public enum BlockType {
     }
 
     public static int getWaterLevel(byte id) {
-        if (id == WATER.id) return 8;
-        if (id >= WATER_FLOW_7.id && id <= WATER_FLOW_1.id) {
-            return 7 - (id - WATER_FLOW_7.id);
+        BlockState state = Blocks.getStateFromRawId(id);
+        if (state.getBlock() instanceof FluidBlock) {
+            return state.get(FluidBlock.LEVEL);
         }
         return 0;
     }
 
     public static byte getFlowBlockId(int level) {
-        if (level >= 8) return WATER.id;
-        if (level <= 0) return AIR.id;
-        return (byte) (WATER_FLOW_7.id + (7 - level));
+        BlockState state = Blocks.WATER.getStateForLevel(level);
+        return Blocks.getRawIdForState(state);
+    }
+
+    private static BlockType[] creativeBlocksCache = null;
+
+    public static BlockType[] getCreativeBlocks() {
+        if (creativeBlocksCache == null) {
+            List<BlockType> list = new ArrayList<>();
+            for (BlockType bt : values()) {
+                if (bt == AIR) continue;
+                // Exclude internal flowing water states (handled via Blocks.WATER BlockState)
+                if (bt.id >= 35 && bt.id <= 41) continue;
+                list.add(bt);
+            }
+            creativeBlocksCache = list.toArray(new BlockType[0]);
+        }
+        return creativeBlocksCache;
     }
 
     public static boolean isWashableDecoration(byte id) {

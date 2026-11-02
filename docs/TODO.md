@@ -242,9 +242,9 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 ### #30-#50. Nowe zadania deweloperskie i poprawki silnika
 - [x] **#30. Tekstura wody:** Wymiana na klasyczną, czystą teksturę w stylu Minecrafta z płynnym okresowym zapętleniem bez drażniącego artefaktu.
 - [x] **#31. Pomiędzy wodą występują dziury:** Usunięto sztuczny clamping i zniekształcenia atlasu w shaderze, przywracając idealną ciągłość tafli wody bez szpar.
-- [ ] **#32. Fizyka wody modern co tick:** Rozprzestrzenianie wody krok po kroku co tick gry zamiast natychmiastowego zalewania.
-- [ ] **#33. Blokowanie highlightu dla wody w innych stanach:** Brak konturu/obwódki zaznaczenia na płynącej wodzie.
-- [ ] **#34. System BlockState dla wody:** Przejście z oddzielnych ID na właściwości stanu bloku (level/flow).
+- [x] **#32. Fizyka wody modern co tick:** Wdrożono podwójnie buforowaną kolejkę `fluidQueueNext` / `fluidQueueCurrent` oraz interwał `FLUID_TICK_INTERVAL = 0.12s`, dzięki czemu woda rozlewa się falami krok po kroku co tick, a nie natychmiastowo.
+- [x] **#33. Blokowanie highlightu dla wody w innych stanach:** Wykluczono płynącą wodę i stany płynów z testu `raycast`, eliminując obwódkę zaznaczenia i umożliwiając interakcję z blokami na dnie.
+- [x] **#34. System BlockState dla wody:** Wprowadzono model właściwości stanów bloków `Property<T>`, `IntegerProperty LEVEL (1..8)` na `Blocks.WATER` oraz usunięto sztuczne, oddzielne ID bloków dla poziomów przepływu.
 - [x] **#35. Naprawa tekstur bloków 3D:** Naprawiono przypisania zmiennych UV w `addQuadPacked` w mesherze, przywracając idealne mapowanie ścianek 3D w świecie.
 - [x] **#36. Fallback tekstura:** Wdrożono fioletowo-czarną szachownicę 16x16 (magenta/black) jako oficjalny fallback dla brakujących assetów (`missing.png`).
 - [ ] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu.

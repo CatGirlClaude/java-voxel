@@ -1,7 +1,10 @@
 package com.voxel.block;
 
+import com.voxel.block.state.Property;
 import com.voxel.registry.Identifier;
 import com.voxel.world.World;
+
+import java.util.*;
 
 public class Block {
     protected final Identifier identifier;
@@ -16,7 +19,9 @@ public class Block {
     protected final int textureBottom;
     protected final int textureSide;
 
-    protected final BlockState defaultState;
+    protected final List<Property<?>> properties;
+    protected final Map<Map<Property<?>, Comparable<?>>, BlockState> stateMap = new HashMap<>();
+    protected BlockState defaultState;
 
     public static class Properties {
         private boolean solid = true;
@@ -43,6 +48,14 @@ public class Block {
     }
 
     public Block(Identifier identifier, int rawId, Properties props) {
+        this(identifier, rawId, props, Collections.emptyList());
+    }
+
+    public Block(Identifier identifier, int rawId, Properties props, Property<?>... properties) {
+        this(identifier, rawId, props, Arrays.asList(properties));
+    }
+
+    public Block(Identifier identifier, int rawId, Properties props, List<Property<?>> properties) {
         this.identifier = identifier;
         this.rawId = rawId;
         this.translationKey = "block." + identifier.getNamespace() + "." + identifier.getPath();
@@ -54,11 +67,55 @@ public class Block {
         this.textureTop = props.textureTop;
         this.textureBottom = props.textureBottom;
         this.textureSide = props.textureSide;
-        this.defaultState = createBlockState();
+        this.properties = Collections.unmodifiableList(new ArrayList<>(properties));
+        buildStates();
     }
 
-    protected BlockState createBlockState() {
-        return new BlockState(this);
+    protected void buildStates() {
+        if (properties == null || properties.isEmpty()) {
+            this.defaultState = new BlockState(this, Collections.emptyMap());
+            stateMap.put(Collections.emptyMap(), defaultState);
+            return;
+        }
+
+        List<Map<Property<?>, Comparable<?>>> combinations = new ArrayList<>();
+        combinations.add(new HashMap<>());
+        for (Property<?> prop : properties) {
+            List<Map<Property<?>, Comparable<?>>> next = new ArrayList<>();
+            for (Map<Property<?>, Comparable<?>> current : combinations) {
+                for (Comparable<?> val : prop.getPossibleValues()) {
+                    Map<Property<?>, Comparable<?>> m = new HashMap<>(current);
+                    m.put(prop, val);
+                    next.add(m);
+                }
+            }
+            combinations = next;
+        }
+
+        for (Map<Property<?>, Comparable<?>> comb : combinations) {
+            stateMap.put(comb, new BlockState(this, comb));
+        }
+        this.defaultState = stateMap.get(combinations.getFirst());
+    }
+
+    public <T extends Comparable<T>, V extends T> BlockState getStateWith(BlockState current, Property<T> property, V value) {
+        Map<Property<?>, Comparable<?>> newValues = new HashMap<>(current.getValues());
+        newValues.put(property, value);
+        BlockState target = stateMap.get(newValues);
+        if (target != null) {
+            return target;
+        }
+        BlockState created = new BlockState(this, newValues);
+        stateMap.put(newValues, created);
+        return created;
+    }
+
+    public List<Property<?>> getProperties() {
+        return properties;
+    }
+
+    public Collection<BlockState> getPossibleStates() {
+        return stateMap.values();
     }
 
     public BlockState getDefaultState() {

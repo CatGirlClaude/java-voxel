@@ -34,9 +34,9 @@
 
 - [x] 30. Tekstura wody jest okropna i nieprzyjemnie sie na nia patrzy - skopiuj styl/teksture z Minecrafta
 - [x] 31. Pomiedzy woda wystepuja dziury (szpary i luki na laczeniach tafli wody ze screenshotu)
-- [ ] 32. Fizyka wody modern: rozlewanie co tick, a nie natychmiastowo
-- [ ] 33. Woda w innych stanach (plynaca woda) nie moze miec block highlightu
-- [ ] 34. Rodzaje wody nie musza byc osobnymi ID blokow - dodaj system BlockState
+- [x] 32. Fizyka wody modern: rozlewanie co tick, a nie natychmiastowo
+- [x] 33. Woda w innych stanach (plynaca woda) nie moze miec block highlightu
+- [x] 34. Rodzaje wody nie musza byc osobnymi ID blokow - dodaj system BlockState
 - [x] 35. Tekstury blokow 3D kompletnie nie dzialaja (rozciagniete/zepsute UV na sciankach z zalaczonego screenshotu)
 - [x] 36. Dodaj fallback teksture (np. magenta/black checkerboard)
 - [ ] 37. Przywroc mozliwosc klikniecia slotu do ktorego block ma trafic klikajac na niego w creative menu (np. nacisniecie 1 = 1 slot, nacisniecie keybinda R = slot pod R)

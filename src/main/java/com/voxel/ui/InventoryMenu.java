@@ -37,7 +37,7 @@ public class InventoryMenu {
 
     public boolean handleScroll(double yoffset) {
         if (!open) return false;
-        int totalRows = (BlockType.values().length + COLS - 1) / COLS;
+        int totalRows = (BlockType.getCreativeBlocks().length + COLS - 1) / COLS;
         int maxScrollRow = Math.max(0, totalRows - ROWS);
         if (yoffset > 0) {
             scrollRow = Math.max(0, scrollRow - 1);
@@ -99,7 +99,7 @@ public class InventoryMenu {
         float startX = (lastScreenW - winW) * 0.5f + SLOT_PAD;
         float startY = (lastScreenH - winH) * 0.5f + 48.0f;
 
-        BlockType[] all = BlockType.values();
+        BlockType[] all = BlockType.getCreativeBlocks();
         for (int r = 0; r < ROWS; r++) {
             for (int col = 0; col < COLS; col++) {
                 int i = (scrollRow + r) * COLS + col;
@@ -189,7 +189,7 @@ public class InventoryMenu {
                 new Vector4f(0.75f, 0.85f, 0.95f, 0.85f));
 
         // 3. Render grid slots (9 columns)
-        BlockType[] all = BlockType.values();
+        BlockType[] all = BlockType.getCreativeBlocks();
         float gridStartX = winX + SLOT_PAD;
         float gridStartY = winY + 48.0f;
         BlockType hoveredBlock = null;

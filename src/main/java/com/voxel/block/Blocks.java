@@ -79,14 +79,14 @@ public final class Blocks {
     public static final FlowerBlock ALLIUM = register(34, "allium", new FlowerBlock(Identifier.of("allium"), 34,
             Block.Properties.of().textures(41)));
 
-    // Water flow levels (35..41)
-    public static final FluidBlock WATER_FLOW_7 = register(35, "water_flow_7", new FluidBlock(Identifier.of("water_flow_7"), 35, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_6 = register(36, "water_flow_6", new FluidBlock(Identifier.of("water_flow_6"), 36, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_5 = register(37, "water_flow_5", new FluidBlock(Identifier.of("water_flow_5"), 37, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_4 = register(38, "water_flow_4", new FluidBlock(Identifier.of("water_flow_4"), 38, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_3 = register(39, "water_flow_3", new FluidBlock(Identifier.of("water_flow_3"), 39, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_2 = register(40, "water_flow_2", new FluidBlock(Identifier.of("water_flow_2"), 40, Block.Properties.of().textures(9)));
-    public static final FluidBlock WATER_FLOW_1 = register(41, "water_flow_1", new FluidBlock(Identifier.of("water_flow_1"), 41, Block.Properties.of().textures(9)));
+    // Water flow levels: managed via BlockState LEVEL on Blocks.WATER (no separate block IDs)
+    public static final BlockState WATER_FLOW_7 = WATER.getStateForLevel(7);
+    public static final BlockState WATER_FLOW_6 = WATER.getStateForLevel(6);
+    public static final BlockState WATER_FLOW_5 = WATER.getStateForLevel(5);
+    public static final BlockState WATER_FLOW_4 = WATER.getStateForLevel(4);
+    public static final BlockState WATER_FLOW_3 = WATER.getStateForLevel(3);
+    public static final BlockState WATER_FLOW_2 = WATER.getStateForLevel(2);
+    public static final BlockState WATER_FLOW_1 = WATER.getStateForLevel(1);
 
     // Natural flora and geography blocks (42..47)
     public static final SugarCaneBlock SUGAR_CANE = register(42, "sugar_cane", new SugarCaneBlock(Identifier.of("sugar_cane"), 42, Block.Properties.of().textures(42)));
@@ -120,6 +120,27 @@ public final class Blocks {
     public static Block get(Identifier id) {
         Block b = Registries.BLOCK.get(id);
         return b != null ? b : AIR;
+    }
+
+    public static BlockState getStateFromRawId(byte id) {
+        if (id == 8) {
+            return WATER.getDefaultState();
+        }
+        if (id >= 35 && id <= 41) {
+            int level = 7 - (id - 35);
+            return WATER.getStateForLevel(level);
+        }
+        Block b = get(id);
+        return b != null ? b.getDefaultState() : AIR.getDefaultState();
+    }
+
+    public static byte getRawIdForState(BlockState state) {
+        if (state.getBlock() == WATER) {
+            int level = state.get(FluidBlock.LEVEL);
+            if (level >= 8) return (byte) 8;
+            return (byte) (35 + (7 - level));
+        }
+        return state.getRawId();
     }
 
     public static void init() {

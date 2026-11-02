@@ -101,6 +101,11 @@ public class World {
     private final Set<ChunkPos> modifiedChunkPositions = ConcurrentHashMap.newKeySet();
     private final Queue<BlockPos> physicsQueue = new ConcurrentLinkedQueue<>();
     private final Set<BlockPos> inPhysicsQueue = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Queue<BlockPos> fluidQueueCurrent = new ConcurrentLinkedQueue<>();
+    private final Queue<BlockPos> fluidQueueNext = new ConcurrentLinkedQueue<>();
+    private final Set<BlockPos> inFluidQueue = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private float fluidTickTimer = 0.0f;
+    public static final float FLUID_TICK_INTERVAL = 0.12f;
     private int lastRenderedChunkCount = 0;
 
     private final FrustumIntersection frustum = new FrustumIntersection();
@@ -486,9 +491,21 @@ public class World {
     }
 
     public void queuePhysicsCheck(long wx, long wy, long wz) {
+        byte b = getBlock(wx, wy, wz);
+        if (BlockType.isWater(b)) {
+            triggerFluid(wx, wy, wz);
+            return;
+        }
         BlockPos p = new BlockPos(wx, wy, wz);
         if (inPhysicsQueue.add(p)) {
             physicsQueue.offer(p);
+        }
+    }
+
+    public void triggerFluid(long wx, long wy, long wz) {
+        BlockPos p = new BlockPos(wx, wy, wz);
+        if (inFluidQueue.add(p)) {
+            fluidQueueNext.offer(p);
         }
     }
 
@@ -506,7 +523,7 @@ public class World {
             byte blockId = getBlock(x, y, z);
             if (blockId == BlockType.AIR.id) continue;
 
-            // 1. Falling blocks (Sand, Red Sand)
+            // 1. Falling blocks (Sand, Red Sand, Gravel)
             if (blockId == BlockType.SAND.id || blockId == BlockType.RED_SAND.id || blockId == BlockType.GRAVEL.id) {
                 byte below = getBlock(x, y - 1, z);
                 if (below == BlockType.AIR.id) {
@@ -520,105 +537,125 @@ public class World {
                     triggerPhysics(x, y - 1, z);
                     triggerPhysics(x, y, z);
                 }
+            } else if (BlockType.isWater(blockId)) {
+                triggerFluid(x, y, z);
             }
-            // 2. Liquid physics (Water)
-            else if (BlockType.isWater(blockId)) {
-                byte below = getBlock(x, y - 1, z);
-                String mode = com.voxel.config.GameSettings.waterPhysicsMode;
+        }
+    }
 
-                if ("terraria".equalsIgnoreCase(mode)) {
-                    // Terraria Mode: Finite volume liquid conservation
-                    if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
-                        setBlock(x, y, z, BlockType.AIR.id, true);
-                        setBlock(x, y - 1, z, BlockType.WATER.id, true);
-                        triggerPhysics(x, y - 1, z);
-                        triggerPhysics(x, y + 1, z);
-                    } else if (!BlockType.isWater(below)) {
-                        long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-                        int offset = (int) Math.abs((x * 31L ^ z * 17L ^ y) % 4);
-                        for (int i = 0; i < 4; i++) {
-                            int idx = (offset + i) % 4;
-                            long sx = x + sides[idx][0];
-                            long sz = z + sides[idx][1];
-                            byte sideBlock = getBlock(sx, y, sz);
-                            if (sideBlock == BlockType.AIR.id || BlockType.isWashableDecoration(sideBlock)) {
-                                setBlock(x, y, z, BlockType.AIR.id, true);
-                                setBlock(sx, y, sz, BlockType.WATER.id, true);
-                                triggerPhysics(sx, y, sz);
-                                triggerPhysics(x, y, z);
-                                break;
-                            }
+    public void tickFluid(int maxSteps) {
+        while (!fluidQueueNext.isEmpty()) {
+            fluidQueueCurrent.offer(fluidQueueNext.poll());
+        }
+
+        int processed = 0;
+        while (processed < maxSteps && !fluidQueueCurrent.isEmpty()) {
+            BlockPos p = fluidQueueCurrent.poll();
+            if (p == null) break;
+            inFluidQueue.remove(p);
+            processed++;
+
+            long x = p.x();
+            long y = p.y();
+            long z = p.z();
+            byte blockId = getBlock(x, y, z);
+            if (!BlockType.isWater(blockId)) continue;
+
+            byte below = getBlock(x, y - 1, z);
+            String mode = com.voxel.config.GameSettings.waterPhysicsMode;
+
+            if ("terraria".equalsIgnoreCase(mode)) {
+                // Terraria Mode: Finite volume liquid conservation
+                if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
+                    setBlock(x, y, z, BlockType.AIR.id, true);
+                    setBlock(x, y - 1, z, BlockType.WATER.id, true);
+                    triggerFluid(x, y - 1, z);
+                    triggerFluid(x, y + 1, z);
+                } else if (!BlockType.isWater(below)) {
+                    long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                    int offset = (int) Math.abs((x * 31L ^ z * 17L ^ y) % 4);
+                    for (int i = 0; i < 4; i++) {
+                        int idx = (offset + i) % 4;
+                        long sx = x + sides[idx][0];
+                        long sz = z + sides[idx][1];
+                        byte sideBlock = getBlock(sx, y, sz);
+                        if (sideBlock == BlockType.AIR.id || BlockType.isWashableDecoration(sideBlock)) {
+                            setBlock(x, y, z, BlockType.AIR.id, true);
+                            setBlock(sx, y, sz, BlockType.WATER.id, true);
+                            triggerFluid(sx, y, sz);
+                            triggerFluid(x, y, z);
+                            break;
                         }
                     }
-                } else if ("preclassic".equalsIgnoreCase(mode) || "classic".equalsIgnoreCase(mode)) {
-                    // Pre-classic Minecraft: infinite spreading of source blocks
-                    if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
-                        setBlock(x, y - 1, z, BlockType.WATER.id, true);
-                        triggerPhysics(x, y - 1, z);
-                    } else {
+                }
+            } else if ("preclassic".equalsIgnoreCase(mode) || "classic".equalsIgnoreCase(mode)) {
+                // Pre-classic Minecraft: infinite spreading of source blocks co-tick
+                if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
+                    setBlock(x, y - 1, z, BlockType.WATER.id, true);
+                    triggerFluid(x, y - 1, z);
+                } else {
+                    long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                    for (long[] s : sides) {
+                        long sx = x + s[0];
+                        long sz = z + s[1];
+                        byte sideBlock = getBlock(sx, y, sz);
+                        if (sideBlock == BlockType.AIR.id || BlockType.isWashableDecoration(sideBlock)) {
+                            setBlock(sx, y, sz, BlockType.WATER.id, true);
+                            triggerFluid(sx, y, sz);
+                        }
+                    }
+                }
+            } else {
+                // Modern Minecraft Mode: Flow levels 1..7 and source block (level 8) co-tick
+                int curLevel = BlockType.getWaterLevel(blockId);
+
+                // A. Flowing water decay check: if upstream feed is gone, recede back to air
+                if (curLevel < 8) {
+                    byte above = getBlock(x, y + 1, z);
+                    boolean fedFromAbove = BlockType.isWater(above);
+                    boolean fedFromSide = false;
+                    long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                    for (long[] s : sides) {
+                        byte nId = getBlock(x + s[0], y, z + s[1]);
+                        if (BlockType.isWater(nId) && BlockType.getWaterLevel(nId) > curLevel) {
+                            fedFromSide = true;
+                            break;
+                        }
+                    }
+
+                    if (!fedFromAbove && !fedFromSide) {
+                        setBlock(x, y, z, BlockType.AIR.id, true);
+                        for (long[] s : sides) {
+                            triggerFluid(x + s[0], y, z + s[1]);
+                        }
+                        triggerFluid(x, y - 1, z);
+                        continue;
+                    }
+                }
+
+                // B. Downward flow (falling water takes priority)
+                if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
+                    setBlock(x, y - 1, z, BlockType.WATER_FLOW_7.id, true);
+                    triggerFluid(x, y - 1, z);
+                } else if (BlockType.isWater(below) && BlockType.getWaterLevel(below) < 7) {
+                    setBlock(x, y - 1, z, BlockType.WATER_FLOW_7.id, true);
+                    triggerFluid(x, y - 1, z);
+                } else {
+                    // C. Horizontal spreading when supported by solid ground or full water underneath
+                    if (curLevel > 1) {
+                        int nextLevel = (curLevel == 8) ? 7 : (curLevel - 1);
+                        byte nextBlockId = BlockType.getFlowBlockId(nextLevel);
                         long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
                         for (long[] s : sides) {
                             long sx = x + s[0];
                             long sz = z + s[1];
-                            byte sideBlock = getBlock(sx, y, sz);
-                            if (sideBlock == BlockType.AIR.id || BlockType.isWashableDecoration(sideBlock)) {
-                                setBlock(sx, y, sz, BlockType.WATER.id, true);
-                                triggerPhysics(sx, y, sz);
-                            }
-                        }
-                    }
-                } else {
-                    // Modern Minecraft Mode: Flow levels 1..7 and source block (level 8)
-                    int curLevel = BlockType.getWaterLevel(blockId);
-
-                    // A. Flowing water decay check: if upstream feed is gone, recede back to air
-                    if (curLevel < 8) {
-                        byte above = getBlock(x, y + 1, z);
-                        boolean fedFromAbove = BlockType.isWater(above);
-                        boolean fedFromSide = false;
-                        long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-                        for (long[] s : sides) {
-                            byte nId = getBlock(x + s[0], y, z + s[1]);
-                            if (BlockType.isWater(nId) && BlockType.getWaterLevel(nId) > curLevel) {
-                                fedFromSide = true;
-                                break;
-                            }
-                        }
-
-                        if (!fedFromAbove && !fedFromSide) {
-                            setBlock(x, y, z, BlockType.AIR.id, true);
-                            for (long[] s : sides) {
-                                triggerPhysics(x + s[0], y, z + s[1]);
-                            }
-                            triggerPhysics(x, y - 1, z);
-                            continue;
-                        }
-                    }
-
-                    // B. Downward flow (falling water takes priority)
-                    if (below == BlockType.AIR.id || BlockType.isWashableDecoration(below)) {
-                        setBlock(x, y - 1, z, BlockType.WATER_FLOW_7.id, true);
-                        triggerPhysics(x, y - 1, z);
-                    } else if (BlockType.isWater(below) && BlockType.getWaterLevel(below) < 7) {
-                        setBlock(x, y - 1, z, BlockType.WATER_FLOW_7.id, true);
-                        triggerPhysics(x, y - 1, z);
-                    } else {
-                        // C. Horizontal spreading when supported by solid ground or full water underneath
-                        if (curLevel > 1) {
-                            int nextLevel = (curLevel == 8) ? 7 : (curLevel - 1);
-                            byte nextBlockId = BlockType.getFlowBlockId(nextLevel);
-                            long[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-                            for (long[] s : sides) {
-                                long sx = x + s[0];
-                                long sz = z + s[1];
-                                byte nId = getBlock(sx, y, sz);
-                                if (nId == BlockType.AIR.id || BlockType.isWashableDecoration(nId)) {
-                                    setBlock(sx, y, sz, nextBlockId, true);
-                                    triggerPhysics(sx, y, sz);
-                                } else if (BlockType.isWater(nId) && BlockType.getWaterLevel(nId) < nextLevel) {
-                                    setBlock(sx, y, sz, nextBlockId, true);
-                                    triggerPhysics(sx, y, sz);
-                                }
+                            byte nId = getBlock(sx, y, sz);
+                            if (nId == BlockType.AIR.id || BlockType.isWashableDecoration(nId)) {
+                                setBlock(sx, y, sz, nextBlockId, true);
+                                triggerFluid(sx, y, sz);
+                            } else if (BlockType.isWater(nId) && BlockType.getWaterLevel(nId) < nextLevel) {
+                                setBlock(sx, y, sz, nextBlockId, true);
+                                triggerFluid(sx, y, sz);
                             }
                         }
                     }
@@ -637,8 +674,15 @@ public class World {
             timeOfDay = (timeOfDay + dt / 240.0f) % 1.0f;
         }
 
-        if (dt > 0.0f && com.voxel.config.GameSettings.blockPhysicsEnabled && !physicsQueue.isEmpty()) {
-            tickPhysics(128);
+        if (dt > 0.0f && com.voxel.config.GameSettings.blockPhysicsEnabled) {
+            if (!physicsQueue.isEmpty()) {
+                tickPhysics(128);
+            }
+            fluidTickTimer += dt;
+            if (fluidTickTimer >= FLUID_TICK_INTERVAL) {
+                fluidTickTimer -= FLUID_TICK_INTERVAL;
+                tickFluid(128);
+            }
         }
 
         long pcx = Math.floorDiv((long) Math.floor(playerPos.x), (long) Chunk.SIZE_X);
@@ -989,7 +1033,7 @@ public class World {
 
         while (dist <= maxDist) {
             byte b = getBlock(x, y, z);
-            if (b != BlockType.AIR.id && b != BlockType.WATER.id) {
+            if (b != BlockType.AIR.id && !BlockType.isWater(b)) {
                 return new RaycastHit(x, y, z, prevX, prevY, prevZ, b);
             }
 
