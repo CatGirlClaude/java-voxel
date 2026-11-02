@@ -31,3 +31,26 @@
 - [x] 27. wprowadz system block update czy cos podobnego do zoptymalizowanego sprawdzania czy np. blok pod kwiatem wlasnie zostal zniszczony
 - [x] 28. slidery uzywaja blednej wartosci %.0f
 - [x] 29. niech całość ustawien zapisuje sie do pliku
+
+- [ ] 30. Tekstura wody jest okropna i nieprzyjemnie sie na nia patrzy - skopiuj styl/teksture z Minecrafta
+- [ ] 31. Pomiedzy woda wystepuja dziury (szpary i luki na laczeniach tafli wody ze screenshotu)
+- [ ] 32. Fizyka wody modern: rozlewanie co tick, a nie natychmiastowo
+- [ ] 33. Woda w innych stanach (plynaca woda) nie moze miec block highlightu
+- [ ] 34. Rodzaje wody nie musza byc osobnymi ID blokow - dodaj system BlockState
+- [ ] 35. Tekstury blokow 3D kompletnie nie dzialaja (rozciagniete/zepsute UV na sciankach z zalaczonego screenshotu)
+- [ ] 36. Dodaj fallback teksture (np. magenta/black checkerboard)
+- [ ] 37. Przywroc mozliwosc klikniecia slotu do ktorego block ma trafic klikajac na niego w creative menu (np. nacisniecie 1 = 1 slot, nacisniecie keybinda R = slot pod R)
+- [ ] 38. Czas gry zaczyna sie 6:45, o 7:00 zas niebo kompletnie zmienia kolor - naprawic gwaltowny skok koloru i zrobic plynny gradient
+- [ ] 39. Czas wciaz plynie pomimo wlaczonego chatu - wdrozyc w pelni system world tick / client tick
+- [ ] 40. Usun podpowiedzi keybindow z chatu, zwieksz maksymalna ilosc podpowiedzi do 10, zachowaj "(1/16)"
+- [ ] 41. Dodaj syntax highlight do chatu
+- [ ] 42. Usun podpowiedzi z creative menu (hotbar, keybindy etc)
+- [ ] 43. Posprzataj pause menu (za duzo opcji, zrobic czytelne i estetyczne)
+- [ ] 44. GUI SCALE 3-4 to softlock - ekrany ze scrollowaniem powinny byc dostepne natychmiastowo jesli jakikolwiek screen nie miesci sie na ekranie
+- [ ] 45. Przesun hotbar o polowe aktualnego odstepu od dolu ekranu w dol
+- [ ] 46. [5] System and lang wciaz ma tekst po polsku - przetlumaczyc wszystko
+- [ ] 47. Logi systemowe powinny byc po angielsku
+- [ ] 48. Domyslnym HUD scale powinien byc 1
+- [ ] 49. Domyslny tekst nowego swiata to Swiat_x - zmienic na jezyk angielski (World_x)
+- [ ] 50. Dodaj mozliwosc zmiany keybindow w menu opcji
+

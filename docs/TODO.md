@@ -236,3 +236,29 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
   - Dodano brakujący klawisz pauzy `keyPause` do serializacji w [`GameSettings.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/config/GameSettings.java).
   - W [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) dodano natychmiastowy zapis ustawień przy kliknięciach, puszczeniu suwaków oraz resecie domyślnych.
   - Zarejestrowano JVM Shutdown Hook dla `GameSettings.save()`, gwarantujący trwałość konfiguracji nawet przy nagłym zamknięciu okna.
+
+---
+
+### #30-#50. Nowe zadania deweloperskie i poprawki silnika
+- [ ] **#30. Tekstura wody:** Wymiana na klasyczną, czytelną teksturę w stylu Minecrafta bez drażniącego artefaktu.
+- [ ] **#31. Pomiędzy wodą występują dziury:** Likwidacja szpar i luk między krawędziami wody (seams/holes).
+- [ ] **#32. Fizyka wody modern co tick:** Rozprzestrzenianie wody krok po kroku co tick gry zamiast natychmiastowego zalewania.
+- [ ] **#33. Blokowanie highlightu dla wody w innych stanach:** Brak konturu/obwódki zaznaczenia na płynącej wodzie.
+- [ ] **#34. System BlockState dla wody:** Przejście z oddzielnych ID na właściwości stanu bloku (level/flow).
+- [ ] **#35. Naprawa tekstur bloków 3D:** Poprawne mapowanie UV ścianek bloków 3D w podglądzie/ekwipunku.
+- [ ] **#36. Fallback tekstura:** Wdrożenie fioletowo-czarnej szachownicy dla brakujących tekstur.
+- [ ] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu.
+- [ ] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Wyeliminowanie skoku koloru o godzinie 7:00; płynny gradient poranny.
+- [ ] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielenie client tick i world tick w trybie SP.
+- [ ] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie podpowiedzi keybindów, max 10 sugestii, zachowanie wskaźnika strony "(1/16)".
+- [ ] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Wyróżnianie komend, argumentów, współrzędnych i liczb.
+- [ ] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów.
+- [ ] **#43. Uporządkowanie menu pauzy (Pause Menu):** Czytelny, ergonomiczny zestaw opcji bez przesytu.
+- [ ] **#44. Ochrona przed softlockiem przy GUI Scale 3-4:** Automatyczne przewijanie (scroll) w oknach niemieszczących się na ekranie.
+- [ ] **#45. Przesunięcie hotbara w dół:** Zmniejszenie dolnego marginesu o połowę dotychczasowego odstępu.
+- [ ] **#46. Pełna lokalizacja [5] System and lang:** Usunięcie pozostałości języka polskiego przy wybranym angielskim.
+- [ ] **#47. Angielskie logi systemowe:** Ujednolicenie wszystkich logów konsolowych i Loggera na język angielski.
+- [ ] **#48. Domyślna skala HUD = 1:** Ustawienie `hudScale = 1` jako wartości domyślnej.
+- [ ] **#49. Domyślna nazwa nowego świata po angielsku:** "World_x" zamiast "Swiat_x".
+- [ ] **#50. Zmiana keybindów w opcjach:** Pełna obsługa rekonfiguracji klawiszy w interfejsie ustawień.
+
