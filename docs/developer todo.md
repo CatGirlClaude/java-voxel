@@ -45,12 +45,12 @@
 - [x] 40. Usun podpowiedzi keybindow z chatu, zwieksz maksymalna ilosc podpowiedzi do 10, zachowaj "(1/16)"
 - [x] 41. Dodaj syntax highlight do chatu
 - [x] 42. Usun podpowiedzi z creative menu (hotbar, keybindy etc)
-- [ ] 43. Posprzataj pause menu (za duzo opcji, zrobic czytelne i estetyczne)
-- [ ] 44. GUI SCALE 3-4 to softlock - ekrany ze scrollowaniem powinny byc dostepne natychmiastowo jesli jakikolwiek screen nie miesci sie na ekranie
+- [x] 43. Posprzataj pause menu (za duzo opcji, zrobic czytelne i estetyczne)
+- [x] 44. GUI SCALE 3-4 to softlock - ekrany ze scrollowaniem powinny byc dostepne natychmiastowo jesli jakikolwiek screen nie miesci sie na ekranie
 - [x] 45. Przesun hotbar o polowe aktualnego odstepu od dolu ekranu w dol
 - [ ] 46. [5] System and lang wciaz ma tekst po polsku - przetlumaczyc wszystko
 - [ ] 47. Logi systemowe powinny byc po angielsku
-- [ ] 48. Domyslnym HUD scale powinien byc 1
+- [x] 48. Domyslnym HUD scale powinien byc 1
 - [ ] 49. Domyslny tekst nowego swiata to Swiat_x - zmienic na jezyk angielski (World_x)
-- [ ] 50. Dodaj mozliwosc zmiany keybindow w menu opcji
+- [x] 50. Dodaj mozliwosc zmiany keybindow w menu opcji
 

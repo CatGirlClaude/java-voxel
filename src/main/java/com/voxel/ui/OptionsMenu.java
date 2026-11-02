@@ -53,6 +53,114 @@ public class OptionsMenu {
     private long openCooldownUntil = 0;
     private float hudScroll = 0.0f;
 
+    public enum KeyAction {
+        FORWARD("Forward:"),
+        BACK("Back:"),
+        LEFT("Left:"),
+        RIGHT("Right:"),
+        JUMP("Jump / Up:"),
+        CROUCH("Crouch / Down:"),
+        SPRINT("Sprint:"),
+        INVENTORY("Inventory / Creative:"),
+        CHAT("Open Chat:"),
+        COMMAND("Command (/):"),
+        NOISE_MAP("Biome Map [M]:"),
+        DEBUG("Debug HUD [F3]:"),
+        TOGGLE_HUD("Toggle HUD [F1]:"),
+        PAUSE("Pause [ESC]:"),
+        SLOT_1("Hotbar Slot 1:"),
+        SLOT_2("Hotbar Slot 2:"),
+        SLOT_3("Hotbar Slot 3:"),
+        SLOT_4("Hotbar Slot 4:"),
+        SLOT_5("Hotbar Slot 5:"),
+        SLOT_6("Hotbar Slot 6:"),
+        SLOT_7("Hotbar Slot 7:"),
+        SLOT_8("Hotbar Slot 8:"),
+        SLOT_9("Hotbar Slot 9:");
+
+        public final String label;
+        KeyAction(String label) { this.label = label; }
+    }
+
+    private KeyAction rebindingAction = null;
+    private final float[] tabScrolls = new float[Tab.values().length];
+
+    public KeyAction getRebindingAction() {
+        return rebindingAction;
+    }
+
+    public void setRebindingAction(KeyAction action) {
+        this.rebindingAction = action;
+    }
+
+    public int getBoundKey(KeyAction action) {
+        return switch (action) {
+            case FORWARD -> GameSettings.keyForward;
+            case BACK -> GameSettings.keyBack;
+            case LEFT -> GameSettings.keyLeft;
+            case RIGHT -> GameSettings.keyRight;
+            case JUMP -> GameSettings.keyJump;
+            case CROUCH -> GameSettings.keyCrouch;
+            case SPRINT -> GameSettings.keySprint;
+            case INVENTORY -> GameSettings.keyInventory;
+            case CHAT -> GameSettings.keyChat;
+            case COMMAND -> GameSettings.keyCommand;
+            case NOISE_MAP -> GameSettings.keyNoiseMap;
+            case DEBUG -> GameSettings.keyDebug;
+            case TOGGLE_HUD -> GameSettings.keyToggleHud;
+            case PAUSE -> GameSettings.keyPause;
+            case SLOT_1 -> GameSettings.keyHotbar[0];
+            case SLOT_2 -> GameSettings.keyHotbar[1];
+            case SLOT_3 -> GameSettings.keyHotbar[2];
+            case SLOT_4 -> GameSettings.keyHotbar[3];
+            case SLOT_5 -> GameSettings.keyHotbar[4];
+            case SLOT_6 -> GameSettings.keyHotbar[5];
+            case SLOT_7 -> GameSettings.keyHotbar[6];
+            case SLOT_8 -> GameSettings.keyHotbar[7];
+            case SLOT_9 -> GameSettings.keyHotbar[8];
+        };
+    }
+
+    public void setBoundKey(KeyAction action, int key) {
+        switch (action) {
+            case FORWARD -> GameSettings.keyForward = key;
+            case BACK -> GameSettings.keyBack = key;
+            case LEFT -> GameSettings.keyLeft = key;
+            case RIGHT -> GameSettings.keyRight = key;
+            case JUMP -> GameSettings.keyJump = key;
+            case CROUCH -> GameSettings.keyCrouch = key;
+            case SPRINT -> GameSettings.keySprint = key;
+            case INVENTORY -> GameSettings.keyInventory = key;
+            case CHAT -> GameSettings.keyChat = key;
+            case COMMAND -> GameSettings.keyCommand = key;
+            case NOISE_MAP -> GameSettings.keyNoiseMap = key;
+            case DEBUG -> GameSettings.keyDebug = key;
+            case TOGGLE_HUD -> GameSettings.keyToggleHud = key;
+            case PAUSE -> GameSettings.keyPause = key;
+            case SLOT_1 -> GameSettings.keyHotbar[0] = key;
+            case SLOT_2 -> GameSettings.keyHotbar[1] = key;
+            case SLOT_3 -> GameSettings.keyHotbar[2] = key;
+            case SLOT_4 -> GameSettings.keyHotbar[3] = key;
+            case SLOT_5 -> GameSettings.keyHotbar[4] = key;
+            case SLOT_6 -> GameSettings.keyHotbar[5] = key;
+            case SLOT_7 -> GameSettings.keyHotbar[6] = key;
+            case SLOT_8 -> GameSettings.keyHotbar[7] = key;
+            case SLOT_9 -> GameSettings.keyHotbar[8] = key;
+        }
+    }
+
+    public float getMaxScroll(float listH, Tab tab) {
+        float totalH = switch (tab) {
+            case GRAPHICS -> 8 * 38.0f + 20.0f;
+            case CONTROLS -> 5 * 38.0f + 20.0f;
+            case DEBUG_HUD -> DebugHudConfig.getItems().size() * 34.0f + 36.0f;
+            case OVERRIDES -> 6 * 38.0f + 20.0f;
+            case SYSTEM -> 4 * 36.0f + 160.0f;
+            case KEYBINDS -> 11 * 26.0f + 56.0f;
+        };
+        return Math.max(0.0f, totalH - listH);
+    }
+
     public enum ActiveSlider {
         NONE,
         RENDER_DISTANCE,
@@ -106,6 +214,10 @@ public class OptionsMenu {
         }
     }
 
+    public void resetCooldown() {
+        this.openCooldownUntil = 0;
+    }
+
     public Source getReturnSource() {
         return returnSource;
     }
@@ -124,6 +236,20 @@ public class OptionsMenu {
 
     public boolean handleKey(int key, World world, Player player) {
         if (!open) return false;
+
+        if (rebindingAction != null) {
+            if (key == GLFW_KEY_ESCAPE) {
+                rebindingAction = null;
+                showStatus("Keybinding cancelled");
+                return true;
+            }
+            setBoundKey(rebindingAction, key);
+            String kName = GameSettings.getKeyName(key);
+            showStatus("Bound " + rebindingAction.label + " " + kName);
+            rebindingAction = null;
+            GameSettings.save();
+            return true;
+        }
 
         if (key == GLFW_KEY_ESCAPE) {
             saveAndClose(world);
@@ -147,6 +273,14 @@ public class OptionsMenu {
             float listH = 330.0f;
             float maxScroll = Math.max(0.0f, totalH - listH);
             hudScroll = Math.max(0.0f, Math.min(maxScroll, hudScroll - (float) yoffset * 28.0f));
+            tabScrolls[Tab.DEBUG_HUD.ordinal()] = hudScroll;
+            return true;
+        }
+        float listH = 330.0f;
+        float maxScroll = getMaxScroll(listH, currentTab);
+        if (maxScroll > 0.0f) {
+            int idx = currentTab.ordinal();
+            tabScrolls[idx] = Math.max(0.0f, Math.min(maxScroll, tabScrolls[idx] - (float) yoffset * 26.0f));
             return true;
         }
         return false;
@@ -666,10 +800,49 @@ public class OptionsMenu {
     }
 
     private void handleKeybindsClick(float mx, float my, float winX, float startY, float winW) {
+        float colW = 310.0f;
+        float col1X = winX + 38.0f;
+        float col2X = winX + winW - colW - 38.0f;
+        float rowH = 26.0f;
+        float scroll = tabScrolls[Tab.KEYBINDS.ordinal()];
+
+        KeyAction[] leftKeys = {
+            KeyAction.FORWARD, KeyAction.BACK, KeyAction.LEFT, KeyAction.RIGHT,
+            KeyAction.JUMP, KeyAction.CROUCH, KeyAction.SPRINT,
+            KeyAction.INVENTORY, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
+        };
+
+        KeyAction[] rightKeys = {
+            KeyAction.DEBUG, KeyAction.TOGGLE_HUD,
+            KeyAction.SLOT_1, KeyAction.SLOT_2, KeyAction.SLOT_3,
+            KeyAction.SLOT_4, KeyAction.SLOT_5, KeyAction.SLOT_6,
+            KeyAction.SLOT_7, KeyAction.SLOT_8, KeyAction.SLOT_9
+        };
+
+        for (int i = 0; i < leftKeys.length; i++) {
+            float ry = startY + i * rowH - scroll;
+            float kw = 120.0f;
+            float kx = col1X + colW - kw;
+            if (mx >= kx && mx <= kx + kw && my >= ry && my <= ry + 22.0f) {
+                rebindingAction = (rebindingAction == leftKeys[i]) ? null : leftKeys[i];
+                return;
+            }
+        }
+
+        for (int i = 0; i < rightKeys.length; i++) {
+            float ry = startY + i * rowH - scroll;
+            float kw = 120.0f;
+            float kx = col2X + colW - kw;
+            if (mx >= kx && mx <= kx + kw && my >= ry && my <= ry + 22.0f) {
+                rebindingAction = (rebindingAction == rightKeys[i]) ? null : rightKeys[i];
+                return;
+            }
+        }
+
         float btnW = 280.0f;
-        float btnH = 32.0f;
+        float btnH = 30.0f;
         float btnX = winX + (winW - btnW) * 0.5f;
-        float btnY = startY + 230.0f;
+        float btnY = startY + Math.max(leftKeys.length, rightKeys.length) * rowH + 10.0f - scroll;
 
         if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
             GameSettings.keyForward = GLFW_KEY_W;
@@ -685,6 +858,12 @@ public class OptionsMenu {
             GameSettings.keyNoiseMap = GLFW_KEY_M;
             GameSettings.keyDebug = GLFW_KEY_F3;
             GameSettings.keyToggleHud = GLFW_KEY_F1;
+            GameSettings.keyPause = GLFW_KEY_ESCAPE;
+            for (int i = 0; i < GameSettings.keyHotbar.length; i++) {
+                GameSettings.keyHotbar[i] = GLFW_KEY_1 + i;
+            }
+            rebindingAction = null;
+            GameSettings.save();
             showStatus("Reset keybinds to defaults!");
         }
     }
@@ -1081,55 +1260,86 @@ public class OptionsMenu {
         float col1X = winX + 38.0f;
         float col2X = winX + winW - colW - 38.0f;
         float rowH = 26.0f;
+        float scroll = tabScrolls[Tab.KEYBINDS.ordinal()];
 
-        String[][] leftKeys = {
-                {"Forward:", GameSettings.getKeyName(GameSettings.keyForward)},
-                {"Back:", GameSettings.getKeyName(GameSettings.keyBack)},
-                {"Left:", GameSettings.getKeyName(GameSettings.keyLeft)},
-                {"Right:", GameSettings.getKeyName(GameSettings.keyRight)},
-                {"Jump / Up:", GameSettings.getKeyName(GameSettings.keyJump)},
-                {"Crouch / Down:", GameSettings.getKeyName(GameSettings.keyCrouch)},
-                {"Sprint:", GameSettings.getKeyName(GameSettings.keySprint)}
+        KeyAction[] leftKeys = {
+            KeyAction.FORWARD, KeyAction.BACK, KeyAction.LEFT, KeyAction.RIGHT,
+            KeyAction.JUMP, KeyAction.CROUCH, KeyAction.SPRINT,
+            KeyAction.INVENTORY, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
         };
 
-        String[][] rightKeys = {
-                {"Inventory:", GameSettings.getKeyName(GameSettings.keyInventory)},
-                {"Open Chat:", GameSettings.getKeyName(GameSettings.keyChat)},
-                {"Command:", GameSettings.getKeyName(GameSettings.keyCommand)},
-                {"Diagnostics / Map:", GameSettings.getKeyName(GameSettings.keyNoiseMap) + " / F4"},
-                {"Debug Overlay:", GameSettings.getKeyName(GameSettings.keyDebug)},
-                {"Toggle HUD:", GameSettings.getKeyName(GameSettings.keyToggleHud)},
-                {"Pause / Menu:", GameSettings.getKeyName(GameSettings.keyPause)}
+        KeyAction[] rightKeys = {
+            KeyAction.DEBUG, KeyAction.TOGGLE_HUD,
+            KeyAction.SLOT_1, KeyAction.SLOT_2, KeyAction.SLOT_3,
+            KeyAction.SLOT_4, KeyAction.SLOT_5, KeyAction.SLOT_6,
+            KeyAction.SLOT_7, KeyAction.SLOT_8, KeyAction.SLOT_9
         };
 
         for (int i = 0; i < leftKeys.length; i++) {
-            float ry = startY + i * rowH;
-            drawKeyRow(hud, ortho, col1X, ry, colW, leftKeys[i][0], leftKeys[i][1]);
+            float ry = startY + i * rowH - scroll;
+            drawKeyRow(hud, ortho, col1X, ry, colW, leftKeys[i], mx, my);
         }
 
         for (int i = 0; i < rightKeys.length; i++) {
-            float ry = startY + i * rowH;
-            drawKeyRow(hud, ortho, col2X, ry, colW, rightKeys[i][0], rightKeys[i][1]);
+            float ry = startY + i * rowH - scroll;
+            drawKeyRow(hud, ortho, col2X, ry, colW, rightKeys[i], mx, my);
         }
 
         float btnW = 280.0f;
-        float btnH = 32.0f;
+        float btnH = 30.0f;
         float btnX = winX + (winW - btnW) * 0.5f;
-        float btnY = startY + 200.0f;
+        float btnY = startY + Math.max(leftKeys.length, rightKeys.length) * rowH + 10.0f - scroll;
         drawOptionButton(hud, ortho, btnX, btnY, btnW, btnH, I18n.t("options.reset_keybinds"), mx, my);
+
+        // Scrollbar if needed
+        float listH = 330.0f;
+        float maxScroll = getMaxScroll(listH, Tab.KEYBINDS);
+        if (maxScroll > 0.0f) {
+            float sbX = winX + winW - 32.0f;
+            float sbW = 6.0f;
+            float totalH = listH + maxScroll;
+            float thumbH = Math.max(26.0f, listH * (listH / totalH));
+            float thumbY = startY + (scroll / maxScroll) * (listH - thumbH);
+            boolean sbHover = (mx >= sbX - 4.0f && mx <= sbX + sbW + 4.0f && my >= startY && my <= startY + listH);
+
+            hud.getColorShader().bind();
+            hud.getColorShader().setUniform("uColor", new Vector4f(0.10f, 0.13f, 0.18f, 0.85f));
+            hud.drawRect2D(sbX, startY, sbW, listH);
+            hud.getColorShader().setUniform("uColor", sbHover ? new Vector4f(0.35f, 0.70f, 1.0f, 0.95f) : new Vector4f(0.24f, 0.45f, 0.72f, 0.85f));
+            hud.drawRect2D(sbX, thumbY, sbW, thumbH);
+            hud.getColorShader().unbind();
+        }
     }
 
-    private void drawKeyRow(HudRenderer hud, Matrix4f ortho, float x, float y, float w, String label, String key) {
-        hud.getTextRenderer().drawTextWithShadow(ortho, label, x, y + 4.0f, 1.2f, new Vector4f(0.80f, 0.88f, 0.95f, 0.90f));
+    private void drawKeyRow(HudRenderer hud, Matrix4f ortho, float x, float y, float w, KeyAction action, float mx, float my) {
+        hud.getTextRenderer().drawTextWithShadow(ortho, action.label, x, y + 4.0f, 1.2f, new Vector4f(0.80f, 0.88f, 0.95f, 0.90f));
 
-        float kw = 110.0f;
+        float kw = 120.0f;
         float kx = x + w - kw;
+        float kh = 22.0f;
+        boolean hover = (mx >= kx && mx <= kx + kw && my >= y && my <= y + kh);
+        boolean rebinding = (rebindingAction == action);
+
         hud.getColorShader().bind();
-        hud.getColorShader().setUniform("uColor", new Vector4f(0.18f, 0.24f, 0.35f, 0.90f));
-        hud.drawRect2D(kx, y, kw, 22.0f);
+        if (rebinding) {
+            hud.getColorShader().setUniform("uColor", new Vector4f(1.0f, 0.70f, 0.20f, 1.0f));
+            hud.drawRect2D(kx - 2, y - 2, kw + 4, kh + 4);
+            hud.getColorShader().setUniform("uColor", new Vector4f(0.35f, 0.22f, 0.08f, 0.95f));
+        } else if (hover) {
+            hud.getColorShader().setUniform("uColor", new Vector4f(0.35f, 0.55f, 0.85f, 1.0f));
+            hud.drawRect2D(kx - 1, y - 1, kw + 2, kh + 2);
+            hud.getColorShader().setUniform("uColor", new Vector4f(0.25f, 0.35f, 0.50f, 0.95f));
+        } else {
+            hud.getColorShader().setUniform("uColor", new Vector4f(0.18f, 0.24f, 0.35f, 0.90f));
+        }
+        hud.drawRect2D(kx, y, kw, kh);
         hud.getColorShader().unbind();
 
-        hud.getTextRenderer().drawTextWithShadow(ortho, key, kx + 8.0f, y + 4.0f, 1.15f, new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
+        String keyText = rebinding ? "> PRESS KEY <" : GameSettings.getKeyName(getBoundKey(action));
+        Vector4f textCol = rebinding
+                ? new Vector4f(1.0f, 0.92f, 0.30f, 1.0f)
+                : (hover ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
+        hud.getTextRenderer().drawTextCenteredInBox(ortho, keyText, kx, y, kw, kh, 1.15f, 4.0f, textCol);
     }
 
     private void drawSlider(HudRenderer hud, Matrix4f ortho, float x, float y, float w, float h,

@@ -30,35 +30,23 @@ public class PauseMenu {
 
     private static final String[] BUTTON_KEYS = {
         "pause.resume",
-        "creative.title",
-        "menu.diagnostics",
         "pause.options",
         "menu.save_game",
-        "menu.reset_world",
-        "pause.save_quit",
-        "menu.quit"
+        "pause.save_quit"
     };
 
     private static final String[] BUTTON_FALLBACKS = {
         "Back to Game",
-        "Block Inventory [E]",
-        "Biome Diagnostics [M]",
         "Options...",
         "Save World",
-        "Reset World",
-        "Save and Quit to Title",
-        "Quit Game"
+        "Save and Quit to Title"
     };
 
     private static final Action[] BUTTON_ACTIONS = {
         Action.RESUME,
-        Action.OPEN_INVENTORY,
-        Action.OPEN_NOISE_MAP,
         Action.OPEN_OPTIONS,
         Action.SAVE,
-        Action.RESET_WORLD,
-        Action.MAIN_MENU,
-        Action.QUIT
+        Action.MAIN_MENU
     };
 
     public boolean isOpen() {
@@ -76,6 +64,10 @@ public class PauseMenu {
         } else {
             statusMessage = "";
         }
+    }
+
+    public void resetCooldown() {
+        this.openCooldownUntil = 0;
     }
 
     public void toggle() {

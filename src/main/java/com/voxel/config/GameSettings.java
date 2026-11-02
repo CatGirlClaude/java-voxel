@@ -25,7 +25,7 @@ public final class GameSettings {
     public static float brightness = 1.0f;     // 0.5 .. 1.5
     public static boolean viewBobbing = true;
     public static boolean showFps = true;
-    public static int guiScale = 0;            // 0 = Auto, 1 = 1x, 2 = 2x, 3 = 3x, 4 = 4x
+    public static int guiScale = 1;            // 0 = Auto, 1 = 1x (default), 2 = 2x, 3 = 3x, 4 = 4x
 
     // Controls & Mouse
     public static float mouseSensitivity = 0.12f; // 0.04 .. 0.40
@@ -109,7 +109,7 @@ public final class GameSettings {
             brightness = getFloat(props, "brightness", 1.0f, 0.5f, 1.5f);
             viewBobbing = getBool(props, "viewBobbing", true);
             showFps = getBool(props, "showFps", true);
-            guiScale = getInt(props, "guiScale", 0, 0, 4);
+            guiScale = getInt(props, "guiScale", 1, 0, 4);
 
             mouseSensitivity = getFloat(props, "mouseSensitivity", 0.12f, 0.02f, 0.60f);
             mouseHoldDelay = getFloat(props, "mouseHoldDelay", 0.22f, 0.08f, 0.50f);
@@ -232,7 +232,10 @@ public final class GameSettings {
 
     public static float getEffectiveGuiScale(int windowWidth, int windowHeight) {
         if (guiScale > 0) {
-            return (float) guiScale;
+            // Anti-softlock safety clamp: guarantee virtual screen resolution is at least 420x260
+            // so menus and dialog buttons (e.g. Done/Back) never overflow out of viewport
+            int maxAllowed = Math.max(1, Math.min(windowWidth / 420, windowHeight / 260));
+            return (float) Math.min(guiScale, maxAllowed);
         }
         // Auto scale (Minecraft style): scales UI so virtual resolution is comfortably readable
         int scale = 1;
@@ -251,7 +254,7 @@ public final class GameSettings {
         brightness = 1.0f;
         viewBobbing = true;
         showFps = true;
-        guiScale = 0;
+        guiScale = 1;
 
         mouseSensitivity = 0.12f;
         mouseHoldDelay = 0.22f;
@@ -342,7 +345,7 @@ public final class GameSettings {
     }
 
     public static String getSaveFormatName() {
-        return saveFormat == 1 ? "Regiony (.mca)" : "Roznice (.dat)";
+        return saveFormat == 1 ? com.voxel.i18n.I18n.t("menu.format_regions") : com.voxel.i18n.I18n.t("menu.format_diffs");
     }
 
     private static int getInt(Properties p, String key, int def, int min, int max) {

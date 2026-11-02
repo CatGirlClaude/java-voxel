@@ -253,12 +253,12 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 - [x] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie zbędnych podpowiedzi keybindów, powiększenie widocznych sugestii do 10, zachowanie czystego wskaźnika strony "(1/16)".
 - [x] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Dynamiczne podświetlanie komend (cyan), słów kluczowych/podkomend (fiolet), liczb (zielony), współrzędnych (bursztyn) i selektorów (róż).
 - [x] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów i zaśmiecających napisów.
-- [ ] **#43. Uporządkowanie menu pauzy (Pause Menu):** Czytelny, ergonomiczny zestaw opcji bez przesytu.
-- [ ] **#44. Ochrona przed softlockiem przy GUI Scale 3-4:** Automatyczne przewijanie (scroll) w oknach niemieszczących się na ekranie.
+- [x] **#43. Uporządkowanie menu pauzy (Pause Menu):** Czytelny, ergonomiczny zestaw 4 kluczowych przycisków (Powrót do gry, Opcje, Zapisz świat, Zapisz i wyjdź do menu głównego).
+- [x] **#44. Ochrona przed softlockiem przy GUI Scale 3-4:** Bezpieczny clamp skali interfejsu (minimalna rozdzielczość wirtualna 420x260) oraz uniwersalny mechanizm przewijania (scroll) we wszystkich oknach opcji.
 - [x] **#45. Przesunięcie hotbara w dół:** Zmniejszenie dolnego marginesu o połowę dotychczasowego odstępu (z 18px do 9px).
 - [ ] **#46. Pełna lokalizacja [5] System and lang:** Usunięcie pozostałości języka polskiego przy wybranym angielskim.
 - [ ] **#47. Angielskie logi systemowe:** Ujednolicenie wszystkich logów konsolowych i Loggera na język angielski.
-- [ ] **#48. Domyślna skala HUD = 1:** Ustawienie `hudScale = 1` jako wartości domyślnej.
+- [x] **#48. Domyślna skala HUD = 1:** Ustawienie `guiScale = 1` jako wartości domyślnej w konfiguracji fabrycznej.
 - [ ] **#49. Domyślna nazwa nowego świata po angielsku:** "World_x" zamiast "Swiat_x".
-- [ ] **#50. Zmiana keybindów w opcjach:** Pełna obsługa rekonfiguracji klawiszy w interfejsie ustawień.
+- [x] **#50. Zmiana keybindów w opcjach:** Pełna obsługa rekonfiguracji klawiszy (ruch, interakcje, pasek podręczny 1-9) w dedykowanej zakładce Keybinds.
 

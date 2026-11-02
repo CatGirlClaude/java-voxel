@@ -388,9 +388,9 @@ public class Main {
             } else if (key == GameSettings.keyCommand || key == GLFW_KEY_SLASH) {
                 chatSystem.openChat("/", true);
                 setCursorLocked(false);
-            } else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9) {
-                int slot = key - GLFW_KEY_1;
-                if (slot < player.hotbar.length) {
+            } else {
+                int slot = GameSettings.getHotbarSlotForKey(key);
+                if (slot >= 0 && slot < player.hotbar.length) {
                     player.selectedSlot = slot;
                 }
             }
