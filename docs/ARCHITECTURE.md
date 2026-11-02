@@ -38,7 +38,7 @@ Kompleksowy dokument architektoniczny i mapa drogowa silnika voxelowego **Java V
 | **21** | Zmiana przycisków cyklicznych na slidery w UI | ⏳ **OTWARTE** | Do zrobienia: suwaki ciągłe/dyskretne dla Render Distance, GUI Scale, Mouse Hold Delay, FOV, głośności dźwięków. |
 | **22** | Przeliczanie layoutu GUI po zmianie rozmiaru okna | ⏳ **OTWARTE** | Do zrobienia: responsywny mechanizm kotwiczenia i wywołanie `layout()` w callbacku `glfwSetFramebufferSizeCallback`. |
 | **23** | Assety bloków jako pliki PNG zamiast kodu | ⏳ **OTWARTE** | Do zrobienia: ładowanie plików PNG z `run/assets/textures/block/` przez `lwjgl-stb` i migracja na `GL_TEXTURE_2D_ARRAY`. |
-| **24** | Modularna architektura bloków (Block / State) | ⏳ **OTWARTE** | Do zrobienia: zastąpienie monolitycznego enuma `BlockType.java` hierarchią klas `Block`, stanami `BlockState` i `BlockRegistry`. |
+| **24** | Globalna modułowa architektura rejestrów i obiektów gry | ⏳ **OTWARTE** | Do zrobienia: zastąpienie monolitycznych klas i enumów uogólnionym systemem rejestrów (`Registries.BLOCK`, `Registries.ITEM`, `Registries.ENTITY_TYPE`), hierarchią klas `Block`/`BlockState` oraz bazą pod moby (`Entity`, `LivingEntity`, `MobEntity`, `EntityType`). |
 | **25** | Dynamiczny kolor trawy (Biome Colormap Tinting) | ⏳ **OTWARTE** | Do zrobienia: uśredniane próbkowanie klimatu biomów i tintowanie wierzchołków trawy zamiast wielu sztywnych bloków. |
 | **26** | Zaśnieżony blok trawy (Snowy Grass Block) | ⏳ **OTWARTE** | Do zrobienia: wariant bloku lub stan `snowy = true` z dedykowaną teksturą boczną. |
 | **27** | Zoptymalizowany system aktualizacji bloków | ⏳ **OTWARTE** | Do zrobienia: generyczny system powiadomień sąsiadów (`neighbour updates`) oraz kolejka planowanych aktualizacji (`scheduled ticks`). |
@@ -101,19 +101,28 @@ com.voxel
 
 ## 3. Szczegółowe decyzje techniczne i specyfikacje systemów
 
-### 3.1 Architektura bloków i stanów (Priorytet #24)
+### 3.1 Globalna modułowa architektura rejestrów i obiektów gry (Priorytet #24)
 
-**Problem:** `BlockType.java` to monolityczny enum zawierający 42 typy bloków, mieszający właściwości fizyczne, identyfikatory, współrzędne atlasu i logikę specjalną.
+**Problem:** `BlockType.java` to monolityczny enum zawierający 42 typy bloków, mieszający właściwości fizyczne, identyfikatory, współrzędne atlasu i logikę specjalną. Podobnie brakuje jednolitej bazy pod moby, byty dynamiczne i przedmioty.
 
-**Rozwiązanie:**
-- `Block`: abstrakcyjna klasa bazowa z metodami wirtualnymi:
-  - `boolean isSolid()`, `boolean isTransparent()`, `boolean isCrossModel()`.
-  - `void onNeighbourChanged(World world, long x, long y, long z, Direction from)`.
-  - `void onScheduledTick(World world, long x, long y, long z)`.
-  - `int getLightEmission()`, `int getLightFilter()`.
-- Podklasy specjalistyczne: `FullBlock`, `PlantBlock` (kwiaty, trawa z wymogiem podłoża), `FluidBlock` (woda), `LeavesBlock`.
-- `BlockState`: niemutowalna kombinacja `(Block, StateProperties)`. Każdy stan ma prealokowany globalny unikalny numer stanu (`stateId`).
-- `BlockRegistry`: centralny rejestr mapujący nazwy tekstowe (`"voxel:stone"`, `"voxel:rose"`) na obiekty `Block` i stany domyślne. Proste bloki bez unikalnej logiki definiowane są przez pliki JSON.
+**Rozwiązanie (rozszerzenie na cały projekt):**
+1. **Generyczny system rejestrów (`Registries`):**
+   - Centralne rejestry oparte na unikalnych identyfikatorach tekstowych `Identifier` (`"voxel:zombie"`, `"voxel:dirt"`, `"voxel:apple"`):
+     - `Registries.BLOCK`: instancje `Block`.
+     - `Registries.ITEM`: instancje `Item`.
+     - `Registries.ENTITY_TYPE`: typy bytów/mobów `EntityType<?>`.
+   - Zapewnia to dynamiczne mapowanie dwukierunkowe: `Identifier <-> Instancja <-> numeryczny ID / State ID` dla zachowania szybkości pętli gry i kompaktowości zapisu na dysku.
+2. **Architektura bloków:**
+   - `Block`: abstrakcyjna klasa bazowa z metodami wirtualnymi (`isSolid()`, `isTransparent()`, `isCrossModel()`, `onNeighbourChanged()`, `onScheduledTick()`).
+   - Podklasy specjalistyczne: `FullBlock`, `PlantBlock`, `FluidBlock`, `LeavesBlock`.
+   - `BlockState`: niemutowalna kombinacja `(Block, StateProperties)` z prealokowanym `stateId`.
+3. **Architektura encji i mobów (`Entity` / `MobEntity`):**
+   - `Entity`: klasa bazowa dla wszelkich obiektów świata (pozycja, prędkość, rotacja, AABB dla kolizji z wokselami, `tick()`).
+   - `LivingEntity`: parametry życiowe (zdrowie, obrażenia, animacja uderzenia `hurtTime`).
+   - `MobEntity`: sztuczna inteligencja (`GoalSelector` z celami AI), pathfinding na siatce 3D bloków, nawigacja.
+   - `EntityType<T>`: wzorzec fabryki `create(World)` rejestrowany w `Registries.ENTITY_TYPE`.
+4. **Architektura przedmiotów:**
+   - `Item`, `BlockItem`, `ItemStack(Item, count)` przygotowane pod inwentarz i crafting.
 
 ### 3.2 Dynamiczne tintowanie flory i zaśnieżona trawa (#25, #26)
 
@@ -217,9 +226,11 @@ Roadmapa została podzielona na logiczne fazy wynikające ze stanu faktycznego k
 - [ ] Zaimplementowanie `TextureArrayLoader` ładującego tekstury do `GL_TEXTURE_2D_ARRAY`.
 - [ ] Aktualizacja shadera fragmentów (`uTextureArray` zamiast atlasu 2D).
 
-#### Etap 1.3: Architektura Block / BlockState / BlockRegistry (#24)
-- [ ] Utworzenie klas `Block`, `BlockState`, `BlockRegistry`.
-- [ ] Refaktoryzacja `BlockType.java`: przeniesienie właściwości i zachowań do dedykowanych klas bloków.
+#### Etap 1.3: Globalna architektura rejestrów, bloków, itemów i mobów (#24)
+- [ ] Utworzenie generycznego systemu rejestracji `Registries` (`BLOCK`, `ITEM`, `ENTITY_TYPE`).
+- [ ] Refaktoryzacja bloków: klasy `Block`, `BlockState`, podklasy (`FullBlock`, `PlantBlock`, etc.).
+- [ ] Wdrożenie fundamentu encji i mobów: klasy `Entity`, `LivingEntity`, `MobEntity`, `EntityType`.
+- [ ] Wdrożenie struktury przedmiotów: `Item`, `ItemStack`.
 - [ ] Zachowanie zgodności wstecznej numerycznych ID dla formatu zapisu `VOX4` i `VOXR`.
 
 #### Etap 1.4: Dynamiczny Kolor Trawy i Śnieg (#25, #26)

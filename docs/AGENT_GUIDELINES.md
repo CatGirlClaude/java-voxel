@@ -104,11 +104,17 @@ Welcome, Agent. This document is your primary onboarding manual and operational 
 
 ## 4. How to Extend the Engine
 
-### Adding a New Block
-1. Currently defined in [`BlockType.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/BlockType.java) (moving to modular `Block` / `BlockState` in task #24).
-2. Assign an ID, define opacity/solidity/cross-model properties.
+### Adding a New Block (Moving to Modular Registry in Task #24)
+1. Currently defined in [`BlockType.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/BlockType.java) (moving to modular `Block` / `BlockState` and `Registries.BLOCK` in task #24).
+2. Assign an ID/identifier, define opacity/solidity/cross-model properties.
 3. Add localization keys in `assets/lang/en_us.json` and `assets/lang/pl_pl.json` (`block.<name>`).
 4. Ensure texture coordinates are defined in [`TextureAtlas.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/TextureAtlas.java) (or PNG asset in task #23).
+
+### Adding a New Mob or Entity (Task #24 Modular Architecture)
+1. Create entity class extending `MobEntity` (for mobs with AI/goals) or `LivingEntity` / `Entity`.
+2. Define dimensions (`AABB`), health, AI behavior goals (`GoalSelector`), and step-height.
+3. Register an `EntityType<T>` factory in `Registries.ENTITY_TYPE` with a namespaced identifier (e.g., `"voxel:zombie"`).
+4. Register or implement a matching `EntityRenderer<T>` in the world rendering pass.
 
 ### Adding a New Chat Command
 1. Edit [`ChatSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/ChatSystem.java).

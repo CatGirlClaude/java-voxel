@@ -25,7 +25,7 @@
 - [ ] 21. zmien cycle buttons na slidery
 - [ ] 22. gui powinno byc kalkulowane jeszcze raz po zmienieniu wielkosci okna
 - [ ] 23. assety zamiast generowac dynamicznie w kodzie powinny byc przetrzymywane jako png
-- [ ] 24. modularnosc kodu !!! aktualnie kod jest ciezki do czytania poniewaz wszystkie bloki sa w pojedynczej klasie, prawidlowym podejsciem byloby tak jak minecraft rozdzielic wszystkie bloki na osobne klasy uzywajac abstract badz extends dla typow blokow ktore pojawiaja sie czesto.
+- [ ] 24. modularnosc kodu calego projektu !!! zastap monolityczne klasy/enumy globalnym obiektowym systemem rejestrow (rejestry blokow, itemow oraz encji/mobow w stylu minecrafta z klasami bazowymi Entity, LivingEntity, Mob, Block, BlockState, zamiast trzymac wszystko w pojedynczych klasach)
 - [ ] 25. grass block powinien miec mozliwosc latwego alterowania koloru trawy, dla plynnych przejsc miedzy biomami, wtedy duzo rodzajow trawy mozna by zastapic jedna wspolna
 - [ ] 26. dodaj osniezony grass block
 - [ ] 27. wprowadz system block update czy cos podobnego do zoptymalizowanego sprawdzania czy np. blok pod kwiatem wlasnie zostal zniszczony

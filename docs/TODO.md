@@ -189,27 +189,46 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 
 ---
 
-### #24. Modularna architektura bloków (`Block`, `BlockState`, `BlockRegistry`)
+### #24. Globalna modułowa architektura rejestrów i obiektów gry (Bloki, Itemy, Encje / Moby)
 - [ ] **Specyfikacja zadania:**
-  - **Cel:** Rozbicie monolitycznego enuma [`BlockType.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/BlockType.java) (500+ linii kodu, 42 stałe) na elastyczną, obiektową hierarchię wzorowaną na architekturze nowoczesnego silnika voxelowego.
-  - **Architektura klas:**
-    - `public abstract class Block`:
-      - Pola: identyfikator tekstowy (np. `"stone"`, `"rose"`), twardość, opór na wybuch.
-      - Metody wirtualne: `isSolid()`, `isTransparent()`, `isCrossModel()`, `getCollisionAABB()`, `onNeighbourChanged(...)`, `onScheduledTick(...)`.
-    - Podklasy specjalistyczne:
-      - `FullBlock` (kamień, ziemia, deski).
-      - `PlantBlock` (kwiaty, trawy — wymagają stabilnego podłoża, niszczone przez brak podparcia lub wodę).
-      - `LeavesBlock` (przezroczystość, specyficzny culling).
-      - `FluidBlock` (woda — poziom, rozlewanie, nieposiadający kolizji stałej).
-    - `public final class BlockState`:
-      - Niezmienny obiekt reprezentujący konkretny stan bloku (np. `snowy=true/false`, `water_level=0..7`).
-      - Posiada prealokowany numeryczny `stateId` (0..65535).
-    - `public final class BlockRegistry`:
-      - Rejestr Singleton/Central mapujący `nazwa <-> Block <-> stateId`.
+  - **Cel:** Odejście od monolitycznych klas i sztywnych enumów na rzecz uogólnionego, modularnego systemu rejestrów i hierarchii obiektów dla **całego projektu** (przygotowując silnik na bloki, przedmioty oraz encje/moby z AI, pathfindingiem i renderingiem).
+  - **1. Generyczny system rejestrów (`Registry<T>` / `Registries`):**
+    - Wprowadzenie centralnego systemu rejestracji opartego o unikalne klucze przestrzeni nazw `Identifier` (np. `"voxel:zombie"`, `"voxel:dirt"`, `"voxel:iron_sword"`).
+    - Rejestry wbudowane w `com.voxel.registry.Registries`:
+      - `Registries.BLOCK`: Rejestr instancji `Block`.
+      - `Registries.ITEM`: Rejestr instancji `Item`.
+      - `Registries.ENTITY_TYPE`: Rejestr typów encji `EntityType<?>`.
+    - Dwukierunkowe mapowanie: `Identifier <-> Instancja Obiektu <-> Numeryczny ID / State ID` dla wydajności zapisu i pętli gry.
+  - **2. Modułowa architektura bloków i stanów:**
+    - Klasa bazowa `public abstract class Block` (`isSolid()`, `isTransparent()`, `getCollisionAABB()`, `onNeighbourChanged()`, etc.).
+    - Klasy wyspecjalizowane: `FullBlock`, `PlantBlock`, `LeavesBlock`, `FluidBlock`.
+    - Klasa `BlockState`: niemutowalna kombinacja `(Block, StateProperties)` z prealokowanym `stateId` (0..65535).
+  - **3. Architektura Encji i Mobów (`com.voxel.entity`):**
+    - Klasa bazowa `public abstract class Entity`:
+      - Fizyka i transformata: pozycja `(x, y, z)`, prędkość `(vx, vy, vz)`, rotacja `(yaw, pitch)`, `AABB` (kolizje z blokami wokselowymi).
+      - Flagi stanu: `onGround`, `inWater`, `isRemoved()`.
+      - Cykl życia: `tick(World world, float dt)`, `onRemove()`.
+    - Klasa pośrednia `public abstract class LivingEntity extends Entity`:
+      - Parametry życiowe: `health`, `maxHealth`, `isDead()`, `takeDamage(float amount, DamageSource src)`.
+      - Animacje: czerwone mignięcie po trafieniu (`hurtTime`), interpolacja obrotu głowy i ciała.
+    - Klasa bazowa dla mobów `public abstract class MobEntity extends LivingEntity`:
+      - AI & Zachowania: pętla decyzyjna `updateAi()`, cele (`GoalSelector` / `AiGoal` np. `WanderGoal`, `MeleeAttackGoal`, `LookAtPlayerGoal`).
+      - Pathfinding: prosty nawigator w przestrzeni 3D wokseli (`MobNavigator`).
+    - Fabryka typów encji `public final class EntityType<T extends Entity>`:
+      - Rejestrowana w `Registries.ENTITY_TYPE`.
+      - Metoda `create(World world) -> T`.
+    - Integracja w `World.java`:
+      - Zarządzanie encjami: `List<Entity> entities`, dodawanie/usuwanie i symulacja w `worldTick(dt)`.
+      - Renderowanie encji: podział na dedykowane renderery `EntityRenderer<T>` w fazie renderowania świata.
+  - **4. Architektura Przedmiotów i Ekwipunku (`com.voxel.item`):**
+    - Klasa bazowa `Item` (maksymalny stos `maxCount`, zachowanie przy użyciu `use()`).
+    - `BlockItem` (przedmiot reprezentujący blok w ręku).
+    - `ItemStack(Item item, int count)`.
   - **Kompatybilność wsteczna formatów zapisu:**
-    - Zachowanie mapowania starych ID (1..42) z nagłówków `VOX1`–`VOX4` i `VOXR` na nowe stany `BlockState`.
+    - Zachowanie mapowania starych ID (1..42) z nagłówków `VOX1`–`VOX4` i `VOXR` na stany `BlockState`.
   - **Kryteria ukończenia (DoD):**
-    - Kod bloków jest w pełni modularny. Dodanie nowego typu bloku sprowadza się do stworzenia prostej klasy rozszerzającej `Block` (lub wpisu JSON dla standardowego sześcianu) i zarejestrowania w `BlockRegistry`.
+    - Projekt posiada ujednolicony system rejestrów.
+    - Dodanie nowego bloku, przedmiotu lub moba (np. `ZombieEntity` czy `PigEntity`) polega na utworzeniu dedykowanej podklasy i zarejestrowaniu jej w `Registries`, bez modyfikowania istniejących klas i switch-statementów w `Main.java` czy `World.java`.
 
 ---
 
