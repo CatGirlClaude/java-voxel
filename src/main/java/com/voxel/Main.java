@@ -3,8 +3,10 @@ package com.voxel;
 import com.voxel.block.BlockType;
 import com.voxel.block.Blocks;
 import com.voxel.config.GameSettings;
+import com.voxel.entity.ItemEntityManager;
 import com.voxel.entity.Player;
 import com.voxel.i18n.I18n;
+import com.voxel.particle.ParticleSystem;
 import com.voxel.render.ShaderProgram;
 import com.voxel.render.TextureAtlas;
 import com.voxel.ui.*;
@@ -45,6 +47,8 @@ public class Main {
     private ShaderProgram chunkShader;
     private HudRenderer hudRenderer;
     private ChatSystem chatSystem;
+    private ParticleSystem particleSystem;
+    private ItemEntityManager itemEntityManager;
 
     // Menus and Tools
     private MainMenu mainMenu;
@@ -372,6 +376,8 @@ public class Main {
             } else if (key == GameSettings.keyInventory || key == GLFW_KEY_E) {
                 inventoryMenu.setOpen(true);
                 setCursorLocked(false);
+            } else if (key == GameSettings.keyDrop || key == GLFW_KEY_Q) {
+                handleDropItem();
             } else if (key == GameSettings.keyNoiseMap || key == GLFW_KEY_M || key == GLFW_KEY_F4) {
                 noiseVisualizer.setOpen(true);
                 noiseVisualizer.centerOnPlayer(player);
@@ -501,6 +507,8 @@ public class Main {
         if (world != null) {
             world.cleanup();
         }
+        if (particleSystem != null) particleSystem.clear();
+        if (itemEntityManager != null) itemEntityManager.clear();
         chatSystem.clear();
         world = new World(seed);
         world.setRenderDistance(GameSettings.renderDistance);
@@ -515,12 +523,34 @@ public class Main {
         }
     }
 
+    private void handleDropItem() {
+        if (world == null || player == null || itemEntityManager == null) return;
+        BlockType selected = player.getSelectedBlock();
+        if (selected != null && selected != BlockType.AIR) {
+            Vector3d eye = player.getEyePosition();
+            Vector3f look = player.getLookDirection();
+            Vector3d spawnPos = new Vector3d(eye.x + look.x * 0.45, eye.y + look.y * 0.45 - 0.1, eye.z + look.z * 0.45);
+            Vector3d vel = new Vector3d(look.x * 4.8, look.y * 4.8 + 1.8, look.z * 4.8);
+            itemEntityManager.spawnItemWithVelocity(world, spawnPos.x, spawnPos.y, spawnPos.z, vel, selected, 1);
+            com.voxel.audio.SoundSystem.playClickSound();
+        }
+    }
+
     private void handleBlockBreak() {
         if (world == null || player == null) return;
         World.RaycastHit hit = world.raycast(player.getEyePosition(), player.getLookDirection(), 6.5f);
         if (hit != null) {
             byte hitId = hit.blockId();
-            com.voxel.audio.SoundSystem.playDigSound(BlockType.fromId(hitId));
+            BlockType hitBlock = BlockType.fromId(hitId);
+            com.voxel.audio.SoundSystem.playDigSound(hitBlock);
+
+            if (particleSystem != null) {
+                particleSystem.spawnBlockBreak(hit.x(), hit.y(), hit.z(), hitBlock, world);
+            }
+            if (itemEntityManager != null && hitBlock != BlockType.AIR) {
+                itemEntityManager.spawnItem(world, hit.x() + 0.5, hit.y() + 0.5, hit.z() + 0.5, hitBlock, 1);
+            }
+
             if (BlockType.isUnderwaterPlant(hitId)) {
                 world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.WATER.id, true);
             } else {
@@ -539,7 +569,17 @@ public class Main {
         long pz = hit.prevZ();
         BlockType toPlace = player.getSelectedBlock();
         if (toPlace == BlockType.AIR) {
-            com.voxel.audio.SoundSystem.playDigSound(BlockType.fromId(hit.blockId()));
+            byte hitId = hit.blockId();
+            BlockType hitBlock = BlockType.fromId(hitId);
+            com.voxel.audio.SoundSystem.playDigSound(hitBlock);
+
+            if (particleSystem != null) {
+                particleSystem.spawnBlockBreak(hit.x(), hit.y(), hit.z(), hitBlock, world);
+            }
+            if (itemEntityManager != null && hitBlock != BlockType.AIR) {
+                itemEntityManager.spawnItem(world, hit.x() + 0.5, hit.y() + 0.5, hit.z() + 0.5, hitBlock, 1);
+            }
+
             world.setBlock(hit.x(), hit.y(), hit.z(), BlockType.AIR.id, true);
         } else {
             BlockType hitBlock = BlockType.fromId(hit.blockId());
@@ -609,8 +649,25 @@ public class Main {
         chunkShader = ShaderProgram.createChunkShader();
         hudRenderer = new HudRenderer();
         chatSystem = new ChatSystem();
+        particleSystem = new ParticleSystem();
+        itemEntityManager = new ItemEntityManager();
 
         player = new Player();
+        player.setParticleListener(new Player.ParticleListener() {
+            @Override
+            public void onStep(double x, double y, double z, BlockType block, boolean sprint) {
+                if (particleSystem != null) {
+                    particleSystem.spawnFootstepDust(x, y, z, block);
+                }
+            }
+
+            @Override
+            public void onWaterSplash(double x, double y, double z, float speed) {
+                if (particleSystem != null) {
+                    particleSystem.spawnWaterSplash(x, y, z, speed);
+                }
+            }
+        });
         if (GameSettings.flyByDefault) {
             player.flying = true;
         }
@@ -725,6 +782,10 @@ public class Main {
         if (world != null && player != null) {
             world.update(player.position, dt);
         }
+        if (dt > 0.0f) {
+            if (particleSystem != null) particleSystem.update(dt, world);
+            if (itemEntityManager != null) itemEntityManager.tick(dt, world, player);
+        }
     }
 
     private void recalculateGuiLayout() {
@@ -806,6 +867,16 @@ public class Main {
         world.renderChunks(player.position, eyePos, projView, chunkShader);
         chunkShader.unbind();
 
+        // Render dropped items and block break particles in 3D world space
+        float sunInt = world.getSunIntensity() * GameSettings.brightness;
+        Vector3f lookDir = player.getLookDirection();
+        if (itemEntityManager != null) {
+            itemEntityManager.render(eyePos, projView, textureAtlas, sunInt, lookDir, world);
+        }
+        if (particleSystem != null) {
+            particleSystem.render(eyePos, projView, textureAtlas, sunInt, lookDir);
+        }
+
         // Render targeted block wireframe when playing and HUD is visible (F1)
         World.RaycastHit hit = null;
         if (cursorLocked && !pauseMenu.isOpen() && !inventoryMenu.isOpen() && !noiseVisualizer.isOpen() && !optionsMenu.isOpen()) {
@@ -861,6 +932,8 @@ public class Main {
         if (chunkShader != null) chunkShader.cleanup();
         if (textureAtlas != null) textureAtlas.cleanup();
         if (noiseVisualizer != null) noiseVisualizer.cleanup();
+        if (particleSystem != null) particleSystem.cleanup();
+        if (itemEntityManager != null) itemEntityManager.cleanup();
         com.voxel.audio.SoundSystem.cleanup();
 
         glfwFreeCallbacks(window);

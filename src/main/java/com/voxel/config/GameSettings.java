@@ -62,6 +62,7 @@ public final class GameSettings {
     public static int keyCrouch = GLFW_KEY_LEFT_SHIFT;
     public static int keySprint = GLFW_KEY_LEFT_CONTROL;
     public static int keyInventory = GLFW_KEY_E;
+    public static int keyDrop = GLFW_KEY_Q;
     public static int keyChat = GLFW_KEY_T;
     public static int keyCommand = GLFW_KEY_SLASH;
     public static int keyNoiseMap = GLFW_KEY_M;
@@ -147,6 +148,7 @@ public final class GameSettings {
             keyCrouch = getInt(props, "keyCrouch", GLFW_KEY_LEFT_SHIFT);
             keySprint = getInt(props, "keySprint", GLFW_KEY_LEFT_CONTROL);
             keyInventory = getInt(props, "keyInventory", GLFW_KEY_E);
+            keyDrop = getInt(props, "keyDrop", GLFW_KEY_Q);
             keyChat = getInt(props, "keyChat", GLFW_KEY_T);
             keyCommand = getInt(props, "keyCommand", GLFW_KEY_SLASH);
             keyNoiseMap = getInt(props, "keyNoiseMap", GLFW_KEY_M);
@@ -207,6 +209,7 @@ public final class GameSettings {
         props.setProperty("keyCrouch", String.valueOf(keyCrouch));
         props.setProperty("keySprint", String.valueOf(keySprint));
         props.setProperty("keyInventory", String.valueOf(keyInventory));
+        props.setProperty("keyDrop", String.valueOf(keyDrop));
         props.setProperty("keyChat", String.valueOf(keyChat));
         props.setProperty("keyCommand", String.valueOf(keyCommand));
         props.setProperty("keyNoiseMap", String.valueOf(keyNoiseMap));
@@ -289,6 +292,7 @@ public final class GameSettings {
         keyCrouch = GLFW_KEY_LEFT_SHIFT;
         keySprint = GLFW_KEY_LEFT_CONTROL;
         keyInventory = GLFW_KEY_E;
+        keyDrop = GLFW_KEY_Q;
         keyChat = GLFW_KEY_T;
         keyCommand = GLFW_KEY_SLASH;
         keyNoiseMap = GLFW_KEY_M;

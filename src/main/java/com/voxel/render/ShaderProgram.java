@@ -230,4 +230,46 @@ public class ShaderProgram {
                 """;
         return new ShaderProgram(vs, fs);
     }
+
+    public static ShaderProgram createParticleShader() {
+        String vs = """
+                #version 330 core
+                layout (location = 0) in vec3 aPos;
+                layout (location = 1) in vec2 aTexCoord;
+                layout (location = 2) in vec4 aColor;
+                layout (location = 3) in vec2 aLight;
+
+                uniform mat4 uProjView;
+
+                out vec2 vTexCoord;
+                out vec4 vColor;
+                out vec2 vLight;
+
+                void main() {
+                    gl_Position = uProjView * vec4(aPos, 1.0);
+                    vTexCoord = aTexCoord;
+                    vColor = aColor;
+                    vLight = aLight;
+                }
+                """;
+        String fs = """
+                #version 330 core
+                in vec2 vTexCoord;
+                in vec4 vColor;
+                in vec2 vLight;
+
+                uniform sampler2D uTexture;
+                uniform float uSunIntensity;
+
+                out vec4 FragColor;
+
+                void main() {
+                    vec4 texColor = texture(uTexture, vTexCoord);
+                    if (texColor.a < 0.1) discard;
+                    float light = max(vLight.x * uSunIntensity, vLight.y);
+                    FragColor = vec4(texColor.rgb * vColor.rgb * light, texColor.a * vColor.a);
+                }
+                """;
+        return new ShaderProgram(vs, fs);
+    }
 }

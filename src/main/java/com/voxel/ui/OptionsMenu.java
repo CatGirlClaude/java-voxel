@@ -62,6 +62,7 @@ public class OptionsMenu {
         CROUCH("Crouch / Down:"),
         SPRINT("Sprint:"),
         INVENTORY("Inventory / Creative:"),
+        DROP("Drop Item [Q]:"),
         CHAT("Open Chat:"),
         COMMAND("Command (/):"),
         NOISE_MAP("Biome Map [M]:"),
@@ -103,6 +104,7 @@ public class OptionsMenu {
             case CROUCH -> GameSettings.keyCrouch;
             case SPRINT -> GameSettings.keySprint;
             case INVENTORY -> GameSettings.keyInventory;
+            case DROP -> GameSettings.keyDrop;
             case CHAT -> GameSettings.keyChat;
             case COMMAND -> GameSettings.keyCommand;
             case NOISE_MAP -> GameSettings.keyNoiseMap;
@@ -131,6 +133,7 @@ public class OptionsMenu {
             case CROUCH -> GameSettings.keyCrouch = key;
             case SPRINT -> GameSettings.keySprint = key;
             case INVENTORY -> GameSettings.keyInventory = key;
+            case DROP -> GameSettings.keyDrop = key;
             case CHAT -> GameSettings.keyChat = key;
             case COMMAND -> GameSettings.keyCommand = key;
             case NOISE_MAP -> GameSettings.keyNoiseMap = key;
@@ -823,7 +826,7 @@ public class OptionsMenu {
         KeyAction[] leftKeys = {
             KeyAction.FORWARD, KeyAction.BACK, KeyAction.LEFT, KeyAction.RIGHT,
             KeyAction.JUMP, KeyAction.CROUCH, KeyAction.SPRINT,
-            KeyAction.INVENTORY, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
+            KeyAction.INVENTORY, KeyAction.DROP, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
         };
 
         KeyAction[] rightKeys = {
@@ -1284,7 +1287,7 @@ public class OptionsMenu {
         KeyAction[] leftKeys = {
             KeyAction.FORWARD, KeyAction.BACK, KeyAction.LEFT, KeyAction.RIGHT,
             KeyAction.JUMP, KeyAction.CROUCH, KeyAction.SPRINT,
-            KeyAction.INVENTORY, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
+            KeyAction.INVENTORY, KeyAction.DROP, KeyAction.CHAT, KeyAction.COMMAND, KeyAction.NOISE_MAP
         };
 
         KeyAction[] rightKeys = {

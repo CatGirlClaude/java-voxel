@@ -162,6 +162,9 @@
   - Dźwięki kroków i pluskania przy poruszaniu się i skokach w wodzie w [`Player.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/Player.java).
   - Dźwięki interfejsu (kliknięcie i crafting) w [`InventoryMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/InventoryMenu.java).
   - Suwak Master Volume (0%–100%) w zakładce System w [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) z natychmiastowym skalowaniem próbek bufora PCM.
+- [x] **System cząsteczek i upuszczania przedmiotów (Particles & Item Entities):**
+  - W [`ParticleSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/particle/ParticleSystem.java) wdrożono wysokowydajny silnik cząsteczek (odłamki bloków z wycinkami mikro-tekstur i tintem biomu, pluskanie wody, kurz kroków przy sprincie).
+  - W [`ItemEntity.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/ItemEntity.java) i [`ItemEntityManager.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/ItemEntityManager.java) zaimplementowano unoszące się i obracające upuszczone bloki z grawitacją, wypornością w wodzie, kolizjami terenu, wyrzucaniem klawiszem `Q` oraz płynnym przyciąganiem magnetycznym do gracza z dźwiękiem podniesienia.
 - [x] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
 - [x] **Płynne oświetlenie (Smooth Lighting):**
   - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) zaimplementowano propagację światła słonecznego oraz blokowego algorytmem BFS (`propagateLight`).

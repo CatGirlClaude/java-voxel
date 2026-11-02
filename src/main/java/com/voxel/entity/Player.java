@@ -25,6 +25,16 @@ public class Player extends LivingEntity {
     private boolean wasInWater = false;
     private float stepTimer = 0.0f;
 
+    public interface ParticleListener {
+        void onStep(double x, double y, double z, BlockType block, boolean sprint);
+        void onWaterSplash(double x, double y, double z, float speed);
+    }
+    private ParticleListener particleListener;
+
+    public void setParticleListener(ParticleListener listener) {
+        this.particleListener = listener;
+    }
+
     public int selectedSlot = 0;
     public final BlockType[] hotbar = java.util.Arrays.copyOf(BlockType.HOTBAR_BLOCKS, 9);
 
@@ -192,13 +202,20 @@ public class Player extends LivingEntity {
                     long gy = (long) Math.floor(position.y - 0.25);
                     long gz = (long) Math.floor(position.z);
                     byte groundBlock = (world != null) ? world.getBlock(gx, gy, gz) : BlockType.GRASS.id;
-                    com.voxel.audio.SoundSystem.playStepSound(BlockType.fromId(groundBlock));
+                    BlockType bt = BlockType.fromId(groundBlock);
+                    com.voxel.audio.SoundSystem.playStepSound(bt);
+                    if (particleListener != null && sprint) {
+                        particleListener.onStep(position.x, position.y, position.z, bt, sprint);
+                    }
                 }
             } else if (inWater && hSpeed > 0.6f) {
                 stepTimer += dt;
                 if (stepTimer >= 0.65f) {
                     stepTimer = 0.0f;
                     com.voxel.audio.SoundSystem.playSplashSound();
+                    if (particleListener != null) {
+                        particleListener.onWaterSplash(position.x, position.y, position.z, hSpeed);
+                    }
                 }
             } else {
                 stepTimer = Math.max(0.0f, stepTimer - dt * 0.5f);
@@ -471,5 +488,31 @@ public class Player extends LivingEntity {
         if (slot >= 0 && slot < hotbar.length && block != null) {
             hotbar[slot] = block;
         }
+    }
+
+    public boolean giveItem(BlockType block, int amount) {
+        if (block == null || block == BlockType.AIR) return false;
+        // 1. If block is already in hotbar, player already has it available
+        for (int i = 0; i < hotbar.length; i++) {
+            if (hotbar[i] == block) {
+                return true;
+            }
+        }
+        // 2. Put in selected slot if currently AIR
+        int sel = Math.floorMod(selectedSlot, hotbar.length);
+        if (hotbar[sel] == BlockType.AIR) {
+            hotbar[sel] = block;
+            return true;
+        }
+        // 3. Put in first available empty slot
+        for (int i = 0; i < hotbar.length; i++) {
+            if (hotbar[i] == BlockType.AIR) {
+                hotbar[i] = block;
+                return true;
+            }
+        }
+        // 4. Overwrite selected slot as fallback
+        hotbar[sel] = block;
+        return true;
     }
 }
