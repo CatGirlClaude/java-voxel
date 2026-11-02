@@ -132,3 +132,132 @@
 - [ ] **Dźwięki bloków i otoczenia:** Dźwięki stawiania/niszczenia bloków (trawa, kamień, drewno, piasek, woda) oraz dźwięki kroków i pluskania.
 - [ ] **Ekwipunek i Crafting:** Rozbudowa ekranu ekwipunku (`E`) o siatkę tworzenia przedmiotów (crafting 2x2 i stół rzemieślniczy 3x3).
 - [ ] **Płynne oświetlenie (Smooth Lighting):** Rozszerzenie cieniowania Ambient Occlusion o propagację światła słonecznego i blokowego (światło zalewowe BFS / Flood-fill).
+
+---
+
+## 🚀 Zrefinowane Zadania Deweloperskie (Z notatnika `developer todo.md` #21–#27)
+
+Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementujących otwarte pomysły z notatnika dewelopera.
+
+### #21. Slidery zamiast przycisków cyklicznych w menu opcji UI
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Zastąpienie klikanych w pętli przycisków cyklicznych (`< Wartość >`) interaktywnymi suwakami (`Slider`) z obsługą przeciągania myszą oraz kliknięcia w dowolnym punkcie paska.
+  - **Klasy do modyfikacji/utworzenia:**
+    - Nowa klasa: `com.voxel.ui.Slider` dziedzicząca lub komponująca właściwości widgetu UI (`x, y, width, height, minValue, maxValue, step, currentValue, labelFormatter, onChange`).
+    - [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java): Zastąpienie przycisków suwakami dla:
+      - *Dystans renderowania:* 2 – 16 chunków (krok: 1).
+      - *Opóźnienie przytrzymania myszy (Mouse Hold Delay):* 100 ms – 400 ms (krok: 10 ms).
+      - *Maksymalny FPS:* 30 – 240 FPS oraz `Nieograniczony` (krok: 10).
+      - *FOV (Kąt widzenia):* 60° – 110° (krok: 1).
+  - **Kryteria ukończenia (DoD):**
+    - Płynne przeciąganie wskaźnika suwaka przy wciśniętym LPM.
+    - Zmiana natychmiast zapisuje się w [`GameSettings.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/config/GameSettings.java) i pliku `options.properties`.
+    - Etykieta suwaka formatuje się przez `I18n` z aktualną wartością liczbową.
+
+---
+
+### #22. Dynamiczny przelicznik layoutu GUI przy zmianie rozmiaru okna (`onResize`)
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Eliminacja statycznie zablokowanych współrzędnych ekranów. Zmiana rozmiaru okna lub skali GUI musi natychmiast wywoływać re-kalkulację pozycji przycisków i paneli.
+  - **Klasy do modyfikacji:**
+    - [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java): w `glfwSetFramebufferSizeCallback` rozgłaszanie zdarzenia `onResize(width, height, effectiveGuiScale)`.
+    - Wspólny interfejs lub metoda w ekranach: [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java), [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java), [`PauseMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/PauseMenu.java), [`InventoryMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/InventoryMenu.java), [`ChatSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/ChatSystem.java).
+  - **Wymagania architektoniczne:**
+    - Pozycjonowanie relatywne z kotwicami: `Anchor.CENTER` (dialogi, menu), `Anchor.TOP_LEFT` (Debug HUD), `Anchor.BOTTOM_LEFT` (czat), `Anchor.BOTTOM_CENTER` (hotbar).
+  - **Kryteria ukończenia (DoD):**
+    - Przełączenie okna z 800x600 na 1920x1080 oraz tryb pełnoekranowy zachowuje idealne centrowanie i proporcje wszystkich elementów bez restartu gry.
+
+---
+
+### #23. Assety jako pliki PNG z dysku (`run/assets/textures/block/`) + migracja na `GL_TEXTURE_2D_ARRAY`
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Zastąpienie proceduralnego generowania kafelków w kodzie Java ([`TextureAtlas.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/TextureAtlas.java)) ładowaniem plików graficznych PNG z dysku oraz przejściem na tablicę tekstur OpenGL (`GL_TEXTURE_2D_ARRAY`).
+  - **Kroki implementacji:**
+    1. Dodanie zależności `org.lwjgl:lwjgl-stb` do `pom.xml`.
+    2. Utworzenie katalogu zasobów `run/assets/textures/block/` (oraz fallback w `src/main/resources/assets/textures/block/`).
+    3. Wyeksportowanie/utworzenie bazowych tekstur w formacie PNG $16 \times 16$ (kamień, ziemia, trawa, drewno, liście, woda, kwiaty, ruda, etc.).
+    4. Zaimplementowanie `TextureArrayLoader`:
+       - Tworzy teksturę `GL_TEXTURE_2D_ARRAY` o rozmiarach $16 \times 16 \times N$ (gdzie $N$ to liczba warstw/bloków).
+       - Każda tekstura to dedykowana warstwa (layer) indeksowana liczbą całkowitą.
+       - Generuje pełne mipmapy (`glGenerateMipmap(GL_TEXTURE_2D_ARRAY)`). Zero texture bleedingu i szwów!
+    5. Aktualizacja shadera bloków ([`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java)):
+       - Sampler w shaderze fragmentów: `uniform sampler2DArray uTextureArray`.
+       - Próbkowanie: `texture(uTextureArray, vec3(inTexCoord.xy, inLayerIndex))`.
+    6. Zabezpieczenie: Brakujący plik ładuje domyślną teksturę szachownicy magenta/czarny (`missing.png`).
+  - **Kryteria ukończenia (DoD):**
+    - Wszystkie tekstury czytane są z plików PNG. Dodanie nowego pliku PNG do katalogu umożliwia natychmiastowe wykorzystanie go w grze bez ingerencji w kod proceduralny atlasu.
+
+---
+
+### #24. Modularna architektura bloków (`Block`, `BlockState`, `BlockRegistry`)
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Rozbicie monolitycznego enuma [`BlockType.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/BlockType.java) (500+ linii kodu, 42 stałe) na elastyczną, obiektową hierarchię wzorowaną na architekturze nowoczesnego silnika voxelowego.
+  - **Architektura klas:**
+    - `public abstract class Block`:
+      - Pola: identyfikator tekstowy (np. `"stone"`, `"rose"`), twardość, opór na wybuch.
+      - Metody wirtualne: `isSolid()`, `isTransparent()`, `isCrossModel()`, `getCollisionAABB()`, `onNeighbourChanged(...)`, `onScheduledTick(...)`.
+    - Podklasy specjalistyczne:
+      - `FullBlock` (kamień, ziemia, deski).
+      - `PlantBlock` (kwiaty, trawy — wymagają stabilnego podłoża, niszczone przez brak podparcia lub wodę).
+      - `LeavesBlock` (przezroczystość, specyficzny culling).
+      - `FluidBlock` (woda — poziom, rozlewanie, nieposiadający kolizji stałej).
+    - `public final class BlockState`:
+      - Niezmienny obiekt reprezentujący konkretny stan bloku (np. `snowy=true/false`, `water_level=0..7`).
+      - Posiada prealokowany numeryczny `stateId` (0..65535).
+    - `public final class BlockRegistry`:
+      - Rejestr Singleton/Central mapujący `nazwa <-> Block <-> stateId`.
+  - **Kompatybilność wsteczna formatów zapisu:**
+    - Zachowanie mapowania starych ID (1..42) z nagłówków `VOX1`–`VOX4` i `VOXR` na nowe stany `BlockState`.
+  - **Kryteria ukończenia (DoD):**
+    - Kod bloków jest w pełni modularny. Dodanie nowego typu bloku sprowadza się do stworzenia prostej klasy rozszerzającej `Block` (lub wpisu JSON dla standardowego sześcianu) i zarejestrowania w `BlockRegistry`.
+
+---
+
+### #25. Dynamiczne uśredniane tintowanie koloru trawy (Biome Colormap Tinting)
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Likwidacja sztucznych, osobnych bloków `TAIGA_GRASS` na rzecz jednego bazowego bloku `GRASS`, którego wierzchołki są dynamicznie barwione w zależności od temperatury i wilgotności biomu z płynnymi przejściami.
+  - **Implementacja:**
+    1. Utworzenie mapy kolorów (colormap) lub matematycznego gradientu:
+       - Ciepłe równiny: soczysta zieleń (`#79C05A`).
+       - Chłodna tajga: stonowana, ciemniejsza zieleń iglasta (`#597D45`).
+       - Pustynia / suche biomy: żółtawo-oliwkowa zieleń.
+    2. Uśrednianie biomów (Smooth Transition):
+       - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) podczas budowy górnej ściany trawy, próbkowana jest temperatura i wilgotność w promieniu 2 bloków wokół kolumny (filtr $5 \times 5$).
+       - Wyliczony kolor RGB jest przekazywany do bufora wierzchołków (`FloatList`) jako `inColorTint`.
+    3. Shader fragmentów mnoży bazową teksturę trawy przez kolor wierzchołka: `fragColor = texColor * vec4(inColorTint, 1.0)`.
+  - **Kryteria ukończenia (DoD):**
+    - Brak ostrych granic kolorystycznych między biomami na powierzchni lądu; przejścia biomów są w 100% płynne i organiczne.
+
+---
+
+### #26. Zaśnieżony blok trawy (`snowy grass block`)
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Wprowadzenie zaśnieżonego wariantu bloku trawy, który pojawia się naturalnie pod pokrywą śnieżną w zimnych biomach i wysokich partiach gór.
+  - **Implementacja:**
+    - Wykorzystanie stanu `BlockState` trawy z właściwością boolean `snowy`:
+      - `snowy = false`: klasyczna zielona tekstura górna + trawiasty bok.
+      - `snowy = true`: biała tekstura śniegu na górze + specjalna boczna tekstura trawy z ośnieżoną górną warstwą.
+    - W generatorze terenu ([`TerrainGenerator.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/gen/TerrainGenerator.java)): Gdy na wysokości `Y >= 94` lub w biomie tundry na trawie generuje się warstwa `BlockType.SNOW`, blok pod spodem przyjmuje stan `snowy = true`.
+    - W systemie aktualizacji bloków: Usunięcie śniegu nad blokiem trawy przywraca stan `snowy = false`.
+  - **Kryteria ukończenia (DoD):**
+    - Trawa pod śniegiem posiada autentyczny, zaśnieżony wygląd ścianek bocznych identycznie jak w grze Minecraft.
+
+---
+
+### #27. Zoptymalizowany system aktualizacji bloków (Neighbour Updates & Scheduled Ticks)
+- [ ] **Specyfikacja zadania:**
+  - **Cel:** Zastąpienie sztywnej metody `tickPhysics` w [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java) uogólnionym, wysoce zoptymalizowanym systemem dwutorowych aktualizacji świata.
+  - **Struktura systemu:**
+    1. **Powiadomienia sąsiadów (`Neighbour Updates`):**
+       - Metoda `world.notifyNeighbours(x, y, z)` wywołująca `onNeighbourChanged()` dla 6 przyległych bloków (góra, dół, północ, południe, wschód, zachód).
+       - Rośliny i kwiaty ([`PlantBlock`]) natychmiast weryfikują stabilność podłoża (`y - 1`). Jeśli podłoże zostało zniszczone, roślina odpada i zamienia się w powietrze.
+    2. **Planowane ticki (`Scheduled Ticks`):**
+       - Kolejka priorytetowa `PriorityQueue<ScheduledTick>` w `World.java`.
+       - Każde zdarzenie posiada: `(targetWorldTick, blockPos, blockType, priority)`.
+       - Zastosowanie: opadanie piasku/żwiru z opóźnieniem (np. 2 ticki), rozlewanie płynów, topnienie lodu pod wpływem ciepła.
+    3. **Ochrona przed kaskadowym spadkiem FPS (Tick Budgeting):**
+       - Sztywny limit maksymalnej liczby wykonanych aktualizacji na tick świata (np. `MAX_UPDATES_PER_TICK = 256`).
+       - Wszystkie zdarzenia powyżej limitu pozostają w kolejce i są przetwarzane w kolejnych tickach, co gwarantuje stałe 20 TPS nawet przy zawaleniu wielkich jaskiń piaskowych.
+  - **Kryteria ukończenia (DoD):**
+    - Zniszczenie bloku pod kwiatem natychmiastowo niszczy kwiat.
+    - Kaskady aktualizacji nie zamrażają pętli gry.
