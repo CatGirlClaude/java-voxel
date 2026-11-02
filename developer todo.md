@@ -53,4 +53,6 @@
 - [x] 48. Domyslnym HUD scale powinien byc 1
 - [x] 49. Domyslny tekst nowego swiata to Swiat_x - zmienic na jezyk angielski (World_x)
 - [x] 50. Dodaj mozliwosc zmiany keybindow w menu opcji
+- [x] 51. Zdiagnozuj dlaczego stojac w kanionie rzeki teren sie nie renderuje (naprawienie okluzji wzgorz cullingujacej doliny, przywrocenie w pelni widocznego terenu)
+- [x] 52. Dodaj trawe oraz roslinnosc do pagorkow i zboczy kolo rzek (bogata roslinnosc tall grass i kwiatow w Biome.RIVER)
 

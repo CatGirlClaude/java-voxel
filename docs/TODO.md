@@ -261,4 +261,12 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 - [x] **#48. Domyślna skala HUD = 1:** Ustawienie `guiScale = 1` jako wartości domyślnej w konfiguracji fabrycznej.
 - [x] **#49. Domyślna nazwa nowego świata po angielsku:** "World_x" zamiast "Swiat_x" w menu tworzenia świata.
 - [x] **#50. Zmiana keybindów w opcjach:** Pełna obsługa rekonfiguracji klawiszy (ruch, interakcje, pasek podręczny 1-9) w dedykowanej zakładce Keybinds.
+- [x] **#51. Diagnoza i naprawa cullingowania terenu w kanionie rzeki:**
+  - Zdiagnozowano przyczynę znikania terenu w dali (widocznego na zrzucie ekranu z pozycji `XYZ: 126.49 / 37.00 / -33.23` w biomie `River`): heurystyka okluzji wzgórz (`mountain ridge occlusion`) próbkowała pojedynczy punkt na środku współrzędnych chunków, który w wąskich dolinach i meandrach rzek trafiał w wysokie zbocze (Y=45..49), błędnie oznaczając otwarte dno kanionu i rzekę jako zasłonięte przez górę i odrzucając ponad 170 widocznych chunków.
+  - Usunięto wadliwą heurystykę grzbietów, powierzając eliminację zasłoniętych fragmentów w 100% precyzyjnemu i bezkosztowemu mechanizmowi sprzętowemu GPU Early-Z (z sortowaniem front-to-back dla nieprzezroczystych chunków).
+  - Wdrożono wielopunktową weryfikację subterranean occlusion (sprawdzanie 4 narożników oraz środka chunka), gwarantując, że chunki na dnie wąwozów, rzek czy kanionów nigdy nie zostaną błędnie uznane za całkowicie podziemne.
+- [x] **#52. Dodanie trawy i roślinności do pagórków koło rzek:**
+  - Wzbogacono generator biomu `Biome.RIVER` w [`TerrainGenerator.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/gen/TerrainGenerator.java) o pełną obsługę warstwy roślinności naziemnej (`case RIVER ->`): wysoka trawa (`BlockType.TALL_GRASS`) oraz polne kwiaty (`BlockType.BLUE_ORCHID`, `BlockType.DANDELION`, `BlockType.ROSE`, `BlockType.ALLIUM`).
+  - Zapobieżenie zastępowaniu wzniesień i zboczy dolin rzecznych przez surowy kamień `steepCliff` (`biome != Biome.RIVER`), dzięki czemu zbocza rzek zachowują soczyste podłoże trawiaste.
+  - Dodano klimatyczne dopasowanie podłoża trawiastego (`SNOWY_GRASS`, `TAIGA_GRASS`, `JUNGLE_GRASS`, `GRASS`) oraz rzadkie, malownicze drzewa nadrzeczne (`willow/oak/birch`).
 

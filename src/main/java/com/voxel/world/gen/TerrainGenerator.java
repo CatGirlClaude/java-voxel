@@ -419,7 +419,7 @@ public final class TerrainGenerator {
                         continue;
                     }
 
-                    byte blockId = (ctx.steepCliff[idx2] && wy == height && height > SEA_LEVEL)
+                    byte blockId = (ctx.steepCliff[idx2] && biome != Biome.RIVER && wy == height && height > SEA_LEVEL)
                             ? BlockType.STONE.id
                             : selectBiomeTerrainBlock(noise, biome, wx, wy, wz, height, ly, ctx, lx, lz);
                     chunk.setBlock(lx, ly, lz, blockId);
@@ -523,7 +523,7 @@ public final class TerrainGenerator {
                     }
 
                     // Trawa NIE MOŻE rosnąć na kamieniu ani podłożu niesprzyjającym
-                    if (ctx.steepCliff[idx2]) continue;
+                    if (ctx.steepCliff[idx2] && ctx.biomeMap[idx2] != Biome.RIVER) continue;
 
                     byte belowBlock;
                     if (ly > 0) {
@@ -628,6 +628,21 @@ public final class TerrainGenerator {
                         case SNOWY_TUNDRA -> {
                             // Cold tundra grass tufts (14% coverage)
                             if (chance < 36) decorId = BlockType.TALL_GRASS.id;
+                        }
+                        case RIVER -> {
+                            // Lush riverbank vegetation and riverside hills (tall grass & wildflowers)
+                            if (chance < 120) {
+                                decorId = BlockType.TALL_GRASS.id;
+                            } else if (chance < 142) {
+                                int fType = (hash >>> 10) & 7;
+                                decorId = switch (fType) {
+                                    case 0, 1 -> BlockType.DANDELION.id;
+                                    case 2, 3 -> BlockType.ROSE.id;
+                                    case 4, 5 -> BlockType.BLUE_ORCHID.id; // Riverbank wetland flower
+                                    case 6 -> BlockType.ALLIUM.id;
+                                    default -> BlockType.FLOWER.id;
+                                };
+                            }
                         }
                         default -> {
                             // DESERT, MESA, OCEANS
@@ -774,6 +789,17 @@ public final class TerrainGenerator {
                     yield BlockType.TAIGA_GRASS.id;
                 }
                 case JUNGLE -> BlockType.JUNGLE_GRASS.id;
+                case RIVER -> {
+                    double temp = sampleTemperature(noise, wx, wz);
+                    if (temp < -0.16) {
+                        yield (height + hJitter >= 32) ? BlockType.SNOWY_GRASS.id : BlockType.SNOW.id;
+                    } else if (temp < -0.06) {
+                        yield BlockType.TAIGA_GRASS.id;
+                    } else if (temp > 0.24 && sampleHumidity(noise, wx, wz) >= 0.12) {
+                        yield BlockType.JUNGLE_GRASS.id;
+                    }
+                    yield BlockType.GRASS.id;
+                }
                 case PLAINS, FOREST, BIRCH_FOREST -> {
                     // Natural dithering of sand tufts into coastal grassland edge
                     if (height <= SEA_LEVEL + 2 && dither == 7) {
@@ -901,6 +927,19 @@ public final class TerrainGenerator {
                     if (topY >= floraBaseY - 1 && baseY <= floraBaseY + trunkHeight + 2) {
                         placeStandardTreeSlice(chunk, lx, floraBaseY, lz, trunkHeight, baseY,
                                 BlockType.WOOD.id, BlockType.LEAVES.id);
+                    }
+                }
+            }
+            case RIVER -> {
+                // Occasional riverside trees (willow/oak/birch) along river hills and slopes
+                if (chance256 < 26) {
+                    int trunkHeight = 4 + ((hash >>> 12) & 1);
+                    boolean isBirch = ((hash & 0x4000) != 0);
+                    byte woodId = isBirch ? BlockType.BIRCH_WOOD.id : BlockType.WOOD.id;
+                    byte leavesId = isBirch ? BlockType.BIRCH_LEAVES.id : BlockType.LEAVES.id;
+                    if (topY >= floraBaseY - 1 && baseY <= floraBaseY + trunkHeight + 2) {
+                        placeStandardTreeSlice(chunk, lx, floraBaseY, lz, trunkHeight, baseY,
+                                woodId, leavesId);
                     }
                 }
             }

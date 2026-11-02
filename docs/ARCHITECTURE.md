@@ -177,6 +177,15 @@ com.voxel
     - Głośność (po dodaniu OpenAL).
     - FOV (kąt widzenia kamery).
 
+### 3.6 Optymalizacja okluzji i eliminacja fałszywych odrzuceń w dolinach rzecznych (#51, #52)
+
+- **Problem okluzji grzbietów górskich:**
+  - Heurystyka mountain ridge occlusion próbkująca pojedynczy punkt na środku współrzędnych chunków powodowała fałszywe odrzucenia (false positives) w kanionach, wąwozach i meandrach rzek. Promień wzroku w kierunku doliny przebiegał przez powietrze, podczas gdy punkt środkowy trafiał w zbocze wzgórza (Y=45..49), co skutkowało uznaniem otwartego koryta rzeki za zasłonięte i odrzuceniem ponad 170 widocznych chunków (powstawały charakterystyczne "dziury" w świecie ukazujące tło nieba).
+- **Rozwiązanie architektoniczne:**
+  1. **Sprzętowe GPU Early-Z:** Usunięcie wadliwego CPU raycastu grzbietów i oparcie okluzji powierzchniowej na sprzętowym buforze głębokości (Early-Z rejection). Nieprzezroczyste chunki renderowane są w kolejności od najbliższych do najdalszych, eliminując fragmenty zasłonięte przez wzgórza bez narzutu na fragment shader.
+  2. **5-punktowa weryfikacja Subterranean Occlusion:** Culling chunków podziemnych weryfikuje wysokość powierzchni w 4 narożnikach oraz w centrum chunka (`minSurf >= chunkTopY + 4`). Dzięki temu chunki w wyciętych przez erozję dolinach i korytach rzek nigdy nie zostają błędnie zaklasyfikowane jako podziemne.
+  3. **Szata roślinna dolin rzecznych (`Biome.RIVER`):** Wzbogacenie generatora biomu o gęste pokrycie trawiaste i polne kwiaty (`TALL_GRASS`, `BLUE_ORCHID`, `DANDELION`, `ROSE`, `ALLIUM`), dopasowanie do stref klimatycznych oraz eliminację zamiany zboczy na kamień `steepCliff`.
+
 ---
 
 ## 4. Rzeczywista Roadmapa Silnika
@@ -280,9 +289,9 @@ W celu zachowania przejrzystości, każdy dokument w repozytorium pełni ściśl
 3. **`docs/REGION_STORAGE_FORMAT.md`:**
    Binarna specyfikacja formatów zapisu `.dat` (bity różnicowe) oraz `.mca` (skompresowane regiony Anvil ZLIB/Deflate).
 4. **`docs/TODO.md`:**
-   Szczegółowy rejestr zadań technicznych silnika z podziałem na podsystemy (zadania #1–#50 w 100% zrealizowane).
+   Szczegółowy rejestr zadań technicznych silnika z podziałem na podsystemy (zadania #1–#52 w 100% zrealizowane).
 5. **`docs/developer todo.md`:**
-   Pierwotna lista wytycznych deweloperskich (zadania #1–#50 ukończone w 100%).
+   Pierwotna lista wytycznych deweloperskich (zadania #1–#52 ukończone w 100%).
 
 ---
 
