@@ -37,7 +37,7 @@ public class MainMenu {
     private float saveScroll = 0.0f;
 
     // New world inputs
-    private final StringBuilder inputWorldName = new StringBuilder("Swiat_1");
+    private final StringBuilder inputWorldName = new StringBuilder("World_1");
     private final StringBuilder inputSeed = new StringBuilder();
     private int activeInputField = 0; // 0 = name, 1 = seed
 
@@ -301,7 +301,7 @@ public class MainMenu {
         if (mx >= b2X && mx <= b2X + btnW2 && my >= btnY && my <= btnY + btnH) {
             currentScreen = Screen.NEW_WORLD;
             inputWorldName.setLength(0);
-            inputWorldName.append("Swiat_").append(saveList != null ? saveList.size() + 1 : 1);
+            inputWorldName.append("World_").append(saveList != null ? saveList.size() + 1 : 1);
             inputSeed.setLength(0);
             activeInputField = 0;
             return Result.NONE;

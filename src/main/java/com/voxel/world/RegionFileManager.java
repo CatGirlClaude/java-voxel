@@ -56,10 +56,10 @@ public final class RegionFileManager {
                 loadSingleRegion(regionPath, loadedChunks);
             }
         } catch (IOException e) {
-            Logger.error("RegionFile", "Blad podczas listowania plikow regionow w %s: %s", regionDir, e.getMessage());
+            Logger.error("RegionFile", "Error listing region files in %s: %s", regionDir, e.getMessage());
         }
 
-        Logger.info("RegionFile", "Wczytano %d chunkow z formatu regionow MCA (%s)", loadedChunks.size(), regionDir.getFileName());
+        Logger.info("RegionFile", "Loaded %d chunks from MCA region format (%s)", loadedChunks.size(), regionDir.getFileName());
         return loadedChunks;
     }
 
@@ -67,12 +67,12 @@ public final class RegionFileManager {
         try (DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(regionPath)))) {
             int magic = in.readInt();
             if (magic != REGION_MAGIC) {
-                Logger.warn("RegionFile", "Nieprawidlowy magic pliku regionu %s: 0x%08X", regionPath.getFileName(), magic);
+                Logger.warn("RegionFile", "Invalid magic header for region file %s: 0x%08X", regionPath.getFileName(), magic);
                 return;
             }
             int version = in.readInt();
             if (version > REGION_VERSION) {
-                Logger.warn("RegionFile", "Nieobsługiwana wersja pliku regionu %s (wersja %d)", regionPath.getFileName(), version);
+                Logger.warn("RegionFile", "Unsupported region file version %s (version %d)", regionPath.getFileName(), version);
                 return;
             }
 
@@ -104,7 +104,7 @@ public final class RegionFileManager {
             }
             inflater.end();
         } catch (IOException | DataFormatException e) {
-            Logger.error("RegionFile", "Blad odczytu chunka z pliku regionu %s: %s", regionPath.getFileName(), e.getMessage());
+            Logger.error("RegionFile", "Error reading chunk from region file %s: %s", regionPath.getFileName(), e.getMessage());
         }
     }
 
@@ -121,7 +121,7 @@ public final class RegionFileManager {
                 Files.createDirectories(regionDir);
             }
         } catch (IOException e) {
-            Logger.error("RegionFile", "Nie mozna utworzyc katalogu regionow: %s", e.getMessage());
+            Logger.error("RegionFile", "Could not create regions directory: %s", e.getMessage());
             return;
         }
 
@@ -178,7 +178,7 @@ public final class RegionFileManager {
             }
             out.flush();
         } catch (IOException e) {
-            Logger.error("RegionFile", "Blad podczas zapisu do pliku tymczasowego %s: %s", tempFile.getFileName(), e.getMessage());
+            Logger.error("RegionFile", "Error writing to temporary file %s: %s", tempFile.getFileName(), e.getMessage());
             try { Files.deleteIfExists(tempFile); } catch (IOException ignored) {}
             return;
         } finally {
@@ -191,7 +191,7 @@ public final class RegionFileManager {
             try {
                 Files.move(tempFile, regionFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                Logger.error("RegionFile", "Blad podmiany pliku regionu %s: %s", regionFile.getFileName(), ex.getMessage());
+                Logger.error("RegionFile", "Error replacing region file %s: %s", regionFile.getFileName(), ex.getMessage());
             }
         }
     }

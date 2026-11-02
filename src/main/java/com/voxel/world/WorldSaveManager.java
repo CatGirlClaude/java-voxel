@@ -227,16 +227,16 @@ public final class WorldSaveManager {
                 }
 
                 RegionFileManager.saveRegions(regionDir, chunksToSave);
-                Logger.info("SaveManager", "Zapisano stan swiata '%s' w formacie Regionow MCA (%d chunkow, %d blokow) do: %s",
+                Logger.info("SaveManager", "Saved world state '%s' in MCA Region format (%d chunks, %d blocks) to: %s",
                         currentSaveName, chunksToSave.size(), world.getModifiedBlocks().size(), regionDir.getFileName());
             } else {
-                Logger.info("SaveManager", "Zapisano stan swiata '%s' w formacie Roznic (.dat) (%d zmodyfikowanych blokow) do: %s",
+                Logger.info("SaveManager", "Saved world state '%s' in Block Diffs format (.dat) (%d modified blocks) to: %s",
                         currentSaveName, world.getModifiedBlocks().size(), savePath.getFileName());
             }
 
             return true;
         } catch (IOException e) {
-            Logger.error("SaveManager", "Blad zapisu swiata '%s': %s", currentSaveName, e.getMessage());
+            Logger.error("SaveManager", "Error saving world '%s': %s", currentSaveName, e.getMessage());
             return false;
         }
     }
@@ -249,14 +249,14 @@ public final class WorldSaveManager {
         setCurrentSaveName(saveName);
         Path savePath = getSavePath(currentSaveName);
         if (!Files.exists(savePath)) {
-            Logger.warn("SaveManager", "Plik zapisu nie istnieje: %s", savePath);
+            Logger.warn("SaveManager", "Save file does not exist: %s", savePath);
             return false;
         }
 
         try (DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(savePath)))) {
             int magic = in.readInt();
             if (magic != MAGIC_VOXR && magic != MAGIC_VOX5 && magic != MAGIC_VOX4 && magic != MAGIC_VOX3 && magic != MAGIC_VOX2 && magic != MAGIC_VOX1) {
-                Logger.error("SaveManager", "Nieprawidlowy format naglowka pliku zapisu (magic: 0x%08X)", magic);
+                Logger.error("SaveManager", "Invalid save file header magic (magic: 0x%08X)", magic);
                 return false;
             }
             long seed = in.readLong();
@@ -342,7 +342,7 @@ public final class WorldSaveManager {
                 Map<World.ChunkPos, byte[]> loadedRegions = RegionFileManager.loadAllRegions(regionDir);
                 world.getSavedRegionChunks().putAll(loadedRegions);
                 world.getModifiedChunkPositions().addAll(loadedRegions.keySet());
-                Logger.info("SaveManager", "Zaladowano format Regionow MCA: %d pelnych chunkow z %s",
+                Logger.info("SaveManager", "Loaded MCA Region format: %d full chunks from %s",
                         loadedRegions.size(), regionDir.getFileName());
             }
 

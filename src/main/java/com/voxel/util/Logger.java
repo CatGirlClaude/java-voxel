@@ -83,28 +83,28 @@ public final class Logger {
 
                 // Register JVM shutdown hook to flush and close
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    info("System", "Zamykanie systemu logowania. Do widzenia!");
+                    info("System", "Shutting down logging system. Goodbye!");
                     close();
                 }, "Logger-ShutdownHook"));
 
                 // Register Default Uncaught Exception Handler
                 Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-                    dumpCrashReport("Niezlapany wyjatek w watku [" + thread.getName() + "]", throwable, null);
+                    dumpCrashReport("Uncaught exception in thread [" + thread.getName() + "]", throwable, null);
                 });
 
             } catch (Exception e) {
-                System.err.println("[Logger] Nie udalo sie zainicjalizowac logowania do pliku: " + e.getMessage());
+                System.err.println("[Logger] Failed to initialize file logging: " + e.getMessage());
             }
         }
 
-        info("System", "=== Java Voxel 3D - Uruchomiono sesje gry ===");
-        info("System", "Plik logow: %s", LATEST_LOG.toAbsolutePath());
+        info("System", "=== Java Voxel 3D - Game Session Started ===");
+        info("System", "Log file: %s", LATEST_LOG.toAbsolutePath());
     }
 
     public static void setMinLevel(Level level) {
         if (level != null) {
             minLevel = level;
-            info("Logger", "Zmieniono minimalny poziom logowania na: %s", level.label);
+            info("Logger", "Changed minimum log level to: %s", level.label);
         }
     }
 
@@ -163,7 +163,7 @@ public final class Logger {
         try {
             message = (args != null && args.length > 0) ? String.format(Locale.ROOT, format, args) : format;
         } catch (Exception e) {
-            message = format + " [Blad formatowania: " + e.getMessage() + "]";
+            message = format + " [Formatting error: " + e.getMessage() + "]";
         }
 
         String timestamp = TIME_FORMAT.format(new Date());

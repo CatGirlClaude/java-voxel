@@ -92,7 +92,7 @@ public final class GameSettings {
 
     public static void load() {
         if (!Files.exists(OPTIONS_FILE)) {
-            Logger.info("Config", "Brak pliku opcji (%s). Tworzenie domyslnych ustawien...", OPTIONS_FILE);
+            Logger.info("Config", "Options file missing (%s). Creating defaults...", OPTIONS_FILE);
             save();
             return;
         }
@@ -157,9 +157,9 @@ public final class GameSettings {
                 keyHotbar[i] = getInt(props, "keyHotbar_" + i, GLFW_KEY_1 + i);
             }
 
-            Logger.info("Config", "Wczytano opcje gry z pliku: %s", OPTIONS_FILE);
+            Logger.info("Config", "Loaded game options from: %s", OPTIONS_FILE);
         } catch (Exception e) {
-            Logger.error("Config", "Blad podczas wczytywania opcji gry: %s", e.getMessage());
+            Logger.error("Config", "Error loading game options: %s", e.getMessage());
         }
     }
 
@@ -222,11 +222,11 @@ public final class GameSettings {
                 Files.createDirectories(CONFIG_DIR);
             }
             try (Writer writer = Files.newBufferedWriter(OPTIONS_FILE, StandardCharsets.UTF_8)) {
-                props.store(writer, "Java Voxel 3D - Ustawienia gry i konfiguracja");
+                props.store(writer, "Java Voxel 3D - Game Settings & Configuration");
             }
-            Logger.debug("Config", "Zapisano opcje gry do %s", OPTIONS_FILE);
+            Logger.debug("Config", "Saved game options to %s", OPTIONS_FILE);
         } catch (Exception e) {
-            Logger.error("Config", "Blad podczas zapisywania opcji: %s", e.getMessage());
+            Logger.error("Config", "Error saving game options: %s", e.getMessage());
         }
     }
 
@@ -300,7 +300,7 @@ public final class GameSettings {
         }
 
         save();
-        Logger.info("Config", "Przywrocono wszystkie opcje do ustawien fabrycznych.");
+        Logger.info("Config", "Restored all options to default settings.");
     }
 
     public static void disableAllOverrides() {

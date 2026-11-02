@@ -27,13 +27,13 @@ public class ShaderProgram {
 
         if (glGetProgrami(programId, GL_LINK_STATUS) == GL_FALSE) {
             String errorLog = glGetProgramInfoLog(programId);
-            Logger.error("ShaderProgram", "Blad linkowania programu shaderow: %s", errorLog);
+            Logger.error("ShaderProgram", "Shader program linking error: %s", errorLog);
             throw new RuntimeException("Shader link error: " + errorLog);
         }
 
         glDeleteShader(vs);
         glDeleteShader(fs);
-        Logger.debug("ShaderProgram", "Zaladowano i skompilowano shader program (ID: %d)", programId);
+        Logger.debug("ShaderProgram", "Loaded and compiled shader program (ID: %d)", programId);
     }
 
     private int compileShader(int type, String src) {
@@ -42,7 +42,7 @@ public class ShaderProgram {
         glCompileShader(id);
         if (glGetShaderi(id, GL_COMPILE_STATUS) == GL_FALSE) {
             String errorLog = glGetShaderInfoLog(id);
-            Logger.error("ShaderProgram", "Blad kompilacji shadera (typ %d): %s", type, errorLog);
+            Logger.error("ShaderProgram", "Shader compilation error (type %d): %s", type, errorLog);
             throw new RuntimeException("Shader compile error: " + errorLog);
         }
         return id;

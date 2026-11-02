@@ -76,8 +76,8 @@ public class Main {
     private void initWindow() {
         GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) {
-            Logger.fatal("Engine", "Nie udalo sie zainicjalizowac GLFW!", null);
-            throw new IllegalStateException("Nie udalo sie zainicjalizowac GLFW!");
+            Logger.fatal("Engine", "Failed to initialize GLFW!", null);
+            throw new IllegalStateException("Failed to initialize GLFW!");
         }
 
         glfwDefaultWindowHints();
@@ -90,8 +90,8 @@ public class Main {
 
         window = glfwCreateWindow(width, height, "Java Voxel 3D", NULL, NULL);
         if (window == NULL) {
-            Logger.fatal("Engine", "Nie udalo sie utworzyc okna GLFW!", null);
-            throw new RuntimeException("Nie udalo sie utworzyc okna GLFW!");
+            Logger.fatal("Engine", "Failed to create GLFW window!", null);
+            throw new RuntimeException("Failed to create GLFW window!");
         }
 
         GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -402,9 +402,9 @@ public class Main {
 
         GL.createCapabilities();
         Logger.info("OpenGL", "OpenGL graphic context initialized successfully.");
-        Logger.info("OpenGL", "Karta graficzna: %s", glGetString(GL_RENDERER));
-        Logger.info("OpenGL", "Producent: %s | Wersja: %s", glGetString(GL_VENDOR), glGetString(GL_VERSION));
-        Logger.info("OpenGL", "Wersja GLSL: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        Logger.info("OpenGL", "Graphics card: %s", glGetString(GL_RENDERER));
+        Logger.info("OpenGL", "Vendor: %s | Version: %s", glGetString(GL_VENDOR), glGetString(GL_VERSION));
+        Logger.info("OpenGL", "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -829,7 +829,7 @@ public class Main {
         glfwTerminate();
         GLFWErrorCallback cb = glfwSetErrorCallback(null);
         if (cb != null) cb.free();
-        Logger.info("Engine", "Pomyslnie zamknieto gre. Do widzenia!");
+        Logger.info("Engine", "Engine terminated successfully. Goodbye!");
         Logger.close();
     }
 }

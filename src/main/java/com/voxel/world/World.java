@@ -67,7 +67,7 @@ public class World {
         renderDistance = Math.max(2, Math.min(16, dist));
         renderDistanceY = Math.max(2, Math.min(8, (int) Math.ceil(renderDistance * 0.65)));
         rebuildSortedChunkOffsets();
-        Logger.info("World", "Zmieniono dystans renderowania: %d chunkow (Y: %d)", renderDistance, renderDistanceY);
+        Logger.info("World", "Changed render distance: %d chunks (Y: %d)", renderDistance, renderDistanceY);
     }
 
     private long seed;
@@ -131,7 +131,7 @@ public class World {
                 return t;
             }
         });
-        Logger.info("World", "Zainicjalizowano wielowatkowa pule robocza: %d watkow CPU", numThreads);
+        Logger.info("World", "Initialized multithreaded worker pool: %d CPU threads", numThreads);
     }
 
     public long getSeed() {

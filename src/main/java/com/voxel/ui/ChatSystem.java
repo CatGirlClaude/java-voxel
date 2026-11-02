@@ -325,11 +325,11 @@ public class ChatSystem {
 
         if (raw.startsWith("/") || raw.toLowerCase().startsWith("tp ")) {
             String cmdStr = raw.startsWith("/") ? raw.substring(1).trim() : raw;
-            com.voxel.util.Logger.info("Chat", "Komenda: /%s", cmdStr);
+            com.voxel.util.Logger.info("Chat", "Command: /%s", cmdStr);
             executeCommand(cmdStr, world, player, hud);
         } else {
-            com.voxel.util.Logger.info("Chat", "<Gracz>: %s", raw);
-            addMessage("<Gracz> " + raw, COLOR_CHAT);
+            com.voxel.util.Logger.info("Chat", "<Player>: %s", raw);
+            addMessage("<Player> " + raw, COLOR_CHAT);
         }
     }
 
@@ -452,16 +452,16 @@ public class ChatSystem {
             case "logs", "log" -> {
                 if (parts.length > 1 && parts[1].equalsIgnoreCase("dump")) {
                     java.util.Map<String, String> ctx = new java.util.HashMap<>();
-                    ctx.put("Pozycja gracza", String.format("%.2f, %.2f, %.2f", player.position.x, player.position.y, player.position.z));
-                    ctx.put("Seed swiata", String.valueOf(world.getSeed()));
-                    java.nio.file.Path p = com.voxel.util.Logger.dumpCrashReport("Zrzut z komendy /logs dump", null, ctx);
-                    addMessage("Zapisano raport awaryjny: " + p.getFileName(), COLOR_SUCCESS);
+                    ctx.put("Player Position", String.format("%.2f, %.2f, %.2f", player.position.x, player.position.y, player.position.z));
+                    ctx.put("World Seed", String.valueOf(world.getSeed()));
+                    java.nio.file.Path p = com.voxel.util.Logger.dumpCrashReport("Dump from command /logs dump", null, ctx);
+                    addMessage("Saved diagnostic report: " + p.getFileName(), COLOR_SUCCESS);
                 } else {
                     int count = 6;
                     if (parts.length > 1) {
                         try { count = Integer.parseInt(parts[1]); } catch (Exception ignored) {}
                     }
-                    addMessage("=== Ostatnie logi (logs/latest.log) ===", COLOR_HELP);
+                    addMessage("=== Recent logs (logs/latest.log) ===", COLOR_HELP);
                     List<String> list = com.voxel.util.Logger.getRecentLogs(Math.min(15, count));
                     for (String l : list) {
                         Vector4f col = l.contains("/ERROR]") ? COLOR_ERROR : (l.contains("/WARN]") ? COLOR_HELP : COLOR_INFO);
