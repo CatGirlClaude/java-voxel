@@ -211,7 +211,7 @@ public class HudRenderer {
         float barWidth = slots * slotSize + (slots + 1) * padding;
         float barHeight = slotSize + 2 * padding;
         float barX = (screenW - barWidth) * 0.5f;
-        float barY = screenH - barHeight - 18.0f;
+        float barY = screenH - barHeight - 9.0f;
 
         colorShader.setUniform("uColor", new Vector4f(0.10f, 0.12f, 0.15f, 0.78f));
         drawRect2D(barX, barY, barWidth, barHeight);

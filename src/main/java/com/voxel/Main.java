@@ -343,7 +343,10 @@ public class Main {
 
             if (inventoryMenu != null && inventoryMenu.isOpen()) {
                 if (action == GLFW_PRESS) {
-                    inventoryMenu.handleKey(key, currentMouseX, currentMouseY, player);
+                    float gScale = GameSettings.getEffectiveGuiScale(width, height);
+                    double vMouseX = currentMouseX / gScale;
+                    double vMouseY = currentMouseY / gScale;
+                    inventoryMenu.handleKey(key, vMouseX, vMouseY, player);
                     if (!inventoryMenu.isOpen()) {
                         setCursorLocked(true);
                     }

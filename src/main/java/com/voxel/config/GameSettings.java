@@ -69,6 +69,21 @@ public final class GameSettings {
     public static int keyToggleHud = GLFW_KEY_F1;
     public static int keyPause = GLFW_KEY_ESCAPE;
 
+    public static int[] keyHotbar = {
+        GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5,
+        GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9
+    };
+
+    public static int getHotbarSlotForKey(int key) {
+        for (int i = 0; i < keyHotbar.length; i++) {
+            if (keyHotbar[i] == key) return i;
+        }
+        if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9) {
+            return key - GLFW_KEY_1;
+        }
+        return -1;
+    }
+
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(GameSettings::save, "GameSettings-Save-Hook"));
     }
@@ -138,6 +153,9 @@ public final class GameSettings {
             keyDebug = getInt(props, "keyDebug", GLFW_KEY_F3);
             keyToggleHud = getInt(props, "keyToggleHud", GLFW_KEY_F1);
             keyPause = getInt(props, "keyPause", GLFW_KEY_ESCAPE);
+            for (int i = 0; i < keyHotbar.length; i++) {
+                keyHotbar[i] = getInt(props, "keyHotbar_" + i, GLFW_KEY_1 + i);
+            }
 
             Logger.info("Config", "Wczytano opcje gry z pliku: %s", OPTIONS_FILE);
         } catch (Exception e) {
@@ -195,6 +213,9 @@ public final class GameSettings {
         props.setProperty("keyDebug", String.valueOf(keyDebug));
         props.setProperty("keyToggleHud", String.valueOf(keyToggleHud));
         props.setProperty("keyPause", String.valueOf(keyPause));
+        for (int i = 0; i < keyHotbar.length; i++) {
+            props.setProperty("keyHotbar_" + i, String.valueOf(keyHotbar[i]));
+        }
 
         try {
             if (!Files.exists(CONFIG_DIR)) {
@@ -271,6 +292,9 @@ public final class GameSettings {
         keyDebug = GLFW_KEY_F3;
         keyToggleHud = GLFW_KEY_F1;
         keyPause = GLFW_KEY_ESCAPE;
+        for (int i = 0; i < keyHotbar.length; i++) {
+            keyHotbar[i] = GLFW_KEY_1 + i;
+        }
 
         save();
         Logger.info("Config", "Przywrocono wszystkie opcje do ustawien fabrycznych.");

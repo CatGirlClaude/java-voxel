@@ -247,15 +247,15 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 - [x] **#34. System BlockState dla wody:** Wprowadzono model właściwości stanów bloków `Property<T>`, `IntegerProperty LEVEL (1..8)` na `Blocks.WATER` oraz usunięto sztuczne, oddzielne ID bloków dla poziomów przepływu.
 - [x] **#35. Naprawa tekstur bloków 3D:** Naprawiono przypisania zmiennych UV w `addQuadPacked` w mesherze, przywracając idealne mapowanie ścianek 3D w świecie.
 - [x] **#36. Fallback tekstura:** Wdrożono fioletowo-czarną szachownicę 16x16 (magenta/black) jako oficjalny fallback dla brakujących assetów (`missing.png`).
-- [ ] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu.
+- [x] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu (zgodnie z przypisanymi zbindowanymi klawiszami `keyHotbar`).
 - [x] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Zastąpiono skokową funkcję koloru nieba gładkim $C^1$ splajnem `smoothstep`, eliminując nagłą zmianę barwy o 7:00 i tworząc organiczny poranny gradient.
 - [x] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielono w pętli głównej client tick (obsługa UI, pisanie, animacje) od world tick (upływ czasu zamrożony w trybie jednoosobowym przy otwartym czacie).
 - [ ] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie podpowiedzi keybindów, max 10 sugestii, zachowanie wskaźnika strony "(1/16)".
 - [ ] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Wyróżnianie komend, argumentów, współrzędnych i liczb.
-- [ ] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów.
+- [x] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów i zaśmiecających napisów.
 - [ ] **#43. Uporządkowanie menu pauzy (Pause Menu):** Czytelny, ergonomiczny zestaw opcji bez przesytu.
 - [ ] **#44. Ochrona przed softlockiem przy GUI Scale 3-4:** Automatyczne przewijanie (scroll) w oknach niemieszczących się na ekranie.
-- [ ] **#45. Przesunięcie hotbara w dół:** Zmniejszenie dolnego marginesu o połowę dotychczasowego odstępu.
+- [x] **#45. Przesunięcie hotbara w dół:** Zmniejszenie dolnego marginesu o połowę dotychczasowego odstępu (z 18px do 9px).
 - [ ] **#46. Pełna lokalizacja [5] System and lang:** Usunięcie pozostałości języka polskiego przy wybranym angielskim.
 - [ ] **#47. Angielskie logi systemowe:** Ujednolicenie wszystkich logów konsolowych i Loggera na język angielski.
 - [ ] **#48. Domyślna skala HUD = 1:** Ustawienie `hudScale = 1` jako wartości domyślnej.

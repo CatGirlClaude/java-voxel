@@ -57,8 +57,8 @@ public class InventoryMenu {
             return true;
         }
 
-        if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9) {
-            int targetHotbarSlot = key - GLFW_KEY_1;
+        int targetHotbarSlot = com.voxel.config.GameSettings.getHotbarSlotForKey(key);
+        if (targetHotbarSlot >= 0 && targetHotbarSlot < player.hotbar.length) {
             BlockType hovered = getHoveredBlock((float) mouseX, (float) mouseY);
             if (hovered != null) {
                 player.setHotbarSlot(targetHotbarSlot, hovered);
@@ -97,7 +97,7 @@ public class InventoryMenu {
         float winW = COLS * SLOT_SIZE + (COLS + 1) * SLOT_PAD;
         float winH = ROWS * SLOT_SIZE + (ROWS + 1) * SLOT_PAD + 120.0f;
         float startX = (lastScreenW - winW) * 0.5f + SLOT_PAD;
-        float startY = (lastScreenH - winH) * 0.5f + 48.0f;
+        float startY = (lastScreenH - winH) * 0.5f + 44.0f;
 
         BlockType[] all = BlockType.getCreativeBlocks();
         for (int r = 0; r < ROWS; r++) {
@@ -179,19 +179,17 @@ public class InventoryMenu {
 
         // Header bar
         hud.getColorShader().setUniform("uColor", new Vector4f(0.16f, 0.19f, 0.25f, 0.98f));
-        hud.drawRect2D(winX, winY, winW, 42.0f);
+        hud.drawRect2D(winX, winY, winW, 36.0f);
         hud.getColorShader().unbind();
 
-        // Title and description
-        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("creative.title"), winX + 14.0f, winY + 8.0f, 1.8f,
+        // Title
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("creative.title"), winX + 14.0f, winY + 9.0f, 1.6f,
                 new Vector4f(1.0f, 0.92f, 0.40f, 1.0f));
-        hud.getTextRenderer().drawTextWithShadow(ortho, "Click block to put into slot [1-9] | [E / ESC] Close", winX + 14.0f, winY + 26.0f, 1.2f,
-                new Vector4f(0.75f, 0.85f, 0.95f, 0.85f));
 
         // 3. Render grid slots (9 columns)
         BlockType[] all = BlockType.getCreativeBlocks();
         float gridStartX = winX + SLOT_PAD;
-        float gridStartY = winY + 48.0f;
+        float gridStartY = winY + 44.0f;
         BlockType hoveredBlock = null;
 
         int totalRows = (all.length + COLS - 1) / COLS;
@@ -263,9 +261,6 @@ public class InventoryMenu {
         float hStartX = winX + (winW - totalHotbarW) * 0.5f;
         float hStartY = winY + winH - 58.0f;
 
-        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("creative.hotbar"), winX + 14.0f, hStartY - 16.0f, 1.3f,
-                new Vector4f(0.9f, 0.9f, 0.9f, 0.9f));
-
         hud.getColorShader().bind();
         hud.getColorShader().setUniform("uMVP", ortho);
         hud.getColorShader().setUniform("uColor", new Vector4f(0.08f, 0.10f, 0.14f, 0.92f));
@@ -302,22 +297,15 @@ public class InventoryMenu {
                     new Vector4f(1.0f, 1.0f, 0.5f, 0.85f));
         }
 
-        // 5. Tooltip on hover
+        // 5. Tooltip on hover: concise block name
         if (hoveredBlock != null) {
             String blockName = I18n.t("block." + hoveredBlock.name().toLowerCase());
             if (blockName.startsWith("block.")) {
                 blockName = hoveredBlock.name;
             }
-            String title = String.format("[%d] %s", hoveredBlock.id, blockName);
-            String info = String.format("%s: %s | %s: %s | %s: %s",
-                    I18n.t("creative.solid"), hoveredBlock.solid ? I18n.t("creative.yes") : I18n.t("creative.no"),
-                    I18n.t("creative.transparent"), hoveredBlock.transparent ? I18n.t("creative.yes") : I18n.t("creative.no"),
-                    I18n.t("creative.light"), hoveredBlock.emissive ? (I18n.t("creative.yes") + " (15)") : I18n.t("creative.no"));
-
-            float tw1 = hud.getTextRenderer().getTextWidth(title, 1.6f);
-            float tw2 = hud.getTextRenderer().getTextWidth(info, 1.2f);
-            float tooltipW = Math.max(tw1, tw2) + 16.0f;
-            float tooltipH = 44.0f;
+            float titleW = hud.getTextRenderer().getTextWidth(blockName, 1.4f);
+            float tooltipW = titleW + 16.0f;
+            float tooltipH = 26.0f;
 
             float tx = Math.min(screenW - tooltipW - 10, mx + 16.0f);
             float ty = Math.min(screenH - tooltipH - 10, my + 16.0f);
@@ -330,10 +318,8 @@ public class InventoryMenu {
             hud.drawRect2D(tx, ty, tooltipW, tooltipH);
             hud.getColorShader().unbind();
 
-            hud.getTextRenderer().drawTextWithShadow(ortho, title, tx + 8.0f, ty + 6.0f, 1.6f,
+            hud.getTextRenderer().drawTextWithShadow(ortho, blockName, tx + 8.0f, ty + 5.0f, 1.4f,
                     new Vector4f(1.0f, 0.92f, 0.40f, 1.0f));
-            hud.getTextRenderer().drawTextWithShadow(ortho, info, tx + 8.0f, ty + 24.0f, 1.2f,
-                    new Vector4f(0.85f, 0.90f, 0.98f, 0.90f));
         }
 
         glEnable(GL_CULL_FACE);
