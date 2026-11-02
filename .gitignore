@@ -1,0 +1,49 @@
+# ==============================================================================
+# Java Voxel 3D - .gitignore
+# ==============================================================================
+
+# Maven build output
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+cp.txt
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# Visual Studio Code
+.vscode/
+
+# OS-specific temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Game runtime dynamic data in run/
+run/logs/
+run/crash-reports/
+run/saves/
+run/config/options.properties
+
+# Standalone log files
+logs/
+*.log
+crash-*.txt
