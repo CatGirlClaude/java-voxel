@@ -92,6 +92,14 @@ Welcome, Agent. This document is your primary onboarding manual and operational 
 - All saves must use **atomic writes**: save to `.tmp` first, then replace via `Files.move(..., ATOMIC_MOVE)` to prevent world corruption.
 - When refactoring blocks or chunk data, never break backward compatibility with existing worlds.
 
+### F. Default Project Language: English Only
+- **Primary Language Standard:** The entire codebase and engineering ecosystem must be written strictly in **English by default**:
+  - **Code Identifiers:** All classes, methods, fields, interfaces, enums, records, and packages must be named in English.
+  - **Comments & Documentation:** All inline code comments, JavaDoc blocks, and newly created technical documents must be written in English.
+  - **Logs & Diagnostics:** All `Logger.*` calls, crash dumps, profiler messages, and debug console outputs must be emitted in English.
+  - **Git Commits:** All Git commit messages, branch names, and summaries must be in English following standard Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`).
+  - **In-Game Strings & I18n:** English (`en_us.json`) is the baseline primary language. Polish (`pl_pl.json`) is supported strictly as a secondary localization dictionary loaded through `I18n.t(...)`. Never hardcode non-English strings in the engine.
+
 ---
 
 ## 4. How to Extend the Engine
