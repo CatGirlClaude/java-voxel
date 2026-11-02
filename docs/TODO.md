@@ -250,8 +250,8 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 - [x] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu (zgodnie z przypisanymi zbindowanymi klawiszami `keyHotbar`).
 - [x] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Zastąpiono skokową funkcję koloru nieba gładkim $C^1$ splajnem `smoothstep`, eliminując nagłą zmianę barwy o 7:00 i tworząc organiczny poranny gradient.
 - [x] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielono w pętli głównej client tick (obsługa UI, pisanie, animacje) od world tick (upływ czasu zamrożony w trybie jednoosobowym przy otwartym czacie).
-- [ ] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie podpowiedzi keybindów, max 10 sugestii, zachowanie wskaźnika strony "(1/16)".
-- [ ] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Wyróżnianie komend, argumentów, współrzędnych i liczb.
+- [x] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie zbędnych podpowiedzi keybindów, powiększenie widocznych sugestii do 10, zachowanie czystego wskaźnika strony "(1/16)".
+- [x] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Dynamiczne podświetlanie komend (cyan), słów kluczowych/podkomend (fiolet), liczb (zielony), współrzędnych (bursztyn) i selektorów (róż).
 - [x] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów i zaśmiecających napisów.
 - [ ] **#43. Uporządkowanie menu pauzy (Pause Menu):** Czytelny, ergonomiczny zestaw opcji bez przesytu.
 - [ ] **#44. Ochrona przed softlockiem przy GUI Scale 3-4:** Automatyczne przewijanie (scroll) w oknach niemieszczących się na ekranie.

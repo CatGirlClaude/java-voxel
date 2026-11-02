@@ -565,7 +565,7 @@ public class HudRenderer {
                 List<ChatSystem.Suggestion> sugList = chat.getSuggestions();
                 int selectedIdx = chat.getSelectedSuggestionIndex();
                 int totalSugs = sugList.size();
-                int maxVisible = Math.min(6, totalSugs);
+                int maxVisible = Math.min(10, totalSugs);
 
                 // Minecraft-style scrolling window: keeps selectedIdx visible at all times
                 int scrollOffset = 0;
@@ -578,7 +578,7 @@ public class HudRenderer {
 
                 float sugW = Math.max(inputW, 540.0f);
                 float sugRowH = lineH + 2.0f;
-                float sugH = maxVisible * sugRowH + 20.0f;
+                float sugH = maxVisible * sugRowH + 18.0f;
                 float sugY = inputY - sugH - 6.0f;
 
                 colorShader.bind();
@@ -613,7 +613,7 @@ public class HudRenderer {
                     }
                 }
 
-                String footerText = String.format("[Tab] Complete | [Up/Down] Select (%d/%d)", selectedIdx + 1, totalSugs);
+                String footerText = String.format("(%d/%d)", selectedIdx + 1, totalSugs);
                 textRenderer.drawTextWithShadow(ortho, footerText,
                         chatX + 10.0f, sugY + sugH - 12.0f, 1.1f, new Vector4f(0.65f, 0.75f, 0.85f, 0.75f));
             }
@@ -633,8 +633,16 @@ public class HudRenderer {
             }
             colorShader.unbind();
 
-            textRenderer.drawTextWithShadow(ortho, fullPrompt, chatX + 8.0f, inputY + 4.0f, scale,
-                    new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+            // Render input prompt with syntax highlighting
+            textRenderer.drawTextWithShadow(ortho, prefix, chatX + 8.0f, inputY + 4.0f, scale,
+                    new Vector4f(1.0f, 0.85f, 0.20f, 1.0f));
+            float curX = chatX + 8.0f + textRenderer.getTextWidth(prefix, scale);
+
+            List<ChatSyntaxHighlighter.Span> spans = ChatSyntaxHighlighter.highlight(rawInput);
+            for (ChatSyntaxHighlighter.Span span : spans) {
+                textRenderer.drawTextWithShadow(ortho, span.text(), curX, inputY + 4.0f, scale, span.color());
+                curX += textRenderer.getTextWidth(span.text(), scale);
+            }
         }
     }
 

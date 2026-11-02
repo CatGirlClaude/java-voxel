@@ -42,8 +42,8 @@
 - [x] 37. Przywroc mozliwosc klikniecia slotu do ktorego block ma trafic klikajac na niego w creative menu (np. nacisniecie 1 = 1 slot, nacisniecie keybinda R = slot pod R)
 - [x] 38. Czas gry zaczyna sie 6:45, o 7:00 zas niebo kompletnie zmienia kolor - naprawic gwaltowny skok koloru i zrobic plynny gradient
 - [x] 39. Czas wciaz plynie pomimo wlaczonego chatu - wdrozyc w pelni system world tick / client tick
-- [ ] 40. Usun podpowiedzi keybindow z chatu, zwieksz maksymalna ilosc podpowiedzi do 10, zachowaj "(1/16)"
-- [ ] 41. Dodaj syntax highlight do chatu
+- [x] 40. Usun podpowiedzi keybindow z chatu, zwieksz maksymalna ilosc podpowiedzi do 10, zachowaj "(1/16)"
+- [x] 41. Dodaj syntax highlight do chatu
 - [x] 42. Usun podpowiedzi z creative menu (hotbar, keybindy etc)
 - [ ] 43. Posprzataj pause menu (za duzo opcji, zrobic czytelne i estetyczne)
 - [ ] 44. GUI SCALE 3-4 to softlock - ekrany ze scrollowaniem powinny byc dostepne natychmiastowo jesli jakikolwiek screen nie miesci sie na ekranie
