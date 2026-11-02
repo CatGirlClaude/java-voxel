@@ -1078,19 +1078,21 @@ public class World {
         float sunHeight = (float) (-Math.cos(angle));
 
         Vector3f nightSky = new Vector3f(0.04f, 0.06f, 0.14f);
-        Vector3f sunsetSky = new Vector3f(0.88f, 0.48f, 0.30f);
+        Vector3f dawnSky = new Vector3f(0.86f, 0.48f, 0.30f);
         Vector3f daySky = new Vector3f(0.46f, 0.72f, 0.98f);
 
-        if (sunHeight > 0.25f) {
-            float t = Math.min(1.0f, (sunHeight - 0.25f) / 0.55f);
-            return new Vector3f(sunsetSky).lerp(daySky, t);
-        } else if (sunHeight > -0.25f) {
-            float t = (sunHeight + 0.25f) / 0.50f;
-            float horizonGlow = 1.0f - Math.abs(t * 2.0f - 1.0f);
-            Vector3f base = new Vector3f(nightSky).lerp(daySky, t);
-            return base.lerp(sunsetSky, horizonGlow * 0.65f);
-        } else {
+        if (sunHeight < -0.20f) {
             return nightSky;
+        } else if (sunHeight < 0.05f) {
+            float t = (sunHeight + 0.20f) / 0.25f;
+            float smoothT = smoothstep(0.0f, 1.0f, t);
+            return new Vector3f(nightSky).lerp(dawnSky, smoothT);
+        } else if (sunHeight < 0.35f) {
+            float t = (sunHeight - 0.05f) / 0.30f;
+            float smoothT = smoothstep(0.0f, 1.0f, t);
+            return new Vector3f(dawnSky).lerp(daySky, smoothT);
+        } else {
+            return daySky;
         }
     }
 

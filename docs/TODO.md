@@ -248,8 +248,8 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 - [x] **#35. Naprawa tekstur bloków 3D:** Naprawiono przypisania zmiennych UV w `addQuadPacked` w mesherze, przywracając idealne mapowanie ścianek 3D w świecie.
 - [x] **#36. Fallback tekstura:** Wdrożono fioletowo-czarną szachownicę 16x16 (magenta/black) jako oficjalny fallback dla brakujących assetów (`missing.png`).
 - [ ] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu.
-- [ ] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Wyeliminowanie skoku koloru o godzinie 7:00; płynny gradient poranny.
-- [ ] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielenie client tick i world tick w trybie SP.
+- [x] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Zastąpiono skokową funkcję koloru nieba gładkim $C^1$ splajnem `smoothstep`, eliminując nagłą zmianę barwy o 7:00 i tworząc organiczny poranny gradient.
+- [x] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielono w pętli głównej client tick (obsługa UI, pisanie, animacje) od world tick (upływ czasu zamrożony w trybie jednoosobowym przy otwartym czacie).
 - [ ] **#40. Usprawnienia podpowiedzi czatu:** Usunięcie podpowiedzi keybindów, max 10 sugestii, zachowanie wskaźnika strony "(1/16)".
 - [ ] **#41. Kolorowanie składni (Syntax Highlighting) w czacie:** Wyróżnianie komend, argumentów, współrzędnych i liczb.
 - [ ] **#42. Usunięcie podpowiedzi z menu kreatywnego:** Czysty interfejs ekwipunku bez zbędnych hintów keybindów.

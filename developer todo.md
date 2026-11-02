@@ -40,8 +40,8 @@
 - [x] 35. Tekstury blokow 3D kompletnie nie dzialaja (rozciagniete/zepsute UV na sciankach z zalaczonego screenshotu)
 - [x] 36. Dodaj fallback teksture (np. magenta/black checkerboard)
 - [ ] 37. Przywroc mozliwosc klikniecia slotu do ktorego block ma trafic klikajac na niego w creative menu (np. nacisniecie 1 = 1 slot, nacisniecie keybinda R = slot pod R)
-- [ ] 38. Czas gry zaczyna sie 6:45, o 7:00 zas niebo kompletnie zmienia kolor - naprawic gwaltowny skok koloru i zrobic plynny gradient
-- [ ] 39. Czas wciaz plynie pomimo wlaczonego chatu - wdrozyc w pelni system world tick / client tick
+- [x] 38. Czas gry zaczyna sie 6:45, o 7:00 zas niebo kompletnie zmienia kolor - naprawic gwaltowny skok koloru i zrobic plynny gradient
+- [x] 39. Czas wciaz plynie pomimo wlaczonego chatu - wdrozyc w pelni system world tick / client tick
 - [ ] 40. Usun podpowiedzi keybindow z chatu, zwieksz maksymalna ilosc podpowiedzi do 10, zachowaj "(1/16)"
 - [ ] 41. Dodaj syntax highlight do chatu
 - [ ] 42. Usun podpowiedzi z creative menu (hotbar, keybindy etc)

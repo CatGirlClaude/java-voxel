@@ -605,12 +605,13 @@ public class Main {
                 fpsTimer = 0.0;
             }
 
-            boolean isPaused = pauseMenu.isOpen()
-                    || (optionsMenu.isOpen() && optionsMenu.getReturnSource() == OptionsMenu.Source.PAUSE_MENU);
+            boolean isWorldPaused = pauseMenu.isOpen()
+                    || (optionsMenu.isOpen() && optionsMenu.getReturnSource() == OptionsMenu.Source.PAUSE_MENU)
+                    || (chatSystem != null && chatSystem.isOpen());
 
             // Separate game loop into Client Tick (input, menus, UI, local player) and World Tick (simulation)
             clientTick(dt);
-            worldTick(isPaused ? 0.0f : dt);
+            worldTick(isWorldPaused ? 0.0f : dt);
 
             render();
 
