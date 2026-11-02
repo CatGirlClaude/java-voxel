@@ -42,6 +42,8 @@ Kompleksowy dokument architektoniczny i mapa drogowa silnika voxelowego **Java V
 | **25** | Dynamiczny kolor trawy (Biome Colormap Tinting) | ⏳ **OTWARTE** | Do zrobienia: uśredniane próbkowanie klimatu biomów i tintowanie wierzchołków trawy zamiast wielu sztywnych bloków. |
 | **26** | Zaśnieżony blok trawy (Snowy Grass Block) | ⏳ **OTWARTE** | Do zrobienia: wariant bloku lub stan `snowy = true` z dedykowaną teksturą boczną. |
 | **27** | Zoptymalizowany system aktualizacji bloków | ⏳ **OTWARTE** | Do zrobienia: generyczny system powiadomień sąsiadów (`neighbour updates`) oraz kolejka planowanych aktualizacji (`scheduled ticks`). |
+| **28** | Naprawa formatowania sliderów (`%.0f`) | ⏳ **OTWARTE** | Do zrobienia: usunięcie błędu dopasowania typów `%f` vs `int`/`String` w `I18n.t` dla kluczy suwaków `options.fov` i `options.brightness`. |
+| **29** | Kompletny zapis ustawień gry (`GameSettings.save`) | ⏳ **OTWARTE** | Do zrobienia: zapis `keyPause`, wywołanie `GameSettings.save()` przy zamykaniu okna w `Main.java` oraz po edycji suwaków. |
 
 ### 1.2 Istniejące zaawansowane podsystemy (nieuwzględnione w pierwotnej analizie)
 
@@ -243,13 +245,17 @@ Roadmapa została podzielona na logiczne fazy wynikające ze stanu faktycznego k
 - [ ] Sprawdzanie podparcia dla kwiatów (`ROSE`, `DANDELION`, etc.) i natychmiastowe niszczenie przy braku podłoża.
 - [ ] Wdrożenie kolejki `ScheduledTickQueue` z budżetem operacji na klatkę.
 
+#### Etap 1.6: Korekta sliderów i pełny zapis opcji (#28, #29)
+- [ ] Zastąpienie `%f` poprawnymi specyfikatorami (`%s` / `%d`) w plikach językowych i `OptionsMenu.java` dla suwaków FOV i jasności (#28).
+- [ ] Zapis brakującego klawisza `keyPause`, wywołanie `GameSettings.save()` przy zamykaniu okna w `Main.java` oraz po edycji suwaków (#29).
+
 ---
 
 ## 5. Dokumentacja powiązana i źródła prawdy
 
 W celu zachowania przejrzystości, każdy dokument w repozytorium pełni ściśle określoną rolę:
 
-1. **`Java Voxel 3D — Architektura, Systemy i Roadmapa.md` (niniejszy plik):**
+1. **`docs/ARCHITECTURE.md` (niniejszy plik):**
    Główny manifest architektoniczny, aktualny stan całego projektu, zestawienie systemów i priorytetyzacja prac.
 2. **`docs/WORLD_GENERATION.md`:**
    Techniczna specyfikacja parametrów szumów Simplex, wzorów wysokości, stref klimatycznych, mikro-ditheru i reguł plaż.
@@ -258,7 +264,7 @@ W celu zachowania przejrzystości, każdy dokument w repozytorium pełni ściśl
 4. **`docs/TODO.md`:**
    Szczegółowy rejestr zadań technicznych silnika z podziałem na podsystemy.
 5. **`docs/developer todo.md`:**
-   Pierwotna lista wytycznych deweloperskich (pozycje 1–20 ukończone, 21–27 w realizacji).
+   Pierwotna lista wytycznych deweloperskich (pozycje 1–22 ukończone, 23–29 w realizacji).
 
 ---
 

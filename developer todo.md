@@ -29,3 +29,5 @@
 - [ ] 25. grass block powinien miec mozliwosc latwego alterowania koloru trawy, dla plynnych przejsc miedzy biomami, wtedy duzo rodzajow trawy mozna by zastapic jedna wspolna
 - [ ] 26. dodaj osniezony grass block
 - [ ] 27. wprowadz system block update czy cos podobnego do zoptymalizowanego sprawdzania czy np. blok pod kwiatem wlasnie zostal zniszczony
+- [ ] 28. slidery uzywaja blednej wartosci %.0f
+- [ ] 29. niech całość ustawien zapisuje sie do pliku

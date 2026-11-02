@@ -153,32 +153,15 @@
 Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementujących otwarte pomysły z notatnika dewelopera.
 
 ### #21. Slidery zamiast przycisków cyklicznych w menu opcji UI
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Zastąpienie klikanych w pętli przycisków cyklicznych (`< Wartość >`) interaktywnymi suwakami (`Slider`) z obsługą przeciągania myszą oraz kliknięcia w dowolnym punkcie paska.
-  - **Klasy do modyfikacji/utworzenia:**
-    - Nowa klasa: `com.voxel.ui.Slider` dziedzicząca lub komponująca właściwości widgetu UI (`x, y, width, height, minValue, maxValue, step, currentValue, labelFormatter, onChange`).
-    - [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java): Zastąpienie przycisków suwakami dla:
-      - *Dystans renderowania:* 2 – 16 chunków (krok: 1).
-      - *Opóźnienie przytrzymania myszy (Mouse Hold Delay):* 100 ms – 400 ms (krok: 10 ms).
-      - *Maksymalny FPS:* 30 – 240 FPS oraz `Nieograniczony` (krok: 10).
-      - *FOV (Kąt widzenia):* 60° – 110° (krok: 1).
-  - **Kryteria ukończenia (DoD):**
-    - Płynne przeciąganie wskaźnika suwaka przy wciśniętym LPM.
-    - Zmiana natychmiast zapisuje się w [`GameSettings.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/config/GameSettings.java) i pliku `options.properties`.
-    - Etykieta suwaka formatuje się przez `I18n` z aktualną wartością liczbową.
+- [x] **Zrealizowano:**
+  - W [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) wprowadzono interaktywne suwaki (`drawSlider`) dla dystansu renderowania (2–16 chunków), pola widzenia (FOV 60°–110°), jasności (50%–150%), czułości myszy oraz opóźnienia niszczenia/stawiania bloków (50ms–450ms) z obsługą przeciągania myszą.
 
 ---
 
 ### #22. Dynamiczny przelicznik layoutu GUI przy zmianie rozmiaru okna (`onResize`)
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Eliminacja statycznie zablokowanych współrzędnych ekranów. Zmiana rozmiaru okna lub skali GUI musi natychmiast wywoływać re-kalkulację pozycji przycisków i paneli.
-  - **Klasy do modyfikacji:**
-    - [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java): w `glfwSetFramebufferSizeCallback` rozgłaszanie zdarzenia `onResize(width, height, effectiveGuiScale)`.
-    - Wspólny interfejs lub metoda w ekranach: [`MainMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/MainMenu.java), [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java), [`PauseMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/PauseMenu.java), [`InventoryMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/InventoryMenu.java), [`ChatSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/ChatSystem.java).
-  - **Wymagania architektoniczne:**
-    - Pozycjonowanie relatywne z kotwicami: `Anchor.CENTER` (dialogi, menu), `Anchor.TOP_LEFT` (Debug HUD), `Anchor.BOTTOM_LEFT` (czat), `Anchor.BOTTOM_CENTER` (hotbar).
-  - **Kryteria ukończenia (DoD):**
-    - Przełączenie okna z 800x600 na 1920x1080 oraz tryb pełnoekranowy zachowuje idealne centrowanie i proporcje wszystkich elementów bez restartu gry.
+- [x] **Zrealizowano:**
+  - W [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) podpięto wywołania `onResize(vWidth, vHeight)` w procedurze adaptacji rzutowania ortograficznego do skali GUI i wymiarów okna.
+  - Okna menu, ekwipunku i czatu dynamicznie wyliczają centrowanie i wymiary proporcjonalnie do rozdzielczości ekranu.
 
 ---
 
@@ -293,3 +276,35 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
   - **Kryteria ukończenia (DoD):**
     - Zniszczenie bloku pod kwiatem natychmiastowo niszczy kwiat.
     - Kaskady aktualizacji nie zamrażają pętli gry.
+
+---
+
+### #28. Naprawa formatowania wartości sliderów (`%.0f` format specifier mismatch w `I18n` i `OptionsMenu`)
+- [ ] **Specyfikacja zadania:**
+  - **Problem:** W plikach tłumaczeń `en_us.json` oraz `pl_pl.json` klucze suwaków `options.fov` (`"FOV: %.0f deg"`) oraz `options.brightness` (`"Brightness: %.0f%%"`) używają specyfikatora `%f` (dla liczb zmiennoprzecinkowych). W klasie [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) do metody `I18n.t(...)` przekazywane są natomiast liczby całkowite `int` (`fovVal`) lub `String` (`brightPercent + "%"`).
+  - W efekcie metoda `String.format(Locale.ROOT, val, args)` w [`I18n.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/i18n/I18n.java) rzuca wyjątek `IllegalFormatConversionException` (przechwytywany cicho w bloku `catch`), przez co suwaki wyświetlają surowy wzorzec `FOV: %.0f deg` zamiast sformatowanej wartości liczbowej.
+  - **Plan naprawy:**
+    1. Standaryzacja typów w plikach językowych `en_us.json` i `pl_pl.json`:
+       - Zmiana `%f` / `%.0f` na `%s` lub `%d` (np. `"options.fov": "FOV: %s"`, `"options.brightness": "Brightness: %s"`).
+    2. Spójne formatowanie w `OptionsMenu.java`:
+       - Formatowanie wartości numerycznych przed przekazaniem do `I18n.t` (np. `String.format("%d deg", fovVal)` lub bezpośrednio jako `int`).
+    3. Przegląd wszystkich pozostałych kluczy używających `%.0f` (benchmarki w `ChatSystem`, `HudRenderer`, etc.) i zapewnienie zgodności typów argumentów.
+  - **Kryteria ukończenia (DoD):**
+    - Suwaki FOV, Jasności, Czułości i Dystansu renderowania w menu Opcji wyświetlają poprawne, czytelne wartości liczbowe bez surowych znaczników `%.0f`.
+
+---
+
+### #29. Kompletny i niezawodny zapis wszystkich ustawień gry do pliku (`options.properties`)
+- [ ] **Specyfikacja zadania:**
+  - **Problem:** Część ustawień gry nie jest trwale zapisywana do pliku konfiguracyjnego `config/options.properties`:
+    - W `GameSettings.save()` brakuje zapisu klawisza pauzy (`keyPause = GLFW_KEY_ESCAPE`) oraz synchronizacji niektórych opcji zmienianych w trakcie gry.
+    - Zmiana ustawień przez suwaki i przyciski nie zapisuje się automatycznie przy nagłym zamknięciu okna gry (krzyżykiem `X` na pasku okna GLFW), ponieważ w pętli `Main.java` przy wyjściu zapisywany jest tylko stan świata (`world.saveWorld`), a nie ustawienia gry (`GameSettings.save()`).
+  - **Plan naprawy:**
+    1. Dodanie brakujących pól w `GameSettings.java`:
+       - Zapis i odczyt `keyPause` w `GameSettings.save()` oraz `GameSettings.load()`.
+       - Zapewnienie, że wszystkie nowe i istniejące opcje (w tym audio, gamerule overrides, debug HUD layout) są w 100% zserializowane.
+    2. Zapis w pętli życia gry:
+       - Dodanie wywołania `GameSettings.save()` w procedurze zamykania okna / pętli głównej w [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) (zarówno w `cleanup()` jak i po zakończeniu pętli `while (!glfwWindowShouldClose(window))`).
+       - Opcjonalne wywołanie `GameSettings.save()` w `OptionsMenu.handleMouseRelease()` przy puszczeniu suwaka, aby zapobiec utracie zmian suwaków.
+  - **Kryteria ukończenia (DoD):**
+    - Dowolna modyfikacja ustawień (grafika, sterowanie, klawisze, fizyka wody, reguły gry) przetrwa restart gry, niezależnie od tego, czy gracz zamknął menu przyciskiem "Done", klawiszem ESC, czy zamknął okno krzyżykiem systemowym `X`.
