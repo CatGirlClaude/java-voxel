@@ -95,6 +95,7 @@ public class ShaderProgram {
                 layout (location = 1) in vec2 aTexCoord;
                 layout (location = 2) in float aSkyLight;
                 layout (location = 3) in float aBlockLight;
+                layout (location = 4) in vec3 aColor;
 
                 uniform mat4 uProjView;
                 uniform vec3 uChunkOffset;
@@ -104,6 +105,7 @@ public class ShaderProgram {
                 out float vSkyLight;
                 out float vBlockLight;
                 out float vDist;
+                out vec3 vColor;
 
                 void main() {
                     vec3 relPos = aPos + uChunkOffset;
@@ -113,6 +115,7 @@ public class ShaderProgram {
                     vSkyLight = aSkyLight;
                     vBlockLight = aBlockLight;
                     vDist = length(relPos);
+                    vColor = aColor;
                 }
                 """;
 
@@ -123,6 +126,7 @@ public class ShaderProgram {
                 in float vSkyLight;
                 in float vBlockLight;
                 in float vDist;
+                in vec3 vColor;
 
                 uniform sampler2D uTexture;
                 uniform float uSunIntensity;
@@ -159,7 +163,7 @@ public class ShaderProgram {
                         discard;
                     }
                     float light = max(vSkyLight * uSunIntensity, vBlockLight);
-                    vec3 litColor = texColor.rgb * light * uTintColor;
+                    vec3 litColor = texColor.rgb * vColor * light * uTintColor;
 
                     float fogFactor = clamp((uFogEnd - vDist) / (uFogEnd - uFogStart), 0.0, 1.0);
                     vec3 finalColor = mix(uSkyColor, litColor, fogFactor);

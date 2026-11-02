@@ -73,7 +73,7 @@ public class WorldSystemVerification {
         boolean saved = WorldSaveManager.saveWorld(world, player, testSave);
         if (!saved) throw new AssertionError("Zapis do .dat nie powiodl sie!");
 
-        Path savePath = Path.of("saves", testSave + ".dat");
+        Path savePath = com.voxel.util.GamePaths.resolve("saves", testSave + ".dat");
         if (!Files.exists(savePath)) throw new AssertionError("Plik .dat nie zostal utworzony!");
 
         // Wczytanie swiata
@@ -116,8 +116,8 @@ public class WorldSystemVerification {
         boolean saved = WorldSaveManager.saveWorld(world, player, testSave);
         if (!saved) throw new AssertionError("Zapis do Regionow .mca nie powiodl sie!");
 
-        Path savePath = Path.of("saves", testSave + ".dat");
-        Path regionDir = Path.of("saves", testSave + "_regions");
+        Path savePath = com.voxel.util.GamePaths.resolve("saves", testSave + ".dat");
+        Path regionDir = com.voxel.util.GamePaths.resolve("saves", testSave + "_regions");
         Path mcaFile = regionDir.resolve("r.0.0.mca");
 
         if (!Files.exists(savePath)) throw new AssertionError("Plik naglowka .dat nie zostal utworzony!");

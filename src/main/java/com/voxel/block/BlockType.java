@@ -84,6 +84,10 @@ public enum BlockType {
         this.crossModel = crossModel;
     }
 
+    public Block toBlock() {
+        return Blocks.get(id);
+    }
+
     public static BlockType fromId(byte id) {
         if (id < 0 || id >= BY_ID.length || BY_ID[id] == null) {
             return AIR;

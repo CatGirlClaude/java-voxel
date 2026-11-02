@@ -3,7 +3,13 @@ package com.voxel.render;
 import com.voxel.util.Logger;
 import org.lwjgl.BufferUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -14,14 +20,69 @@ public class TextureAtlas {
     public static final int GRID_SIZE = 8; // 8x8 tiles = 64 tiles total
     public static final int ATLAS_SIZE = TILE_SIZE * GRID_SIZE;
 
+    public static final String[] TILE_NAMES = {
+        "grass_block_top",      // 0
+        "grass_block_side",     // 1
+        "dirt",                 // 2
+        "stone",                // 3
+        "cobblestone",          // 4
+        "oak_log",              // 5
+        "oak_log_top",          // 6
+        "oak_leaves",           // 7
+        "sand",                 // 8
+        "water",                // 9
+        "oak_planks",           // 10
+        "brick",                // 11
+        "glass",                // 12
+        "snow",                 // 13
+        "glowstone",            // 14
+        "sandstone",            // 15
+        "cactus_side",          // 16
+        "cactus_top",           // 17
+        "birch_log",            // 18
+        "birch_log_top",        // 19
+        "spruce_log",           // 20
+        "spruce_leaves",        // 21
+        "ice",                  // 22
+        "red_sand",             // 23
+        "terracotta",           // 24
+        "snowy_grass_side",     // 25
+        "taiga_grass_top",      // 26
+        "taiga_grass_side",     // 27
+        "spruce_log_top",       // 28
+        "birch_leaves",         // 29
+        "jungle_log",           // 30
+        "jungle_log_top",       // 31
+        "jungle_leaves",        // 32
+        "jungle_grass_top",     // 33
+        "jungle_grass_side",    // 34
+        "tall_grass",           // 35
+        "vine",                 // 36
+        "orchid",               // 37
+        "rose",                 // 38
+        "dandelion",            // 39
+        "blue_orchid",          // 40
+        "allium"                // 41
+    };
+
+    public static final Path RUN_TEXTURES_DIR = com.voxel.util.GamePaths.resolve("assets/textures/block");
+    public static final Path SRC_TEXTURES_DIR = Paths.get("src/main/resources/assets/textures/block");
+
     private final int textureId;
 
     public TextureAtlas() {
         ByteBuffer buffer = BufferUtils.createByteBuffer(ATLAS_SIZE * ATLAS_SIZE * 4);
         int[] pixels = new int[ATLAS_SIZE * ATLAS_SIZE];
 
+        ensurePngAssetsExist();
+
+        int pngLoadedCount = 0;
         for (int tile = 0; tile <= 41; tile++) {
-            generateTile(pixels, tile);
+            if (loadTileFromPng(pixels, tile)) {
+                pngLoadedCount++;
+            } else {
+                generateTile(pixels, tile);
+            }
         }
 
         for (int i = 0; i < pixels.length; i++) {
@@ -41,10 +102,81 @@ public class TextureAtlas {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ATLAS_SIZE, ATLAS_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         glBindTexture(GL_TEXTURE_2D, 0);
-        Logger.info("TextureAtlas", "Generated procedural texture atlas (%dx%d, 42 tiles, OpenGL ID: %d)", ATLAS_SIZE, ATLAS_SIZE, textureId);
+        Logger.info("TextureAtlas", "Loaded texture atlas (%dx%d, 42 tiles, %d loaded from PNG files, OpenGL ID: %d)",
+                ATLAS_SIZE, ATLAS_SIZE, pngLoadedCount, textureId);
     }
 
-    private void generateTile(int[] pixels, int tileIndex) {
+    public static void ensurePngAssetsExist() {
+        try {
+            if (!Files.exists(RUN_TEXTURES_DIR)) {
+                Files.createDirectories(RUN_TEXTURES_DIR);
+            }
+            boolean srcDirExists = Files.exists(SRC_TEXTURES_DIR.getParent());
+            if (srcDirExists && !Files.exists(SRC_TEXTURES_DIR)) {
+                Files.createDirectories(SRC_TEXTURES_DIR);
+            }
+
+            int[] tempPixels = new int[ATLAS_SIZE * ATLAS_SIZE];
+            for (int t = 0; t <= 41; t++) {
+                String name = (t < TILE_NAMES.length) ? TILE_NAMES[t] : ("tile_" + t);
+                Path runFile = RUN_TEXTURES_DIR.resolve(name + ".png");
+                Path srcFile = srcDirExists ? SRC_TEXTURES_DIR.resolve(name + ".png") : null;
+
+                if (!Files.exists(runFile) || (srcFile != null && !Files.exists(srcFile))) {
+                    generateTile(tempPixels, t);
+                    int tileX = (t % GRID_SIZE) * TILE_SIZE;
+                    int tileY = (t / GRID_SIZE) * TILE_SIZE;
+                    BufferedImage img = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        for (int x = 0; x < TILE_SIZE; x++) {
+                            img.setRGB(x, y, tempPixels[(tileY + y) * ATLAS_SIZE + tileX + x]);
+                        }
+                    }
+                    if (!Files.exists(runFile)) {
+                        ImageIO.write(img, "png", runFile.toFile());
+                    }
+                    if (srcFile != null && !Files.exists(srcFile)) {
+                        ImageIO.write(img, "png", srcFile.toFile());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Logger.warn("TextureAtlas", "Failed to export default PNG textures: %s", e.getMessage());
+        }
+    }
+
+    private boolean loadTileFromPng(int[] pixels, int tileIndex) {
+        String name = (tileIndex < TILE_NAMES.length) ? TILE_NAMES[tileIndex] : ("tile_" + tileIndex);
+        Path runFile = RUN_TEXTURES_DIR.resolve(name + ".png");
+        BufferedImage img = null;
+        try {
+            if (Files.exists(runFile)) {
+                img = ImageIO.read(runFile.toFile());
+            } else {
+                try (InputStream is = TextureAtlas.class.getResourceAsStream("/assets/textures/block/" + name + ".png")) {
+                    if (is != null) {
+                        img = ImageIO.read(is);
+                    }
+                }
+            }
+            if (img != null) {
+                int tileX = (tileIndex % GRID_SIZE) * TILE_SIZE;
+                int tileY = (tileIndex / GRID_SIZE) * TILE_SIZE;
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        int argb = (x < img.getWidth() && y < img.getHeight()) ? img.getRGB(x, y) : 0;
+                        pixels[(tileY + y) * ATLAS_SIZE + tileX + x] = argb;
+                    }
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            Logger.warn("TextureAtlas", "Failed to load PNG tile '%s': %s", name, e.getMessage());
+        }
+        return false;
+    }
+
+    public static void generateTile(int[] pixels, int tileIndex) {
         int tileX = (tileIndex % GRID_SIZE) * TILE_SIZE;
         int tileY = (tileIndex / GRID_SIZE) * TILE_SIZE;
         Random rng = new Random(1337L + tileIndex * 997L);
@@ -55,10 +187,11 @@ public class TextureAtlas {
                 int n = rng.nextInt(21) - 10;
 
                 switch (tileIndex) {
-                    case 0 -> { // Grass top
-                        r = clamp(88 + n);
-                        g = clamp(168 + n + (rng.nextInt(12) - 6));
-                        b = clamp(56 + n);
+                    case 0 -> { // Grass top (neutral luminance for dynamic biome tinting)
+                        int lum = clamp(192 + n);
+                        r = lum;
+                        g = lum;
+                        b = lum;
                     }
                     case 1 -> { // Grass side
                         int grassDepth = 3 + ((x * 7 + y * 3) % 3);
@@ -392,22 +525,10 @@ public class TextureAtlas {
                                 || (y >= 10 && x >= 2 && x <= 13)
                                 || (y >= 13 && x >= 1 && x <= 14);
                         if (blade) {
-                            if (y >= 12) {
-                                // Shaded, deep root green
-                                r = clamp(50 + n / 2);
-                                g = clamp(130 + n / 2);
-                                b = clamp(32 + n / 2);
-                            } else if (y >= 6) {
-                                // Vibrant meadow green
-                                r = clamp(78 + n);
-                                g = clamp(174 + n);
-                                b = clamp(48 + n);
-                            } else {
-                                // Sunlit bright tips
-                                r = clamp(102 + n);
-                                g = clamp(202 + n);
-                                b = clamp(58 + n);
-                            }
+                            int vShade = (y >= 12) ? clamp(130 + n / 2) : (y >= 6 ? clamp(180 + n) : clamp(220 + n));
+                            r = vShade;
+                            g = vShade;
+                            b = vShade;
                             a = 255;
                         } else {
                             a = 0; r = 0; g = 0; b = 0;

@@ -9,7 +9,7 @@ import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Player {
+public class Player extends LivingEntity {
     public static final double HALF_WIDTH = 0.30;
     public static final double HEIGHT = 1.80;
     public static final double SNEAK_HEIGHT = 1.50;
@@ -18,20 +18,29 @@ public class Player {
     public static final double EYE_HEIGHT = 1.54;
     public static final double SNEAK_EYE_HEIGHT = 1.27;
 
-    public final Vector3d position = new Vector3d(0.5, 45.0, 0.5);
-    public final Vector3f velocity = new Vector3f(0, 0, 0);
-
-    public float yaw = -90.0f;
-    public float pitch = -10.0f;
-
     public boolean flying = false;
     public boolean noclip = false;
-    public boolean onGround = false;
     public boolean sneaking = false;
-    public double currentEyeHeight = EYE_HEIGHT;
 
     public int selectedSlot = 0;
     public final BlockType[] hotbar = java.util.Arrays.copyOf(BlockType.HOTBAR_BLOCKS, 9);
+
+    public Player() {
+        this(null);
+    }
+
+    public Player(World world) {
+        super(EntityTypes.PLAYER, world);
+        this.position.set(0.5, 45.0, 0.5);
+        this.yaw = -90.0f;
+        this.pitch = -10.0f;
+        this.currentEyeHeight = EYE_HEIGHT;
+    }
+
+    @Override
+    public void tick(float dt) {
+        // Living entity tick
+    }
 
     public void handleMouseLook(float dx, float dy) {
         float sensitivity = GameSettings.mouseSensitivity;
@@ -45,10 +54,12 @@ public class Player {
         if (pitch < -89.0f) pitch = -89.0f;
     }
 
+    @Override
     public Vector3d getEyePosition() {
         return new Vector3d(position.x, position.y + currentEyeHeight, position.z);
     }
 
+    @Override
     public Vector3f getLookDirection() {
         float radYaw = (float) Math.toRadians(yaw);
         float radPitch = (float) Math.toRadians(pitch);

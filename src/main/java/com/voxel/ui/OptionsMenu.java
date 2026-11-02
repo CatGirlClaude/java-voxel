@@ -196,6 +196,9 @@ public class OptionsMenu {
         } else if (currentTab == Tab.KEYBINDS) {
             handleKeybindsClick(mx, my, winX, contentY, winW);
         }
+        if (activeSlider == ActiveSlider.NONE) {
+            GameSettings.save();
+        }
 
         // 3. Bottom Action Buttons: [ DONE / ESC ]  [ RESET DEFAULTS ]
         float bottomY = winY + winH - 46.0f;
@@ -219,6 +222,7 @@ public class OptionsMenu {
                     WorldSaveManager.applyGameruleOverrides(world, player);
                 }
             }
+            GameSettings.save();
             showStatus(I18n.t("options.defaults"));
             return true;
         }
@@ -267,7 +271,10 @@ public class OptionsMenu {
     }
 
     public void handleMouseRelease() {
-        activeSlider = ActiveSlider.NONE;
+        if (activeSlider != ActiveSlider.NONE) {
+            activeSlider = ActiveSlider.NONE;
+            GameSettings.save();
+        }
     }
 
     private void handleGraphicsClick(float mx, float my, float winX, float startY, float winW, World world) {
@@ -804,14 +811,14 @@ public class OptionsMenu {
         // Row 0: Render Distance (Slider: 2 to 16 chunks)
         float rDistProg = (GameSettings.renderDistance - 2) / 14.0f;
         int rDist = GameSettings.renderDistance;
-        String rDistStr = I18n.t("options.render_distance", rDist) + String.format(" (%d m)", rDist * 16);
+        String rDistStr = I18n.t("options.render_distance", rDist + " Chunks (" + (rDist * 16) + "m)");
         drawSlider(hud, ortho, btnX, startY, btnW, btnH, rDistStr, rDistProg, mx, my);
 
         // Row 1: FOV (Slider: 60 to 110 deg)
         float fovProg = (GameSettings.fov - 60.0f) / 50.0f;
         int fovVal = Math.round(GameSettings.fov);
         String fovSuffix = (fovVal == 70) ? " (Normal)" : (fovVal == 110 ? " (Quake Pro)" : "");
-        String fovStr = I18n.t("options.fov", fovVal) + fovSuffix;
+        String fovStr = I18n.t("options.fov", fovVal + " deg") + fovSuffix;
         drawSlider(hud, ortho, btnX, startY + stepY, btnW, btnH, fovStr, fovProg, mx, my);
 
         // Row 2: V-Sync

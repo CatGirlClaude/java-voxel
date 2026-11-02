@@ -23,9 +23,9 @@ public class FloatList {
         return copy;
     }
 
-    public void addVertex(float x, float y, float z, float u, float v, float skyLight, float blockLight) {
-        if (size + 7 > data.length) {
-            data = Arrays.copyOf(data, data.length * 2);
+    public void addVertex(float x, float y, float z, float u, float v, float skyLight, float blockLight, float r, float g, float b) {
+        if (size + 10 > data.length) {
+            data = Arrays.copyOf(data, Math.max(data.length * 2, size + 10));
         }
         data[size++] = x;
         data[size++] = y;
@@ -34,5 +34,12 @@ public class FloatList {
         data[size++] = v;
         data[size++] = skyLight;
         data[size++] = blockLight;
+        data[size++] = r;
+        data[size++] = g;
+        data[size++] = b;
+    }
+
+    public void addVertex(float x, float y, float z, float u, float v, float skyLight, float blockLight) {
+        addVertex(x, y, z, u, v, skyLight, blockLight, 1.0f, 1.0f, 1.0f);
     }
 }

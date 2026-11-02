@@ -92,7 +92,12 @@ public final class I18n {
             try {
                 return String.format(Locale.ROOT, val, args);
             } catch (Exception e) {
-                return val;
+                try {
+                    String fallback = val.replaceAll("%[0-9.]*[df]", "%s");
+                    return String.format(Locale.ROOT, fallback, args);
+                } catch (Exception ignored) {
+                    return val;
+                }
             }
         }
         return val;

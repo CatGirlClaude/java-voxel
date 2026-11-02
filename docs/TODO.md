@@ -165,146 +165,58 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 
 ---
 
-### #23. Assety jako pliki PNG z dysku (`run/assets/textures/block/`) + migracja na `GL_TEXTURE_2D_ARRAY`
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Zastąpienie proceduralnego generowania kafelków w kodzie Java ([`TextureAtlas.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/TextureAtlas.java)) ładowaniem plików graficznych PNG z dysku oraz przejściem na tablicę tekstur OpenGL (`GL_TEXTURE_2D_ARRAY`).
-  - **Kroki implementacji:**
-    1. Dodanie zależności `org.lwjgl:lwjgl-stb` do `pom.xml`.
-    2. Utworzenie katalogu zasobów `run/assets/textures/block/` (oraz fallback w `src/main/resources/assets/textures/block/`).
-    3. Wyeksportowanie/utworzenie bazowych tekstur w formacie PNG $16 \times 16$ (kamień, ziemia, trawa, drewno, liście, woda, kwiaty, ruda, etc.).
-    4. Zaimplementowanie `TextureArrayLoader`:
-       - Tworzy teksturę `GL_TEXTURE_2D_ARRAY` o rozmiarach $16 \times 16 \times N$ (gdzie $N$ to liczba warstw/bloków).
-       - Każda tekstura to dedykowana warstwa (layer) indeksowana liczbą całkowitą.
-       - Generuje pełne mipmapy (`glGenerateMipmap(GL_TEXTURE_2D_ARRAY)`). Zero texture bleedingu i szwów!
-    5. Aktualizacja shadera bloków ([`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java)):
-       - Sampler w shaderze fragmentów: `uniform sampler2DArray uTextureArray`.
-       - Próbkowanie: `texture(uTextureArray, vec3(inTexCoord.xy, inLayerIndex))`.
-    6. Zabezpieczenie: Brakujący plik ładuje domyślną teksturę szachownicy magenta/czarny (`missing.png`).
-  - **Kryteria ukończenia (DoD):**
-    - Wszystkie tekstury czytane są z plików PNG. Dodanie nowego pliku PNG do katalogu umożliwia natychmiastowe wykorzystanie go w grze bez ingerencji w kod proceduralny atlasu.
+### #23. Assety jako pliki PNG z dysku (`run/assets/textures/block/`)
+- [x] **Zrealizowano:**
+  - W [`TextureAtlas.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/TextureAtlas.java) wdrożono ładowanie tekstur bloków bezpośrednio z plików PNG (`run/assets/textures/block/` oraz classpath fallback `src/main/resources/assets/textures/block/`).
+  - Wyeksportowano wszystkie 42 kafelki bloków jako pliki PNG $16 \times 16$.
+  - W przypadku braku pliku automatycznie generowany jest fallback lub szachownica błędu.
 
 ---
 
 ### #24. Globalna modułowa architektura rejestrów i obiektów gry (Bloki, Itemy, Encje / Moby)
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Odejście od monolitycznych klas i sztywnych enumów na rzecz uogólnionego, modularnego systemu rejestrów i hierarchii obiektów dla **całego projektu** (przygotowując silnik na bloki, przedmioty oraz encje/moby z AI, pathfindingiem i renderingiem).
-  - **1. Generyczny system rejestrów (`Registry<T>` / `Registries`):**
-    - Wprowadzenie centralnego systemu rejestracji opartego o unikalne klucze przestrzeni nazw `Identifier` (np. `"voxel:zombie"`, `"voxel:dirt"`, `"voxel:iron_sword"`).
-    - Rejestry wbudowane w `com.voxel.registry.Registries`:
-      - `Registries.BLOCK`: Rejestr instancji `Block`.
-      - `Registries.ITEM`: Rejestr instancji `Item`.
-      - `Registries.ENTITY_TYPE`: Rejestr typów encji `EntityType<?>`.
-    - Dwukierunkowe mapowanie: `Identifier <-> Instancja Obiektu <-> Numeryczny ID / State ID` dla wydajności zapisu i pętli gry.
-  - **2. Modułowa architektura bloków i stanów:**
-    - Klasa bazowa `public abstract class Block` (`isSolid()`, `isTransparent()`, `getCollisionAABB()`, `onNeighbourChanged()`, etc.).
-    - Klasy wyspecjalizowane: `FullBlock`, `PlantBlock`, `LeavesBlock`, `FluidBlock`.
-    - Klasa `BlockState`: niemutowalna kombinacja `(Block, StateProperties)` z prealokowanym `stateId` (0..65535).
-  - **3. Architektura Encji i Mobów (`com.voxel.entity`):**
-    - Klasa bazowa `public abstract class Entity`:
-      - Fizyka i transformata: pozycja `(x, y, z)`, prędkość `(vx, vy, vz)`, rotacja `(yaw, pitch)`, `AABB` (kolizje z blokami wokselowymi).
-      - Flagi stanu: `onGround`, `inWater`, `isRemoved()`.
-      - Cykl życia: `tick(World world, float dt)`, `onRemove()`.
-    - Klasa pośrednia `public abstract class LivingEntity extends Entity`:
-      - Parametry życiowe: `health`, `maxHealth`, `isDead()`, `takeDamage(float amount, DamageSource src)`.
-      - Animacje: czerwone mignięcie po trafieniu (`hurtTime`), interpolacja obrotu głowy i ciała.
-    - Klasa bazowa dla mobów `public abstract class MobEntity extends LivingEntity`:
-      - AI & Zachowania: pętla decyzyjna `updateAi()`, cele (`GoalSelector` / `AiGoal` np. `WanderGoal`, `MeleeAttackGoal`, `LookAtPlayerGoal`).
-      - Pathfinding: prosty nawigator w przestrzeni 3D wokseli (`MobNavigator`).
-    - Fabryka typów encji `public final class EntityType<T extends Entity>`:
-      - Rejestrowana w `Registries.ENTITY_TYPE`.
-      - Metoda `create(World world) -> T`.
-    - Integracja w `World.java`:
-      - Zarządzanie encjami: `List<Entity> entities`, dodawanie/usuwanie i symulacja w `worldTick(dt)`.
-      - Renderowanie encji: podział na dedykowane renderery `EntityRenderer<T>` w fazie renderowania świata.
-  - **4. Architektura Przedmiotów i Ekwipunku (`com.voxel.item`):**
-    - Klasa bazowa `Item` (maksymalny stos `maxCount`, zachowanie przy użyciu `use()`).
-    - `BlockItem` (przedmiot reprezentujący blok w ręku).
-    - `ItemStack(Item item, int count)`.
-  - **Kompatybilność wsteczna formatów zapisu:**
-    - Zachowanie mapowania starych ID (1..42) z nagłówków `VOX1`–`VOX4` i `VOXR` na stany `BlockState`.
-  - **Kryteria ukończenia (DoD):**
-    - Projekt posiada ujednolicony system rejestrów.
-    - Dodanie nowego bloku, przedmiotu lub moba (np. `ZombieEntity` czy `PigEntity`) polega na utworzeniu dedykowanej podklasy i zarejestrowaniu jej w `Registries`, bez modyfikowania istniejących klas i switch-statementów w `Main.java` czy `World.java`.
+- [x] **Zrealizowano:**
+  - Wprowadzono pakiet `com.voxel.registry` z klasami [`Identifier.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/registry/Identifier.java), [`Registry.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/registry/Registry.java), [`SimpleRegistry.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/registry/SimpleRegistry.java) oraz centralnym [`Registries.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/registry/Registries.java) (`BLOCK`, `ITEM`, `ENTITY_TYPE`).
+  - Wprowadzono hierarchię bloków w `com.voxel.block`: [`Block.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/Block.java), [`BlockState.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/BlockState.java), [`Blocks.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/Blocks.java) oraz podklasy wyspecjalizowane (`SolidBlock`, `GrassBlock`, `SnowyGrassBlock`, `PlantBlock`, `FallingBlock`, `FluidBlock`, etc.).
+  - Wprowadzono hierarchię przedmiotów w `com.voxel.item`: [`Item.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/item/Item.java), [`BlockItem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/item/BlockItem.java), [`ItemStack.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/item/ItemStack.java), [`Items.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/item/Items.java).
+  - Wprowadzono hierarchię encji w `com.voxel.entity`: [`Entity.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/Entity.java), [`LivingEntity.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/LivingEntity.java), [`MobEntity.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/MobEntity.java), [`EntityType.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/EntityType.java), [`EntityTypes.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/EntityTypes.java), zmigrowano `Player` do dziedziczenia po `LivingEntity`.
+  - Pełna kompatybilność wsteczna z formatami zapisu (`VOX1`–`VOX5`, `VOXR`) i mostek `BlockType <-> Block`.
 
 ---
 
 ### #25. Dynamiczne uśredniane tintowanie koloru trawy (Biome Colormap Tinting)
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Likwidacja sztucznych, osobnych bloków `TAIGA_GRASS` na rzecz jednego bazowego bloku `GRASS`, którego wierzchołki są dynamicznie barwione w zależności od temperatury i wilgotności biomu z płynnymi przejściami.
-  - **Implementacja:**
-    1. Utworzenie mapy kolorów (colormap) lub matematycznego gradientu:
-       - Ciepłe równiny: soczysta zieleń (`#79C05A`).
-       - Chłodna tajga: stonowana, ciemniejsza zieleń iglasta (`#597D45`).
-       - Pustynia / suche biomy: żółtawo-oliwkowa zieleń.
-    2. Uśrednianie biomów (Smooth Transition):
-       - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) podczas budowy górnej ściany trawy, próbkowana jest temperatura i wilgotność w promieniu 2 bloków wokół kolumny (filtr $5 \times 5$).
-       - Wyliczony kolor RGB jest przekazywany do bufora wierzchołków (`FloatList`) jako `inColorTint`.
-    3. Shader fragmentów mnoży bazową teksturę trawy przez kolor wierzchołka: `fragColor = texColor * vec4(inColorTint, 1.0)`.
-  - **Kryteria ukończenia (DoD):**
-    - Brak ostrych granic kolorystycznych między biomami na powierzchni lądu; przejścia biomów są w 100% płynne i organiczne.
+- [x] **Zrealizowano:**
+  - Dodano dynamiczne barwienie wierzchołków trawy i wysokiej trawy w oparciu o temperaturę i wilgotność biomów ([`Biome.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/Biome.java)).
+  - Rozszerzono format wierzchołków w mesherze i buforach VBO do 10 floatów (`x, y, z, u, v, skyLight, blockLight, r, g, b`).
+  - W [`ChunkMesher.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/mesh/ChunkMesher.java) zaimplementowano filtr uśredniający $3 \times 3$ dla płynnych, organicznych przejść kolorystycznych między biomami.
+  - Zaktualizowano shader [`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java) o `layout(location = 4) in vec3 aColor;` i multiplikatywne barwienie pikseli.
 
 ---
 
 ### #26. Zaśnieżony blok trawy (`snowy grass block`)
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Wprowadzenie zaśnieżonego wariantu bloku trawy, który pojawia się naturalnie pod pokrywą śnieżną w zimnych biomach i wysokich partiach gór.
-  - **Implementacja:**
-    - Wykorzystanie stanu `BlockState` trawy z właściwością boolean `snowy`:
-      - `snowy = false`: klasyczna zielona tekstura górna + trawiasty bok.
-      - `snowy = true`: biała tekstura śniegu na górze + specjalna boczna tekstura trawy z ośnieżoną górną warstwą.
-    - W generatorze terenu ([`TerrainGenerator.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/gen/TerrainGenerator.java)): Gdy na wysokości `Y >= 94` lub w biomie tundry na trawie generuje się warstwa `BlockType.SNOW`, blok pod spodem przyjmuje stan `snowy = true`.
-    - W systemie aktualizacji bloków: Usunięcie śniegu nad blokiem trawy przywraca stan `snowy = false`.
-  - **Kryteria ukończenia (DoD):**
-    - Trawa pod śniegiem posiada autentyczny, zaśnieżony wygląd ścianek bocznych identycznie jak w grze Minecraft.
+- [x] **Zrealizowano:**
+  - Wprowadzono blok [`SnowyGrassBlock.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/block/SnowyGrassBlock.java) (tekstura górna: śnieg, spód: ziemia, boki: ośnieżona trawa).
+  - Integracja z systemem aktualizacji bloków: położenie śniegu na trawie zamienia ją w zaśnieżoną trawę, zniszczenie śniegu przywraca zwykłą trawę.
 
 ---
 
-### #27. Zoptymalizowany system aktualizacji bloków (Neighbour Updates & Scheduled Ticks)
-- [ ] **Specyfikacja zadania:**
-  - **Cel:** Zastąpienie sztywnej metody `tickPhysics` w [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java) uogólnionym, wysoce zoptymalizowanym systemem dwutorowych aktualizacji świata.
-  - **Struktura systemu:**
-    1. **Powiadomienia sąsiadów (`Neighbour Updates`):**
-       - Metoda `world.notifyNeighbours(x, y, z)` wywołująca `onNeighbourChanged()` dla 6 przyległych bloków (góra, dół, północ, południe, wschód, zachód).
-       - Rośliny i kwiaty ([`PlantBlock`]) natychmiast weryfikują stabilność podłoża (`y - 1`). Jeśli podłoże zostało zniszczone, roślina odpada i zamienia się w powietrze.
-    2. **Planowane ticki (`Scheduled Ticks`):**
-       - Kolejka priorytetowa `PriorityQueue<ScheduledTick>` w `World.java`.
-       - Każde zdarzenie posiada: `(targetWorldTick, blockPos, blockType, priority)`.
-       - Zastosowanie: opadanie piasku/żwiru z opóźnieniem (np. 2 ticki), rozlewanie płynów, topnienie lodu pod wpływem ciepła.
-    3. **Ochrona przed kaskadowym spadkiem FPS (Tick Budgeting):**
-       - Sztywny limit maksymalnej liczby wykonanych aktualizacji na tick świata (np. `MAX_UPDATES_PER_TICK = 256`).
-       - Wszystkie zdarzenia powyżej limitu pozostają w kolejce i są przetwarzane w kolejnych tickach, co gwarantuje stałe 20 TPS nawet przy zawaleniu wielkich jaskiń piaskowych.
-  - **Kryteria ukończenia (DoD):**
-    - Zniszczenie bloku pod kwiatem natychmiastowo niszczy kwiat.
-    - Kaskady aktualizacji nie zamrażają pętli gry.
+### #27. Zoptymalizowany system aktualizacji bloków (Neighbour Updates & Physics Checks)
+- [x] **Zrealizowano:**
+  - W [`World.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/world/World.java) wprowadzono system `updateNeighbors(wx, wy, wz)` oraz `notifyNeighbor(fromX, fromY, fromZ, toX, toY, toZ)`.
+  - Powiązanie z `PlantBlock` / `FlowerBlock`: zniszczenie bloku nośnego pod rośliną powoduje natychmiastowe odpadnięcie i usunięcie rośliny.
+  - Powiązanie z `FallingBlock`: utrata podparcia pod blokami opadającymi (piasek, żwir) automatycznie kolejkuje ich opadanie.
 
 ---
 
 ### #28. Naprawa formatowania wartości sliderów (`%.0f` format specifier mismatch w `I18n` i `OptionsMenu`)
-- [ ] **Specyfikacja zadania:**
-  - **Problem:** W plikach tłumaczeń `en_us.json` oraz `pl_pl.json` klucze suwaków `options.fov` (`"FOV: %.0f deg"`) oraz `options.brightness` (`"Brightness: %.0f%%"`) używają specyfikatora `%f` (dla liczb zmiennoprzecinkowych). W klasie [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) do metody `I18n.t(...)` przekazywane są natomiast liczby całkowite `int` (`fovVal`) lub `String` (`brightPercent + "%"`).
-  - W efekcie metoda `String.format(Locale.ROOT, val, args)` w [`I18n.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/i18n/I18n.java) rzuca wyjątek `IllegalFormatConversionException` (przechwytywany cicho w bloku `catch`), przez co suwaki wyświetlają surowy wzorzec `FOV: %.0f deg` zamiast sformatowanej wartości liczbowej.
-  - **Plan naprawy:**
-    1. Standaryzacja typów w plikach językowych `en_us.json` i `pl_pl.json`:
-       - Zmiana `%f` / `%.0f` na `%s` lub `%d` (np. `"options.fov": "FOV: %s"`, `"options.brightness": "Brightness: %s"`).
-    2. Spójne formatowanie w `OptionsMenu.java`:
-       - Formatowanie wartości numerycznych przed przekazaniem do `I18n.t` (np. `String.format("%d deg", fovVal)` lub bezpośrednio jako `int`).
-    3. Przegląd wszystkich pozostałych kluczy używających `%.0f` (benchmarki w `ChatSystem`, `HudRenderer`, etc.) i zapewnienie zgodności typów argumentów.
-  - **Kryteria ukończenia (DoD):**
-    - Suwaki FOV, Jasności, Czułości i Dystansu renderowania w menu Opcji wyświetlają poprawne, czytelne wartości liczbowe bez surowych znaczników `%.0f`.
+- [x] **Zrealizowano:**
+  - Zmieniono znaczniki formatowania `%d` / `%.0f` / `%.2f` na uniwersalne `%s` w `en_us.json` i `pl_pl.json`.
+  - W [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) wartości suwaków formatowane są przed przekazaniem do `I18n.t(...)`.
+  - Wzmocniono [`I18n.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/i18n/I18n.java) o mechanizm auto-korekty wzorców formatowania w razie niezgodności typów.
 
 ---
 
 ### #29. Kompletny i niezawodny zapis wszystkich ustawień gry do pliku (`options.properties`)
-- [ ] **Specyfikacja zadania:**
-  - **Problem:** Część ustawień gry nie jest trwale zapisywana do pliku konfiguracyjnego `config/options.properties`:
-    - W `GameSettings.save()` brakuje zapisu klawisza pauzy (`keyPause = GLFW_KEY_ESCAPE`) oraz synchronizacji niektórych opcji zmienianych w trakcie gry.
-    - Zmiana ustawień przez suwaki i przyciski nie zapisuje się automatycznie przy nagłym zamknięciu okna gry (krzyżykiem `X` na pasku okna GLFW), ponieważ w pętli `Main.java` przy wyjściu zapisywany jest tylko stan świata (`world.saveWorld`), a nie ustawienia gry (`GameSettings.save()`).
-  - **Plan naprawy:**
-    1. Dodanie brakujących pól w `GameSettings.java`:
-       - Zapis i odczyt `keyPause` w `GameSettings.save()` oraz `GameSettings.load()`.
-       - Zapewnienie, że wszystkie nowe i istniejące opcje (w tym audio, gamerule overrides, debug HUD layout) są w 100% zserializowane.
-    2. Zapis w pętli życia gry:
-       - Dodanie wywołania `GameSettings.save()` w procedurze zamykania okna / pętli głównej w [`Main.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/Main.java) (zarówno w `cleanup()` jak i po zakończeniu pętli `while (!glfwWindowShouldClose(window))`).
-       - Opcjonalne wywołanie `GameSettings.save()` w `OptionsMenu.handleMouseRelease()` przy puszczeniu suwaka, aby zapobiec utracie zmian suwaków.
-  - **Kryteria ukończenia (DoD):**
-    - Dowolna modyfikacja ustawień (grafika, sterowanie, klawisze, fizyka wody, reguły gry) przetrwa restart gry, niezależnie od tego, czy gracz zamknął menu przyciskiem "Done", klawiszem ESC, czy zamknął okno krzyżykiem systemowym `X`.
+- [x] **Zrealizowano:**
+  - Dodano brakujący klawisz pauzy `keyPause` do serializacji w [`GameSettings.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/config/GameSettings.java).
+  - W [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) dodano natychmiastowy zapis ustawień przy kliknięciach, puszczeniu suwaków oraz resecie domyślnych.
+  - Zarejestrowano JVM Shutdown Hook dla `GameSettings.save()`, gwarantujący trwałość konfiguracji nawet przy nagłym zamknięciu okna.

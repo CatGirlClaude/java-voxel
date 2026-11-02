@@ -175,32 +175,35 @@ public final class ChunkMesher {
                     if (id == BlockType.AIR.id) continue;
 
                     int gx = x + LIGHT_PAD;
+                    long wx = baseX + x;
+                    long wy = baseY + y;
+                    long wz = baseZ + z;
                     BlockType block = BlockType.fromId(id);
                     FloatList target = block.transparent ? ctx.transData : ctx.opaqueData;
 
                     if (block.crossModel) {
-                        emitCrossQuads(target, block, x, y, z, gx, gy, gz, ctx);
+                        emitCrossQuads(target, block, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                         continue;
                     }
 
                     // 0: +Y, 1: -Y, 2: +Z, 3: -Z, 4: +X, 5: -X
                     if (shouldRenderFaceFast(block, gx, gy + 1, gz, ctx)) {
-                        emitFaceFast(target, block, 0, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 0, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                     if (shouldRenderFaceFast(block, gx, gy - 1, gz, ctx)) {
-                        emitFaceFast(target, block, 1, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 1, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                     if (shouldRenderFaceFast(block, gx, gy, gz + 1, ctx)) {
-                        emitFaceFast(target, block, 2, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 2, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                     if (shouldRenderFaceFast(block, gx, gy, gz - 1, ctx)) {
-                        emitFaceFast(target, block, 3, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 3, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                     if (shouldRenderFaceFast(block, gx + 1, gy, gz, ctx)) {
-                        emitFaceFast(target, block, 4, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 4, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                     if (shouldRenderFaceFast(block, gx - 1, gy, gz, ctx)) {
-                        emitFaceFast(target, block, 5, x, y, z, gx, gy, gz, ctx);
+                        emitFaceFast(target, block, 5, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                 }
             }
@@ -230,7 +233,8 @@ public final class ChunkMesher {
     }
 
     private static void emitCrossQuads(FloatList out, BlockType block,
-                                       int lx, int ly, int lz, int gx, int gy, int gz, MesherContext ctx) {
+                                       int lx, int ly, int lz, int gx, int gy, int gz,
+                                       long wx, long wy, long wz, World world, MesherContext ctx) {
         int tex = block.sideTex;
         float u0 = TextureAtlas.getU0(tex);
         float v0 = TextureAtlas.getV0(tex);
@@ -244,13 +248,32 @@ public final class ChunkMesher {
         float y0 = ly, y1 = ly + 1.0f;
         float z0 = lz, z1 = lz + 1.0f;
 
+        float r = 1.0f, g = 1.0f, b = 1.0f;
+        if (block == BlockType.TALL_GRASS && world != null) {
+            float sumR = 0, sumG = 0, sumB = 0;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    Biome bm = world.getBiome(wx + dx, wz + dz);
+                    if (bm != null) {
+                        float[] c = bm.getGrassColor();
+                        sumR += c[0];
+                        sumG += c[1];
+                        sumB += c[2];
+                    }
+                }
+            }
+            r = sumR / 9.0f;
+            g = sumG / 9.0f;
+            b = sumB / 9.0f;
+        }
+
         // Diagonal 1: (x0, y0, z0) -> (x1, y1, z1) (both front & back)
-        addQuadPacked(out, x0, y0, z0, u0, v1, p, x1, y0, z1, u1, v1, p, x1, y1, z1, u1, v0, p, x0, y1, z0, u0, v0, p);
-        addQuadPacked(out, x1, y0, z1, u0, v1, p, x0, y0, z0, u1, v1, p, x0, y1, z0, u1, v0, p, x1, y1, z1, u0, v0, p);
+        addQuadPacked(out, x0, y0, z0, u0, v1, p, x1, y0, z1, u1, v1, p, x1, y1, z1, u1, v0, p, x0, y1, z0, u0, v0, p, r, g, b);
+        addQuadPacked(out, x1, y0, z1, u0, v1, p, x0, y0, z0, u1, v1, p, x0, y1, z0, u1, v0, p, x1, y1, z1, u0, v0, p, r, g, b);
 
         // Diagonal 2: (x0, y0, z1) -> (x1, y0, z0) (both front & back)
-        addQuadPacked(out, x0, y0, z1, u0, v1, p, x1, y0, z0, u1, v1, p, x1, y1, z0, u1, v0, p, x0, y1, z1, u0, v0, p);
-        addQuadPacked(out, x1, y0, z0, u0, v1, p, x0, y0, z1, u1, v1, p, x0, y1, z1, u1, v0, p, x1, y1, z0, u0, v0, p);
+        addQuadPacked(out, x0, y0, z1, u0, v1, p, x1, y0, z0, u1, v1, p, x1, y1, z0, u1, v0, p, x0, y1, z1, u0, v0, p, r, g, b);
+        addQuadPacked(out, x1, y0, z0, u0, v1, p, x0, y0, z1, u1, v1, p, x0, y1, z1, u1, v0, p, x1, y1, z0, u0, v0, p, r, g, b);
     }
 
     private static void propagateLight(byte[] lightGrid, boolean[] occluderGrid,
@@ -317,7 +340,8 @@ public final class ChunkMesher {
     }
 
     private static void emitFaceFast(FloatList out, BlockType block, int face,
-                                     int lx, int ly, int lz, int gx, int gy, int gz, MesherContext ctx) {
+                                     int lx, int ly, int lz, int gx, int gy, int gz,
+                                     long wx, long wy, long wz, World world, MesherContext ctx) {
         int tex = block.getTextureForFace(face);
         float u0 = TextureAtlas.getU0(tex);
         float v0 = TextureAtlas.getV0(tex);
@@ -330,6 +354,25 @@ public final class ChunkMesher {
         float x0 = lx, x1 = lx + 1.0f;
         float y0 = ly, y1 = ly + 1.0f;
         float z0 = lz, z1 = lz + 1.0f;
+
+        float r = 1.0f, g = 1.0f, b = 1.0f;
+        if (face == 0 && (block == BlockType.GRASS || block == BlockType.TAIGA_GRASS || block == BlockType.JUNGLE_GRASS) && world != null) {
+            float sumR = 0, sumG = 0, sumB = 0;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    Biome bm = world.getBiome(wx + dx, wz + dz);
+                    if (bm != null) {
+                        float[] c = bm.getGrassColor();
+                        sumR += c[0];
+                        sumG += c[1];
+                        sumB += c[2];
+                    }
+                }
+            }
+            r = sumR / 9.0f;
+            g = sumG / 9.0f;
+            b = sumB / 9.0f;
+        }
 
         if (block.isWater()) {
             byte aboveId = ctx.scratchBlocks[gridIndex(gx, gy + 1, gz)];
@@ -347,7 +390,7 @@ public final class ChunkMesher {
                 long p01 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy + 1, gz), gridIndex(gx, gy + 1, gz + 1), gridIndex(gx - 1, gy + 1, gz + 1), ctx);
                 long p11 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy + 1, gz), gridIndex(gx, gy + 1, gz + 1), gridIndex(gx + 1, gy + 1, gz + 1), ctx);
                 long p10 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy + 1, gz), gridIndex(gx, gy + 1, gz - 1), gridIndex(gx + 1, gy + 1, gz - 1), ctx);
-                addQuadPacked(out, x0, y1, z0, u0, v0, p00, x0, y1, z1, u0, v1, p01, x1, y1, z1, u1, v1, p11, x1, y1, z0, u1, v0, p10);
+                addQuadPacked(out, x0, y1, z0, u0, v0, p00, x0, y1, z1, u0, v1, p01, x1, y1, z1, u1, v1, p11, x1, y1, z0, u1, v0, p10, r, g, b);
             }
             case 1 -> { // -Y (bottom)
                 int i0 = gridIndex(gx, gy - 1, gz);
@@ -355,7 +398,7 @@ public final class ChunkMesher {
                 long p00 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy - 1, gz), gridIndex(gx, gy - 1, gz - 1), gridIndex(gx - 1, gy - 1, gz - 1), ctx);
                 long p10 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy - 1, gz), gridIndex(gx, gy - 1, gz - 1), gridIndex(gx + 1, gy - 1, gz - 1), ctx);
                 long p11 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy - 1, gz), gridIndex(gx, gy - 1, gz + 1), gridIndex(gx + 1, gy - 1, gz + 1), ctx);
-                addQuadPacked(out, x0, y0, z1, u0, v0, p01, x0, y0, z0, u0, v1, p00, x1, y0, z0, u1, v1, p10, x1, y0, z1, u1, v0, p11);
+                addQuadPacked(out, x0, y0, z1, u0, v0, p01, x0, y0, z0, u0, v1, p00, x1, y0, z0, u1, v1, p10, x1, y0, z1, u1, v0, p11, r, g, b);
             }
             case 2 -> { // +Z (south)
                 int i0 = gridIndex(gx, gy, gz + 1);
@@ -363,7 +406,7 @@ public final class ChunkMesher {
                 long p10 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz + 1), gridIndex(gx, gy - 1, gz + 1), gridIndex(gx + 1, gy - 1, gz + 1), ctx);
                 long p11 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz + 1), gridIndex(gx, gy + 1, gz + 1), gridIndex(gx + 1, gy + 1, gz + 1), ctx);
                 long p01 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz + 1), gridIndex(gx, gy + 1, gz + 1), gridIndex(gx - 1, gy + 1, gz + 1), ctx);
-                addQuadPacked(out, x0, y0, z1, u0, v1, p00, x1, y0, z1, u1, v1, p10, x1, y1, z1, u1, v0, p11, x0, y1, z1, u0, v0, p01);
+                addQuadPacked(out, x0, y0, z1, u0, v1, p00, x1, y0, z1, u1, v1, p10, x1, y1, z1, u1, v0, p11, x0, y1, z1, u0, v0, p01, r, g, b);
             }
             case 3 -> { // -Z (north)
                 int i0 = gridIndex(gx, gy, gz - 1);
@@ -371,7 +414,7 @@ public final class ChunkMesher {
                 long p00 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz - 1), gridIndex(gx, gy - 1, gz - 1), gridIndex(gx - 1, gy - 1, gz - 1), ctx);
                 long p01 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz - 1), gridIndex(gx, gy + 1, gz - 1), gridIndex(gx - 1, gy + 1, gz - 1), ctx);
                 long p11 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz - 1), gridIndex(gx, gy + 1, gz - 1), gridIndex(gx + 1, gy + 1, gz - 1), ctx);
-                addQuadPacked(out, x1, y0, z0, u0, v1, p10, x0, y0, z0, u1, v1, p00, x0, y1, z0, u1, v0, p01, x1, y1, z0, u0, v0, p11);
+                addQuadPacked(out, x1, y0, z0, u0, v1, p10, x0, y0, z0, u1, v1, p00, x0, y1, z0, u1, v0, p01, x1, y1, z0, u0, v0, p11, r, g, b);
             }
             case 4 -> { // +X (east)
                 int i0 = gridIndex(gx + 1, gy, gz);
@@ -379,7 +422,7 @@ public final class ChunkMesher {
                 long p2 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz - 1), gridIndex(gx + 1, gy - 1, gz), gridIndex(gx + 1, gy - 1, gz - 1), ctx);
                 long p3 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz - 1), gridIndex(gx + 1, gy + 1, gz), gridIndex(gx + 1, gy + 1, gz - 1), ctx);
                 long p4 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx + 1, gy, gz + 1), gridIndex(gx + 1, gy + 1, gz), gridIndex(gx + 1, gy + 1, gz + 1), ctx);
-                addQuadPacked(out, x1, y0, z1, u0, v1, p1, x1, y0, z0, u1, v1, p2, x1, y1, z0, u1, v0, p3, x1, y1, z1, u0, v0, p4);
+                addQuadPacked(out, x1, y0, z1, u0, v1, p1, x1, y0, z0, u1, v1, p2, x1, y1, z0, u1, v0, p3, x1, y1, z1, u0, v0, p4, r, g, b);
             }
             case 5 -> { // -X (west)
                 int i0 = gridIndex(gx - 1, gy, gz);
@@ -387,7 +430,7 @@ public final class ChunkMesher {
                 long p2 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz + 1), gridIndex(gx - 1, gy - 1, gz), gridIndex(gx - 1, gy - 1, gz + 1), ctx);
                 long p3 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz + 1), gridIndex(gx - 1, gy + 1, gz), gridIndex(gx - 1, gy + 1, gz + 1), ctx);
                 long p4 = packVertexLight(baseShade, isEmissive, i0, gridIndex(gx - 1, gy, gz - 1), gridIndex(gx - 1, gy + 1, gz), gridIndex(gx - 1, gy + 1, gz - 1), ctx);
-                addQuadPacked(out, x0, y0, z0, u0, v1, p1, x0, y0, z1, u1, v1, p2, x0, y1, z1, u1, v0, p3, x0, y1, z0, u0, v0, p4);
+                addQuadPacked(out, x0, y0, z0, u0, v1, p1, x0, y0, z1, u1, v1, p2, x0, y1, z1, u1, v0, p3, x0, y1, z0, u0, v0, p4, r, g, b);
             }
         }
     }
@@ -445,7 +488,8 @@ public final class ChunkMesher {
                                       float x0, float y0, float z0, float u0, float v0, long p0,
                                       float x1, float y1, float z1, float u1, float v1, long p1,
                                       float x2, float y2, float z2, float u2, float v2, long p2,
-                                      float x3, float y3, float z3, float u3, float v3, long p3) {
+                                      float x3, float y3, float z3, float u3, float v3, long p3,
+                                      float r, float g, float b) {
         float sky0 = Float.intBitsToFloat((int) (p0 >>> 32));
         float blk0 = Float.intBitsToFloat((int) p0);
         float sky1 = Float.intBitsToFloat((int) (p1 >>> 32));
@@ -455,11 +499,11 @@ public final class ChunkMesher {
         float sky3 = Float.intBitsToFloat((int) (p3 >>> 32));
         float blk3 = Float.intBitsToFloat((int) p3);
 
-        out.addVertex(x0, y0, z0, u0, v0, sky0, blk0);
-        out.addVertex(x1, y1, z1, u1, v1, sky1, blk1);
-        out.addVertex(x2, y2, z2, u2, v2, sky2, blk2);
-        out.addVertex(x2, y2, z2, u2, v2, sky2, blk2);
-        out.addVertex(x3, y3, z3, u3, v3, sky3, blk3);
-        out.addVertex(x0, y0, z0, u0, v0, sky0, blk0);
+        out.addVertex(x0, y0, z0, u0, v0, sky0, blk0, r, g, b);
+        out.addVertex(x1, y1, z1, u0, v1, sky1, blk1, r, g, b);
+        out.addVertex(x2, y2, z2, u1, v1, sky2, blk2, r, g, b);
+        out.addVertex(x2, y2, z2, u1, v1, sky2, blk2, r, g, b);
+        out.addVertex(x3, y3, z3, u1, v0, sky3, blk3, r, g, b);
+        out.addVertex(x0, y0, z0, u0, v0, sky0, blk0, r, g, b);
     }
 }

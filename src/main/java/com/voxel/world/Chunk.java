@@ -135,8 +135,8 @@ public class Chunk {
     }
 
     public void uploadMeshes(FloatList opaqueData, FloatList transData) {
-        opaqueVertexCount = opaqueData.size / 7;
-        transVertexCount = transData.size / 7;
+        opaqueVertexCount = opaqueData.size / 10;
+        transVertexCount = transData.size / 10;
 
         try {
             org.lwjgl.opengl.GL.getCapabilities();
@@ -171,7 +171,7 @@ public class Chunk {
         fb.put(list.data, 0, list.size);
         fb.flip();
 
-        int stride = 7 * Float.BYTES;
+        int stride = 10 * Float.BYTES;
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, fb, GL_STATIC_DRAW);
@@ -184,6 +184,8 @@ public class Chunk {
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(3, 1, GL_FLOAT, false, stride, 6L * Float.BYTES);
         glEnableVertexAttribArray(3);
+        glVertexAttribPointer(4, 3, GL_FLOAT, false, stride, 7L * Float.BYTES);
+        glEnableVertexAttribArray(4);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);

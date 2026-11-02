@@ -24,10 +24,10 @@
 
 - [x] 21. zmien cycle buttons na slidery
 - [x] 22. gui powinno byc kalkulowane jeszcze raz po zmienieniu wielkosci okna
-- [ ] 23. assety zamiast generowac dynamicznie w kodzie powinny byc przetrzymywane jako png
-- [ ] 24. modularnosc kodu calego projektu !!! zastap monolityczne klasy/enumy globalnym obiektowym systemem rejestrow (rejestry blokow, itemow oraz encji/mobow w stylu minecrafta z klasami bazowymi Entity, LivingEntity, Mob, Block, BlockState, zamiast trzymac wszystko w pojedynczych klasach)
-- [ ] 25. grass block powinien miec mozliwosc latwego alterowania koloru trawy, dla plynnych przejsc miedzy biomami, wtedy duzo rodzajow trawy mozna by zastapic jedna wspolna
-- [ ] 26. dodaj osniezony grass block
-- [ ] 27. wprowadz system block update czy cos podobnego do zoptymalizowanego sprawdzania czy np. blok pod kwiatem wlasnie zostal zniszczony
-- [ ] 28. slidery uzywaja blednej wartosci %.0f
-- [ ] 29. niech całość ustawien zapisuje sie do pliku
+- [x] 23. assety zamiast generowac dynamicznie w kodzie powinny byc przetrzymywane jako png
+- [x] 24. modularnosc kodu calego projektu !!! zastap monolityczne klasy/enumy globalnym obiektowym systemem rejestrow (rejestry blokow, itemow oraz encji/mobow w stylu minecrafta z klasami bazowymi Entity, LivingEntity, Mob, Block, BlockState, zamiast trzymac wszystko w pojedynczych klasach)
+- [x] 25. grass block powinien miec mozliwosc latwego alterowania koloru trawy, dla plynnych przejsc miedzy biomami, wtedy duzo rodzajow trawy mozna by zastapic jedna wspolna
+- [x] 26. dodaj osniezony grass block
+- [x] 27. wprowadz system block update czy cos podobnego do zoptymalizowanego sprawdzania czy np. blok pod kwiatem wlasnie zostal zniszczony
+- [x] 28. slidery uzywaja blednej wartosci %.0f
+- [x] 29. niech całość ustawien zapisuje sie do pliku

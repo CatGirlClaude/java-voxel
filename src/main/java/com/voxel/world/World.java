@@ -401,6 +401,7 @@ public class World {
             if (com.voxel.config.GameSettings.blockPhysicsEnabled) {
                 triggerPhysics(wx, wy, wz);
             }
+            updateNeighbors(wx, wy, wz);
         }
 
         int oldTop = getTopOpaqueY(wx, wz);
@@ -463,6 +464,25 @@ public class World {
         queuePhysicsCheck(wx - 1, wy, wz);
         queuePhysicsCheck(wx, wy, wz + 1);
         queuePhysicsCheck(wx, wy, wz - 1);
+    }
+
+    public void updateNeighbors(long wx, long wy, long wz) {
+        notifyNeighbor(wx, wy + 1, wz, wx, wy, wz);
+        notifyNeighbor(wx, wy - 1, wz, wx, wy, wz);
+        notifyNeighbor(wx + 1, wy, wz, wx, wy, wz);
+        notifyNeighbor(wx - 1, wy, wz, wx, wy, wz);
+        notifyNeighbor(wx, wy, wz + 1, wx, wy, wz);
+        notifyNeighbor(wx, wy, wz - 1, wx, wy, wz);
+    }
+
+    public void notifyNeighbor(long targetX, long targetY, long targetZ, long fromX, long fromY, long fromZ) {
+        byte blockId = getBlock(targetX, targetY, targetZ);
+        if (blockId != 0) {
+            com.voxel.block.Block block = com.voxel.block.Blocks.get(blockId);
+            if (block != null && block != com.voxel.block.Blocks.AIR) {
+                block.neighborChanged(this, targetX, targetY, targetZ, fromX, fromY, fromZ);
+            }
+        }
     }
 
     public void queuePhysicsCheck(long wx, long wy, long wz) {

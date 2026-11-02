@@ -69,6 +69,10 @@ public final class GameSettings {
     public static int keyToggleHud = GLFW_KEY_F1;
     public static int keyPause = GLFW_KEY_ESCAPE;
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(GameSettings::save, "GameSettings-Save-Hook"));
+    }
+
     private GameSettings() {}
 
     public static void load() {
@@ -133,6 +137,7 @@ public final class GameSettings {
             keyNoiseMap = getInt(props, "keyNoiseMap", GLFW_KEY_M);
             keyDebug = getInt(props, "keyDebug", GLFW_KEY_F3);
             keyToggleHud = getInt(props, "keyToggleHud", GLFW_KEY_F1);
+            keyPause = getInt(props, "keyPause", GLFW_KEY_ESCAPE);
 
             Logger.info("Config", "Wczytano opcje gry z pliku: %s", OPTIONS_FILE);
         } catch (Exception e) {
@@ -189,6 +194,7 @@ public final class GameSettings {
         props.setProperty("keyNoiseMap", String.valueOf(keyNoiseMap));
         props.setProperty("keyDebug", String.valueOf(keyDebug));
         props.setProperty("keyToggleHud", String.valueOf(keyToggleHud));
+        props.setProperty("keyPause", String.valueOf(keyPause));
 
         try {
             if (!Files.exists(CONFIG_DIR)) {
