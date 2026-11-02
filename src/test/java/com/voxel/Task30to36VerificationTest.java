@@ -56,33 +56,37 @@ public class Task30to36VerificationTest {
 
     private static void testChunkMesherSideUvIntegrity() {
         com.voxel.world.World world = new com.voxel.world.World(12345);
-        Chunk chunk = world.getOrCreateChunk(0, 0, 0);
-        chunk.clearBlocks();
-        // Place a dirt block in center
-        chunk.setBlock(1, 1, 1, BlockType.DIRT.id);
-        ChunkMesher.BuiltChunkMesh mesh = ChunkMesher.buildChunkMesh(chunk, world);
-        float[] opaque = mesh.opaqueData().data;
-        int vertexCount = mesh.opaqueData().size / 10;
-        if (vertexCount != 36) { // 6 faces * 6 vertices = 36 vertices
-            throw new AssertionError("Expected 36 vertices for single isolated block, got: " + vertexCount);
-        }
+        try {
+            Chunk chunk = new Chunk(0, 50, 0);
+            chunk.clearBlocks();
+            // Place a dirt block in center
+            chunk.setBlock(1, 1, 1, BlockType.DIRT.id);
+            ChunkMesher.BuiltChunkMesh mesh = ChunkMesher.buildChunkMesh(chunk, world);
+            float[] opaque = mesh.opaqueData().data;
+            int vertexCount = mesh.opaqueData().size / 10;
+            if (vertexCount != 36) { // 6 faces * 6 vertices = 36 vertices
+                throw new AssertionError("Expected 36 vertices for single isolated block, got: " + vertexCount);
+            }
 
-        // Check that side face vertices have distinct U coordinates (not all u0)
-        boolean hasDistinctU = false;
-        boolean hasDistinctV = false;
-        // Vertex stride is 10: x(0), y(1), z(2), u(3), v(4), sky(5), blk(6), r(7), g(8), b(9)
-        for (int i = 0; i < vertexCount; i += 6) {
-            float u0 = opaque[i * 10 + 3];
-            float u1 = opaque[(i + 1) * 10 + 3];
-            float v0 = opaque[i * 10 + 4];
-            float v1 = opaque[(i + 1) * 10 + 4];
-            if (Math.abs(u1 - u0) > 0.001f) hasDistinctU = true;
-            if (Math.abs(v1 - v0) > 0.001f) hasDistinctV = true;
-        }
+            // Check that side face vertices have distinct U coordinates (not all u0)
+            boolean hasDistinctU = false;
+            boolean hasDistinctV = false;
+            // Vertex stride is 10: x(0), y(1), z(2), u(3), v(4), sky(5), blk(6), r(7), g(8), b(9)
+            for (int i = 0; i < vertexCount; i += 6) {
+                float u0 = opaque[i * 10 + 3];
+                float u1 = opaque[(i + 1) * 10 + 3];
+                float v0 = opaque[i * 10 + 4];
+                float v1 = opaque[(i + 1) * 10 + 4];
+                if (Math.abs(u1 - u0) > 0.001f) hasDistinctU = true;
+                if (Math.abs(v1 - v0) > 0.001f) hasDistinctV = true;
+            }
 
-        if (!hasDistinctU || !hasDistinctV) {
-            throw new AssertionError("Chunk mesher side faces have collapsed UVs!");
+            if (!hasDistinctU || !hasDistinctV) {
+                throw new AssertionError("Chunk mesher side faces have collapsed UVs!");
+            }
+            System.out.println("  [PASS] ChunkMesher side UV coordinates are non-degenerate and correct.");
+        } finally {
+            world.cleanup();
         }
-        System.out.println("  [PASS] ChunkMesher side UV coordinates are non-degenerate and correct.");
     }
 }
