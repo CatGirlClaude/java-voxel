@@ -68,8 +68,11 @@ public class TextureAtlas {
         "kelp",                 // 44
         "coral",                // 45
         "gravel",               // 46
-        "clay"                  // 47
+        "clay",                 // 47
+        "missing"               // 48 (Fallback texture)
     };
+
+    public static final int MISSING_TEXTURE_TILE = 48;
 
     public static final Path RUN_TEXTURES_DIR = com.voxel.util.GamePaths.resolve("assets/textures/block");
     public static final Path SRC_TEXTURES_DIR = Paths.get("src/main/resources/assets/textures/block");
@@ -266,14 +269,14 @@ public class TextureAtlas {
                         g = clamp(208 + san);
                         b = clamp(152 + san);
                     }
-                    case 9 -> { // Water (semi-transparent with wave contours)
-                        int wave1 = (int) (Math.sin((x + y) * 0.7) * 16.0);
-                        int wave2 = (int) (Math.cos((x - y) * 0.8) * 12.0);
-                        int wave = wave1 + wave2;
-                        r = clamp(34 + wave / 2);
-                        g = clamp(105 + wave / 2);
-                        b = clamp(225 + wave);
-                        a = 180;
+                    case 9 -> { // Water (Minecraft-style clean semi-transparent blue with seamless periodic ripples)
+                        double fx = x * (2.0 * Math.PI / 16.0);
+                        double fy = y * (2.0 * Math.PI / 16.0);
+                        int wave = (int) (Math.sin(fx + fy) * 12.0 + Math.sin(fx * 2.0 - fy) * 8.0 + Math.cos(fx - fy * 2.0) * 6.0);
+                        r = clamp(42 + wave / 3);
+                        g = clamp(88 + wave / 2);
+                        b = clamp(215 + wave);
+                        a = 185;
                     }
                     case 10 -> { // Wooden Planks
                         boolean seam = (y % 4 == 0) || ((x + (y / 4) * 7) % 16 == 0);
@@ -745,6 +748,20 @@ public class TextureAtlas {
                         r = clamp(cVal - 10);
                         g = clamp(cVal - 4);
                         b = clamp(cVal + 12);
+                        a = 255;
+                    }
+                    case 48 -> { // Missing texture fallback: classic 16x16 purple/black checkerboard
+                        boolean isPurple = ((x < 8 && y < 8) || (x >= 8 && y >= 8));
+                        r = isPurple ? 240 : 16;
+                        g = isPurple ? 20 : 16;
+                        b = isPurple ? 240 : 16;
+                        a = 255;
+                    }
+                    default -> {
+                        boolean isPurple = ((x < 8 && y < 8) || (x >= 8 && y >= 8));
+                        r = isPurple ? 240 : 16;
+                        g = isPurple ? 20 : 16;
+                        b = isPurple ? 240 : 16;
                         a = 255;
                     }
                 }

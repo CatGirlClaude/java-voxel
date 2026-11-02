@@ -190,22 +190,22 @@ public final class ChunkMesher {
                     }
 
                     // 0: +Y, 1: -Y, 2: +Z, 3: -Z, 4: +X, 5: -X
-                    if (shouldRenderFaceFast(block, gx, gy + 1, gz, ctx)) {
+                    if (shouldRenderFaceFast(block, 0, gx, gy, gz, gx, gy + 1, gz, ctx)) {
                         emitFaceFast(target, block, 0, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
-                    if (shouldRenderFaceFast(block, gx, gy - 1, gz, ctx)) {
+                    if (shouldRenderFaceFast(block, 1, gx, gy, gz, gx, gy - 1, gz, ctx)) {
                         emitFaceFast(target, block, 1, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
-                    if (shouldRenderFaceFast(block, gx, gy, gz + 1, ctx)) {
+                    if (shouldRenderFaceFast(block, 2, gx, gy, gz, gx, gy, gz + 1, ctx)) {
                         emitFaceFast(target, block, 2, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
-                    if (shouldRenderFaceFast(block, gx, gy, gz - 1, ctx)) {
+                    if (shouldRenderFaceFast(block, 3, gx, gy, gz, gx, gy, gz - 1, ctx)) {
                         emitFaceFast(target, block, 3, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
-                    if (shouldRenderFaceFast(block, gx + 1, gy, gz, ctx)) {
+                    if (shouldRenderFaceFast(block, 4, gx, gy, gz, gx + 1, gy, gz, ctx)) {
                         emitFaceFast(target, block, 4, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
-                    if (shouldRenderFaceFast(block, gx - 1, gy, gz, ctx)) {
+                    if (shouldRenderFaceFast(block, 5, gx, gy, gz, gx - 1, gy, gz, ctx)) {
                         emitFaceFast(target, block, 5, x, y, z, gx, gy, gz, wx, wy, wz, world, ctx);
                     }
                 }
@@ -215,7 +215,9 @@ public final class ChunkMesher {
         return new BuiltChunkMesh(chunk, ctx.opaqueData.copy(), ctx.transData.copy());
     }
 
-    private static boolean shouldRenderFaceFast(BlockType current, int ngx, int ngy, int ngz, MesherContext ctx) {
+    private static boolean shouldRenderFaceFast(BlockType current, int face,
+                                                int gx, int gy, int gz,
+                                                int ngx, int ngy, int ngz, MesherContext ctx) {
         byte nId = ctx.scratchBlocks[gridIndex(ngx, ngy, ngz)];
         if (nId == BlockType.AIR.id) return true;
         BlockType neighbor = BlockType.fromId(nId);
@@ -225,14 +227,32 @@ public final class ChunkMesher {
             }
             return true;
         }
-        if (current.isWater() && (neighbor.isWater() || neighbor == BlockType.SEAGRASS || neighbor == BlockType.KELP)) {
-            return false;
+        if (current.isWater()) {
+            if (neighbor.isWater()) {
+                // If this is a horizontal side face, render it when current column is higher than neighbor column
+                if (face >= 2) {
+                    byte curAbove = ctx.scratchBlocks[gridIndex(gx, gy + 1, gz)];
+                    byte nAbove = ctx.scratchBlocks[gridIndex(ngx, ngy + 1, ngz)];
+                    boolean curFull = BlockType.isWater(curAbove);
+                    boolean nFull = BlockType.isWater(nAbove);
+                    if (curFull && !nFull) return true;
+                    if (!nFull) {
+                        int curLevel = BlockType.getWaterLevel(current.id);
+                        int nLevel = BlockType.getWaterLevel(neighbor.id);
+                        if (curLevel > nLevel) return true;
+                    }
+                }
+                return false;
+            }
+            if (neighbor == BlockType.SEAGRASS || neighbor == BlockType.KELP) {
+                return false;
+            }
+            if (neighbor == BlockType.ICE) {
+                return false;
+            }
+            return neighbor.transparent;
         }
         if (current == neighbor && current.transparent) {
-            return false;
-        }
-        // Avoid duplicate coplanar transparent faces where WATER touches ICE
-        if (current.isWater() && neighbor == BlockType.ICE) {
             return false;
         }
         return neighbor.transparent;
@@ -515,10 +535,10 @@ public final class ChunkMesher {
         float blk3 = Float.intBitsToFloat((int) p3);
 
         out.addVertex(x0, y0, z0, u0, v0, sky0, blk0, r, g, b);
-        out.addVertex(x1, y1, z1, u0, v1, sky1, blk1, r, g, b);
-        out.addVertex(x2, y2, z2, u1, v1, sky2, blk2, r, g, b);
-        out.addVertex(x2, y2, z2, u1, v1, sky2, blk2, r, g, b);
-        out.addVertex(x3, y3, z3, u1, v0, sky3, blk3, r, g, b);
+        out.addVertex(x1, y1, z1, u1, v1, sky1, blk1, r, g, b);
+        out.addVertex(x2, y2, z2, u2, v2, sky2, blk2, r, g, b);
+        out.addVertex(x2, y2, z2, u2, v2, sky2, blk2, r, g, b);
+        out.addVertex(x3, y3, z3, u3, v3, sky3, blk3, r, g, b);
         out.addVertex(x0, y0, z0, u0, v0, sky0, blk0, r, g, b);
     }
 }

@@ -139,25 +139,7 @@ public class ShaderProgram {
                 out vec4 FragColor;
 
                 void main() {
-                    vec2 coord = vTexCoord;
-                    // Detect water tile in atlas (Tile 9: strictly inside [0.126, 0.249] to prevent neighbor bleeding)
-                    bool isWater = (coord.x >= 0.126 && coord.x <= 0.249 && coord.y >= 0.126 && coord.y <= 0.249);
-                    vec4 texColor;
-                    if (isWater) {
-                        // World-space continuous wave coordinates across all adjacent water blocks
-                        vec2 worldXZ = vWorldPos.xz;
-                        float w1 = sin(worldXZ.y * 1.5 + worldXZ.x * 0.7 + uTime * 2.8) * 0.04;
-                        float w2 = cos(worldXZ.x * 1.4 - worldXZ.y * 0.7 + uTime * 2.1) * 0.04;
-                        vec2 continuousUV = fract(worldXZ + vec2(w1, w2));
-                        continuousUV = clamp(continuousUV, 0.02, 0.98);
-                        texColor = texture(uTexture, vec2(0.125, 0.125) + continuousUV * 0.125);
-                        // Wave crest specular and shimmering sunlight
-                        float shimmer = sin((worldXZ.x + worldXZ.y) * 2.2 + uTime * 3.4) * 0.09 + cos(worldXZ.x * 1.6 - uTime * 1.8) * 0.05;
-                        texColor.rgb = clamp(texColor.rgb + vec3(0.06, 0.14, 0.24) * shimmer, 0.0, 1.0);
-                        texColor.a = 0.74;
-                    } else {
-                        texColor = texture(uTexture, coord);
-                    }
+                    vec4 texColor = texture(uTexture, vTexCoord);
 
                     if (texColor.a < 0.05) {
                         discard;

@@ -240,13 +240,13 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
 ---
 
 ### #30-#50. Nowe zadania deweloperskie i poprawki silnika
-- [ ] **#30. Tekstura wody:** Wymiana na klasyczną, czytelną teksturę w stylu Minecrafta bez drażniącego artefaktu.
-- [ ] **#31. Pomiędzy wodą występują dziury:** Likwidacja szpar i luk między krawędziami wody (seams/holes).
+- [x] **#30. Tekstura wody:** Wymiana na klasyczną, czystą teksturę w stylu Minecrafta z płynnym okresowym zapętleniem bez drażniącego artefaktu.
+- [x] **#31. Pomiędzy wodą występują dziury:** Usunięto sztuczny clamping i zniekształcenia atlasu w shaderze, przywracając idealną ciągłość tafli wody bez szpar.
 - [ ] **#32. Fizyka wody modern co tick:** Rozprzestrzenianie wody krok po kroku co tick gry zamiast natychmiastowego zalewania.
 - [ ] **#33. Blokowanie highlightu dla wody w innych stanach:** Brak konturu/obwódki zaznaczenia na płynącej wodzie.
 - [ ] **#34. System BlockState dla wody:** Przejście z oddzielnych ID na właściwości stanu bloku (level/flow).
-- [ ] **#35. Naprawa tekstur bloków 3D:** Poprawne mapowanie UV ścianek bloków 3D w podglądzie/ekwipunku.
-- [ ] **#36. Fallback tekstura:** Wdrożenie fioletowo-czarnej szachownicy dla brakujących tekstur.
+- [x] **#35. Naprawa tekstur bloków 3D:** Naprawiono przypisania zmiennych UV w `addQuadPacked` w mesherze, przywracając idealne mapowanie ścianek 3D w świecie.
+- [x] **#36. Fallback tekstura:** Wdrożono fioletowo-czarną szachownicę 16x16 (magenta/black) jako oficjalny fallback dla brakujących assetów (`missing.png`).
 - [ ] **#37. Przypisywanie slotu hotbara klawiszami (1-9, R itp.):** Kliknięcie klawiszem nad blokiem w ekwipunku kreatywnym przypisuje go do odpowiedniego slotu.
 - [ ] **#38. Płynne przejście cyklu dobowego i koloru nieba:** Wyeliminowanie skoku koloru o godzinie 7:00; płynny gradient poranny.
 - [ ] **#39. Zatrzymanie upływu czasu świata przy otwartym czacie:** Rozdzielenie client tick i world tick w trybie SP.
