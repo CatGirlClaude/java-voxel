@@ -169,11 +169,8 @@ public class ShaderProgram {
                     }
 
                     if (vIsWater > 0.5) {
-                        // Fluid azure ocean tint and sunlight specular glint
-                        texColor.rgb = mix(texColor.rgb, vec3(0.12, 0.38, 0.75), 0.30);
-                        float specular = pow(max(0.0, sin(vWorldPos.x * 2.5 + uTime * 2.4) * cos(vWorldPos.z * 2.5 + uTime * 1.9)), 6.0);
-                        texColor.rgb += vec3(0.15 * specular * uSunIntensity);
-                        texColor.a = 0.82;
+                        // 100% Minecraft-style clean water with authentic translucency (no white specular dots)
+                        texColor.a = 0.68;
                     }
 
                     float light = max(vSkyLight * uSunIntensity, vBlockLight);

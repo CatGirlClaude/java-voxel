@@ -221,44 +221,44 @@ public final class Logger {
 
         StringBuilder sb = new StringBuilder();
         sb.append("================================================================================\n");
-        sb.append("                     JAVA VOXEL 3D - RAPORT AWARYJNY (CRASH DUMP)               \n");
+        sb.append("                       JAVA VOXEL 3D - CRASH REPORT / DIAGNOSTIC               \n");
         sb.append("================================================================================\n\n");
-        sb.append("Powod zgloszenia: ").append(reason).append("\n");
-        sb.append("Data i czas:      ").append(TIME_FORMAT.format(new Date())).append("\n\n");
+        sb.append("Report Reason:    ").append(reason).append("\n");
+        sb.append("Timestamp:        ").append(TIME_FORMAT.format(new Date())).append("\n\n");
 
         if (throwable != null) {
-            sb.append("----------------------------- SLAD STOSU (STACK TRACE) -------------------------\n");
+            sb.append("----------------------------- STACK TRACE --------------------------------------\n");
             StringWriter sw = new StringWriter();
             throwable.printStackTrace(new PrintWriter(sw));
             sb.append(sw.toString()).append("\n");
         }
 
-        sb.append("----------------------------- DANE SYSTEMOWE I SPRZETOWE ----------------------\n");
+        sb.append("----------------------------- SYSTEM & HARDWARE INFO ---------------------------\n");
         Runtime rt = Runtime.getRuntime();
         long maxMem = rt.maxMemory() / (1024L * 1024L);
         long totalMem = rt.totalMemory() / (1024L * 1024L);
         long freeMem = rt.freeMemory() / (1024L * 1024L);
         long usedMem = totalMem - freeMem;
 
-        sb.append(String.format("System operacyjny: %s (Wersja: %s, Architektura: %s)\n",
+        sb.append(String.format("Operating System:  %s (Version: %s, Architecture: %s)\n",
                 System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch")));
-        sb.append(String.format("Java Runtime:      %s (%s, wersja: %s)\n",
+        sb.append(String.format("Java Runtime:      %s (%s, version: %s)\n",
                 System.getProperty("java.runtime.name"), System.getProperty("java.vendor"), System.getProperty("java.version")));
-        sb.append(String.format("Wirtualna Maszyna: %s (%s)\n",
+        sb.append(String.format("Virtual Machine:   %s (%s)\n",
                 System.getProperty("java.vm.name"), System.getProperty("java.vm.info")));
-        sb.append(String.format("Liczba rdzeni CPU: %d\n", rt.availableProcessors()));
-        sb.append(String.format("Pamiec Heap RAM:   Uzyta: %d MB / Przydzielona: %d MB / Max: %d MB\n\n",
+        sb.append(String.format("CPU Cores:         %d\n", rt.availableProcessors()));
+        sb.append(String.format("Heap RAM:          Used: %d MB / Allocated: %d MB / Max: %d MB\n\n",
                 usedMem, totalMem, maxMem));
 
         if (extraContext != null && !extraContext.isEmpty()) {
-            sb.append("----------------------------- KONTEKST GRY I SWIATA ----------------------------\n");
+            sb.append("----------------------------- GAME & WORLD CONTEXT -----------------------------\n");
             for (Map.Entry<String, String> entry : extraContext.entrySet()) {
                 sb.append(String.format("%-22s: %s\n", entry.getKey(), entry.getValue()));
             }
             sb.append("\n");
         }
 
-        sb.append("----------------------------- OSTATNIE LOGI (RECENT LOGS) ----------------------\n");
+        sb.append("----------------------------- RECENT LOGS --------------------------------------\n");
         List<String> recent = getRecentLogs(60);
         for (String line : recent) {
             sb.append(line).append("\n");
@@ -276,7 +276,7 @@ public final class Logger {
                 Files.createDirectories(CRASH_DIR);
             }
             Files.writeString(reportFile, content, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            log(Level.FATAL, "CrashReport", "Raport awarii zostal zapisany do: %s", reportFile.toAbsolutePath());
+            log(Level.FATAL, "CrashReport", "Crash report saved to: %s", reportFile.toAbsolutePath());
         } catch (IOException e) {
             System.err.println("[Logger] Nie udalo sie zapisac raportu crash dump: " + e.getMessage());
         }

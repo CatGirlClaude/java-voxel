@@ -41,7 +41,7 @@ public final class GameSettings {
     public static String language = "en_us";
 
     // World & Physics Simulation
-    public static String waterPhysicsMode = "minecraft"; // "minecraft" or "terraria"
+    public static String waterPhysicsMode = "modern"; // "modern", "preclassic" or "terraria"
     public static boolean blockPhysicsEnabled = true;
 
     // Gamerule & Player State Overrides (Can be temporarily disabled via master switch)
@@ -124,7 +124,7 @@ public final class GameSettings {
             saveFormat = getInt(props, "saveFormat", 0, 0, 1);
             language = props.getProperty("language", "en_us").trim().toLowerCase();
             com.voxel.i18n.I18n.load(language);
-            waterPhysicsMode = props.getProperty("waterPhysicsMode", "minecraft").trim().toLowerCase();
+            waterPhysicsMode = props.getProperty("waterPhysicsMode", "modern").trim().toLowerCase();
             blockPhysicsEnabled = getBool(props, "blockPhysicsEnabled", true);
 
             // Overrides
@@ -271,7 +271,7 @@ public final class GameSettings {
         saveFormat = 0;
         language = "en_us";
         com.voxel.i18n.I18n.load(language);
-        waterPhysicsMode = "minecraft";
+        waterPhysicsMode = "modern";
         blockPhysicsEnabled = true;
 
         enableOverrides = false;
@@ -323,21 +323,21 @@ public final class GameSettings {
             return name.toUpperCase();
         }
         return switch (keycode) {
-            case GLFW_KEY_SPACE -> "SPACJA";
+            case GLFW_KEY_SPACE -> "SPACE";
             case GLFW_KEY_LEFT_SHIFT -> "L-SHIFT";
-            case GLFW_KEY_RIGHT_SHIFT -> "P-SHIFT";
+            case GLFW_KEY_RIGHT_SHIFT -> "R-SHIFT";
             case GLFW_KEY_LEFT_CONTROL -> "L-CTRL";
-            case GLFW_KEY_RIGHT_CONTROL -> "P-CTRL";
+            case GLFW_KEY_RIGHT_CONTROL -> "R-CTRL";
             case GLFW_KEY_LEFT_ALT -> "L-ALT";
-            case GLFW_KEY_RIGHT_ALT -> "P-ALT";
+            case GLFW_KEY_RIGHT_ALT -> "R-ALT";
             case GLFW_KEY_TAB -> "TAB";
             case GLFW_KEY_ENTER -> "ENTER";
             case GLFW_KEY_ESCAPE -> "ESC";
             case GLFW_KEY_BACKSPACE -> "BACKSPACE";
-            case GLFW_KEY_UP -> "STRZALKA GORA";
-            case GLFW_KEY_DOWN -> "STRZALKA DOL";
-            case GLFW_KEY_LEFT -> "STRZALKA LEWO";
-            case GLFW_KEY_RIGHT -> "STRZALKA PRAWO";
+            case GLFW_KEY_UP -> "UP ARROW";
+            case GLFW_KEY_DOWN -> "DOWN ARROW";
+            case GLFW_KEY_LEFT -> "LEFT ARROW";
+            case GLFW_KEY_RIGHT -> "RIGHT ARROW";
             case GLFW_KEY_F1 -> "F1";
             case GLFW_KEY_F2 -> "F2";
             case GLFW_KEY_F3 -> "F3";

@@ -171,7 +171,7 @@ public class DeveloperFeaturesTest {
         Player player = new Player();
         chat.openChat("/worldsetting water modern", true);
         chat.submit(world, player, null);
-        if (!"modern".equalsIgnoreCase(GameSettings.waterPhysicsMode) && !"minecraft".equalsIgnoreCase(GameSettings.waterPhysicsMode)) {
+        if (!"modern".equalsIgnoreCase(GameSettings.waterPhysicsMode)) {
             throw new AssertionError("/worldsetting command failed to set water mode!");
         }
 

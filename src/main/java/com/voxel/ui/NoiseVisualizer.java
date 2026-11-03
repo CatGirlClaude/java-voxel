@@ -1,6 +1,7 @@
 package com.voxel.ui;
 
 import com.voxel.entity.Player;
+import com.voxel.i18n.I18n;
 import com.voxel.math.SimplexNoise;
 import com.voxel.world.Biome;
 import com.voxel.world.Chunk;
@@ -20,12 +21,12 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public class NoiseVisualizer {
     public enum Mode {
-        BIOME("Biomy", "Podzial na biomy (kolory biomow)"),
-        HEIGHT("Wysokosc terenu", "Hypsometria: niebieski ocean, zielen, braz, snieg"),
-        TEMPERATURE("Temperatura", "Klimat termiczny: niebieski zimbny -> czerwony goracy"),
-        HUMIDITY("Wilgotnosc", "Klimat wilgotnosciowy: braz/zolc suchy -> blekit wilgotny"),
-        CONTINENTAL("Kontynentalnosc", "Formowanie ladow i oceanow"),
-        MOUNTAINS("Pasma gorskie", "Rozklad lancuchow gorskich");
+        BIOME("Biomes", "Biome distribution & climate zones"),
+        HEIGHT("Terrain Height", "Hypsometry: ocean depth, green land, mountains, snow"),
+        TEMPERATURE("Temperature", "Thermal climate: freezing blue to scorching red"),
+        HUMIDITY("Humidity", "Humidity map: arid yellow/brown to lush green/blue"),
+        CONTINENTAL("Continentality", "Landmass and ocean formation"),
+        MOUNTAINS("Mountain Ranges", "Distribution of mountain peaks");
 
         public final String title;
         public final String description;
@@ -33,6 +34,14 @@ public class NoiseVisualizer {
         Mode(String title, String description) {
             this.title = title;
             this.description = description;
+        }
+
+        public String getTitle() {
+            return I18n.t("noise.mode." + name().toLowerCase());
+        }
+
+        public String getDescription() {
+            return I18n.t("noise.mode." + name().toLowerCase() + ".desc");
         }
     }
 
@@ -76,13 +85,17 @@ public class NoiseVisualizer {
     private long waypointWz = 0;
 
     public static final String[] CONTEXT_MENU_ITEMS = {
-        "1. Teleportuj gracza tutaj",
-        "2. Wycentruj widok mapy",
-        "3. Ustaw cel (Waypoint)",
-        "4. Zbadaj biom i wysokosc",
-        "5. Usun aktywny waypoint",
-        "6. Anuluj / Zamknij"
+        "1. Teleport player here",
+        "2. Center map view",
+        "3. Set target waypoint",
+        "4. Inspect biome & elevation",
+        "5. Remove active waypoint",
+        "6. Cancel / Close"
     };
+
+    public static String getContextMenuItem(int index) {
+        return I18n.t("noise.context." + index);
+    }
 
     public boolean hasWaypoint() { return hasWaypoint; }
     public long getWaypointWx() { return waypointWx; }
@@ -332,41 +345,40 @@ public class NoiseVisualizer {
         SimplexNoise noise = world.getNoise();
 
         switch (actionIndex) {
-            case 0 -> { // Teleportuj gracza tutaj
+            case 0 -> { // Teleport player here
                 int surfaceY = (world != null) ? world.getSurfaceHeight(contextWx, contextWz)
                         : TerrainGenerator.computeSurfaceHeight(noise, contextWx, contextWz);
                 player.position.set((double) contextWx + 0.5, (double) surfaceY + 1.0, (double) contextWz + 0.5);
                 player.velocity.set(0, 0, 0);
                 player.onGround = true;
                 if (chat != null) {
-                    chat.addMessage(String.format("Przeteleportowano do: X=%d Y=%d Z=%d", contextWx, surfaceY + 1, contextWz),
+                    chat.addMessage(I18n.t("noise.teleported", contextWx, surfaceY + 1, contextWz),
                             ChatSystem.COLOR_SUCCESS);
                 }
                 open = false;
                 contextMenuOpen = false;
             }
-            case 1 -> { // Wycentruj widok mapy
+            case 1 -> { // Center map view
                 centerWx = contextWx;
                 centerWz = contextWz;
                 textureDirty = true;
                 contextMenuOpen = false;
                 if (chat != null) {
-                    chat.addMessage(String.format("Wycentrowano widok mapy na: X=%d Z=%d", contextWx, contextWz),
+                    chat.addMessage(I18n.t("noise.centered", contextWx, contextWz),
                             ChatSystem.COLOR_INFO);
                 }
             }
-            case 2 -> { // Ustaw cel (Waypoint)
+            case 2 -> { // Set target waypoint
                 waypointWx = contextWx;
                 waypointWz = contextWz;
                 hasWaypoint = true;
                 contextMenuOpen = false;
                 double dist = Math.hypot(player.position.x - contextWx, player.position.z - contextWz);
                 if (chat != null) {
-                    chat.addMessage(String.format("Ustawiono punkt docelowy: X=%d Z=%d (Dystans: %.1f m)",
-                            contextWx, contextWz, dist), ChatSystem.COLOR_INFO);
+                    chat.addMessage(I18n.t("noise.waypoint_set", contextWx, contextWz, dist), ChatSystem.COLOR_INFO);
                 }
             }
-            case 3 -> { // Zbadaj biom i wysokosc
+            case 3 -> { // Inspect biome & elevation
                 Biome biome = TerrainGenerator.computeBiome(noise, contextWx, contextWz);
                 int h = (world != null) ? world.getSurfaceHeight(contextWx, contextWz)
                         : TerrainGenerator.computeSurfaceHeight(noise, contextWx, contextWz);
@@ -374,21 +386,20 @@ public class NoiseVisualizer {
                 double hum = TerrainGenerator.sampleHumidity(noise, contextWx, contextWz);
                 double cont = TerrainGenerator.sampleContinental(noise, contextWx, contextWz);
                 if (chat != null) {
-                    chat.addMessage(String.format("Punkt [%d, %d]: Biom: %s | Y=%d | Temp: %+.2f | Wilg: %+.2f | Kont: %+.2f",
-                            contextWx, contextWz, biome.displayName, h, temp, hum, cont), ChatSystem.COLOR_INFO);
+                    chat.addMessage(I18n.t("noise.point_info", contextWx, contextWz, biome.getDisplayName(), h, temp, hum, cont), ChatSystem.COLOR_INFO);
                 }
                 contextMenuOpen = false;
             }
-            case 4 -> { // Usun aktywny waypoint
+            case 4 -> { // Remove active waypoint
                 if (hasWaypoint) {
                     hasWaypoint = false;
-                    if (chat != null) chat.addMessage("Usunieto aktywny punkt docelowy (Waypoint).", ChatSystem.COLOR_HELP);
+                    if (chat != null) chat.addMessage(I18n.t("noise.waypoint_removed"), ChatSystem.COLOR_HELP);
                 } else {
-                    if (chat != null) chat.addMessage("Brak aktywnego waypointa.", ChatSystem.COLOR_HELP);
+                    if (chat != null) chat.addMessage(I18n.t("noise.no_waypoint"), ChatSystem.COLOR_HELP);
                 }
                 contextMenuOpen = false;
             }
-            case 5 -> { // Anuluj / Zamknij
+            case 5 -> { // Cancel / Close
                 contextMenuOpen = false;
             }
         }
@@ -641,9 +652,9 @@ public class NoiseVisualizer {
         hud.getColorShader().unbind();
 
         // Header title and close shortcut
-        hud.getTextRenderer().drawTextWithShadow(ortho, "DIAGNOSTYKA GENERATORA SWIATA I BIOMOW (2D NOISE INSPECTOR)", winX + 16.0f, winY + 10.0f, 1.8f,
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.window_title"), winX + 16.0f, winY + 10.0f, 1.8f,
                 new Vector4f(0.40f, 0.85f, 1.0f, 1.0f));
-        hud.getTextRenderer().drawTextWithShadow(ortho, "Warstwa: " + currentMode.title + " | " + currentMode.description, winX + 16.0f, winY + 28.0f, 1.2f,
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.layer_info", currentMode.getTitle(), currentMode.getDescription()), winX + 16.0f, winY + 28.0f, 1.2f,
                 new Vector4f(0.78f, 0.86f, 0.94f, 0.85f));
 
         // Close button top right
@@ -653,7 +664,7 @@ public class NoiseVisualizer {
         hud.getColorShader().setUniform("uColor", new Vector4f(0.70f, 0.20f, 0.20f, 0.95f));
         hud.drawRect2D(closeBtnX, closeBtnY, 118.0f, 30.0f);
         hud.getColorShader().unbind();
-        hud.getTextRenderer().drawTextWithShadow(ortho, "ZAMKNIJ [ESC]", closeBtnX + 12.0f, closeBtnY + 8.0f, 1.3f,
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.close"), closeBtnX + 12.0f, closeBtnY + 8.0f, 1.3f,
                 new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
         // 3. Left side: Map Viewport
@@ -715,7 +726,7 @@ public class NoiseVisualizer {
             hud.drawRect2D(wpx - 1, wpy - 1, 3, 3);
             hud.getColorShader().unbind();
 
-            hud.getTextRenderer().drawTextWithShadow(ortho, "CEL", wpx + 8.0f, wpy - 5.0f, 1.1f,
+            hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.target"), wpx + 8.0f, wpy - 5.0f, 1.1f,
                     new Vector4f(0.0f, 0.95f, 1.0f, 1.0f));
         }
 
@@ -781,10 +792,10 @@ public class NoiseVisualizer {
 
         drawMiniButton(hud, ortho, bZInX, actY, 64.0f, 24.0f, "ZOOM +");
         drawMiniButton(hud, ortho, bZOutX, actY, 64.0f, 24.0f, "ZOOM -");
-        drawMiniButton(hud, ortho, bCentX, actY, 110.0f, 24.0f, "[C] GRACZ");
+        drawMiniButton(hud, ortho, bCentX, actY, 110.0f, 24.0f, I18n.t("noise.btn_player"));
 
         // Map scale / span indicator
-        hud.getTextRenderer().drawTextWithShadow(ortho, "Skala: 1px = " + blocksPerPixel + " bl. | Obszar: " + totalSpan + "x" + totalSpan + " blokow",
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.scale", blocksPerPixel, totalSpan, totalSpan),
                 bCentX + 120.0f, actY + 6.0f, 1.2f, new Vector4f(0.70f, 0.82f, 0.95f, 0.90f));
 
         // 6. Right side: Detailed Inspector Panel
@@ -801,7 +812,7 @@ public class NoiseVisualizer {
         hud.drawRect2D(inspX, inspY, inspW, 30.0f);
         hud.getColorShader().unbind();
 
-        hud.getTextRenderer().drawTextWithShadow(ortho, "INSPEKTOR PARAMETROW NOISE", inspX + 12.0f, inspY + 8.0f, 1.4f,
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.inspector_title"), inspX + 12.0f, inspY + 8.0f, 1.4f,
                 new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
 
         // Evaluate exact parameters at inspection point
@@ -821,17 +832,17 @@ public class NoiseVisualizer {
         float lineStep = 20.0f;
 
         // Coordinates & Position
-        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, "1. WSPOLRZEDNE");
+        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, I18n.t("noise.section.coordinates"));
         lineY += 26.0f;
-        hud.getTextRenderer().drawTextWithShadow(ortho, String.format("Pozycja swiata: X = %d, Z = %d", inspectWx, inspectWz),
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.world_pos", inspectWx, inspectWz),
                 inspX + 16.0f, lineY, 1.3f, new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
         lineY += lineStep;
-        hud.getTextRenderer().drawTextWithShadow(ortho, String.format("Cubic Chunk 2D: (%d, %d) | Odleglosc od gracza: %d m", chunkX, chunkZ, distFromPlayer),
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.chunk_pos", chunkX, chunkZ, distFromPlayer),
                 inspX + 16.0f, lineY, 1.2f, new Vector4f(0.70f, 0.85f, 0.95f, 0.85f));
         lineY += lineStep + 6.0f;
 
         // Biome and Elevation
-        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, "2. BIOM I ELEWACJA");
+        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, I18n.t("noise.section.biome_elevation"));
         lineY += 26.0f;
 
         // Biome Color Swatch
@@ -845,32 +856,31 @@ public class NoiseVisualizer {
         hud.drawRect2D(inspX + 16.0f, lineY + 2.0f, 14.0f, 14.0f);
         hud.getColorShader().unbind();
 
-        hud.getTextRenderer().drawTextWithShadow(ortho, "Biom: " + biome.displayName,
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.biome", biome.getDisplayName()),
                 inspX + 38.0f, lineY, 1.4f, new Vector4f(1.0f, 0.95f, 0.45f, 1.0f));
         lineY += lineStep;
 
         int seaDelta = surfaceY - Chunk.SEA_LEVEL;
         String seaDeltaStr = seaDelta >= 0 ? ("+" + seaDelta) : String.valueOf(seaDelta);
-        hud.getTextRenderer().drawTextWithShadow(ortho, String.format("Wysokosc terenu: Y = %d (Poziom morza: %d, Delta: %s bl.)",
-                        surfaceY, Chunk.SEA_LEVEL, seaDeltaStr),
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.elevation", surfaceY, Chunk.SEA_LEVEL, seaDeltaStr),
                 inspX + 16.0f, lineY, 1.3f, new Vector4f(0.85f, 0.92f, 1.0f, 0.90f));
         lineY += lineStep + 6.0f;
 
         // Climate & Noise layers
-        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, "3. WARTOSCI SZUMOW (WARSTWY KLIMATYCZNE)");
+        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, I18n.t("noise.section.noise_values"));
         lineY += 26.0f;
 
-        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, "Temperatura (T):", temp, getTemperatureDesc(temp));
+        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, I18n.t("noise.metric.temp"), temp, getTemperatureDesc(temp));
         lineY += lineStep;
-        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, "Wilgotnosc (W):", humidity, getHumidityDesc(humidity));
+        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, I18n.t("noise.metric.hum"), humidity, getHumidityDesc(humidity));
         lineY += lineStep;
-        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, "Kontynentalnosc (K):", continental, getContinentalDesc(continental));
+        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, I18n.t("noise.metric.cont"), continental, getContinentalDesc(continental));
         lineY += lineStep;
-        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, "Pasma gorskie (M):", mountain, getMountainDesc(mountain));
+        drawNoiseMetric(hud, ortho, inspX + 16.0f, lineY, I18n.t("noise.metric.mount"), mountain, getMountainDesc(mountain));
         lineY += lineStep + 10.0f;
 
         // Diagnostic Reason why this biome was chosen
-        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, "4. ANALIZA LOGIKI WYBORU BIOMU");
+        drawSectionHeader(hud, ortho, inspX + 10.0f, lineY, inspW - 20.0f, I18n.t("noise.section.decision_logic"));
         lineY += 26.0f;
 
         String diagReason = getBiomeDiagnosticReason(biome, continental, temp, humidity, mountain);
@@ -885,11 +895,11 @@ public class NoiseVisualizer {
         hud.drawRect2D(inspX + 10.0f, helpY, inspW - 20.0f, 54.0f);
         hud.getColorShader().unbind();
 
-        hud.getTextRenderer().drawTextWithShadow(ortho, "STEROWANIE: [M / F4 / ESC] Zamknij | [1-6] Zmiana warstwy szumu",
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.footer.controls"),
                 inspX + 16.0f, helpY + 8.0f, 1.15f, new Vector4f(0.95f, 0.85f, 0.35f, 0.95f));
-        hud.getTextRenderer().drawTextWithShadow(ortho, "PRZESUWANIE: Przeciagnij mysza lub strzalki/WASD | ZOOM: Scroll / +/-",
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.footer.pan"),
                 inspX + 16.0f, helpY + 22.0f, 1.15f, new Vector4f(0.75f, 0.85f, 0.95f, 0.85f));
-        hud.getTextRenderer().drawTextWithShadow(ortho, "INSPEKCJA: Najedz kursorem na mape | PPM: Menu opcji (Teleport, Cel, Biom)",
+        hud.getTextRenderer().drawTextWithShadow(ortho, I18n.t("noise.footer.inspect"),
                 inspX + 16.0f, helpY + 36.0f, 1.15f, new Vector4f(1.0f, 0.90f, 0.40f, 0.95f));
 
         // 7. Context Menu Popup (if open via Right Mouse Click on Map)
@@ -918,7 +928,7 @@ public class NoiseVisualizer {
             hud.getColorShader().unbind();
 
             // Header text
-            String title = String.format("OPCJE MAPY: [%d, %d]", contextWx, contextWz);
+            String title = I18n.t("noise.context_title", contextWx, contextWz);
             hud.getTextRenderer().drawTextWithShadow(ortho, title, cmX + 8.0f, cmY + 7.0f, 1.25f,
                     new Vector4f(0.40f, 0.85f, 1.0f, 1.0f));
 
@@ -945,7 +955,7 @@ public class NoiseVisualizer {
                     textColor = hovered ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : new Vector4f(0.85f, 0.90f, 0.96f, 0.90f);
                 }
 
-                hud.getTextRenderer().drawTextWithShadow(ortho, CONTEXT_MENU_ITEMS[i], cmX + 12.0f, iy + 6.0f, 1.15f, textColor);
+                hud.getTextRenderer().drawTextWithShadow(ortho, getContextMenuItem(i), cmX + 12.0f, iy + 6.0f, 1.15f, textColor);
             }
         }
 
@@ -980,68 +990,87 @@ public class NoiseVisualizer {
     }
 
     private static String getTemperatureDesc(double temp) {
-        if (temp < -0.28) return "Polarna mrozna (Snieg / Zamarzniety)";
-        if (temp < -0.16) return "Subpolarna chlodna (Tajga)";
-        if (temp < 0.05) return "Umiarkowana chlodna";
-        if (temp < 0.24) return "Umiarkowana ciepla (Lasy)";
-        return "Tropikalna goraca (Pustynia / Mesa / Jungla)";
+        boolean pl = I18n.getCurrentLanguage().startsWith("pl");
+        if (temp < -0.28) return pl ? "Polarna mrozna (Snieg / Zamarzniety)" : "Freezing polar (Snow / Frozen Ocean)";
+        if (temp < -0.16) return pl ? "Subpolarna chlodna (Tajga)" : "Subpolar cool (Taiga)";
+        if (temp < 0.05) return pl ? "Umiarkowana chlodna" : "Cool temperate";
+        if (temp < 0.24) return pl ? "Umiarkowana ciepla (Lasy)" : "Warm temperate (Forests)";
+        return pl ? "Tropikalna goraca (Pustynia / Mesa / Jungla)" : "Tropical hot (Desert / Mesa / Jungle)";
     }
 
     private static String getHumidityDesc(double hum) {
-        if (hum < -0.14) return "Ekstremalnie sucha (Pustynia)";
-        if (hum < -0.03) return "Aridowa sucha (Mesa / Badlands)";
-        if (hum < 0.06) return "Niska wilgotnosc (Rowniny / Plains)";
-        if (hum < 0.16) return "Umiarkowanie wilgotna (Lasy brzozowe)";
-        return "Wysoka wilgotnosc (Gest las / Jungla)";
+        boolean pl = I18n.getCurrentLanguage().startsWith("pl");
+        if (hum < -0.14) return pl ? "Ekstremalnie sucha (Pustynia)" : "Extremely arid (Desert)";
+        if (hum < -0.03) return pl ? "Aridowa sucha (Mesa / Badlands)" : "Arid dry (Mesa / Badlands)";
+        if (hum < 0.06) return pl ? "Niska wilgotnosc (Rowniny / Plains)" : "Low humidity (Plains)";
+        if (hum < 0.16) return pl ? "Umiarkowanie wilgotna (Lasy brzozowe)" : "Moderate humidity (Birch forest)";
+        return pl ? "Wysoka wilgotnosc (Gest las / Jungla)" : "High humidity (Dense forest / Jungle)";
     }
 
     private static String getContinentalDesc(double cont) {
-        if (cont < -0.22) return "Gleboki basen oceaniczny";
-        if (cont < -0.05) return "Ocean szelfowy";
-        if (cont < 0.01) return "Strefa wybrzeza / linia brzegowa";
-        return "Srodladzie kontynentalne";
+        boolean pl = I18n.getCurrentLanguage().startsWith("pl");
+        if (cont < -0.22) return pl ? "Gleboki basen oceaniczny" : "Deep oceanic basin";
+        if (cont < -0.05) return pl ? "Ocean szelfowy" : "Shelf ocean";
+        if (cont < 0.01) return pl ? "Strefa wybrzeza / linia brzegowa" : "Coastline / Beach buffer";
+        return pl ? "Srodladzie kontynentalne" : "Continental inland";
     }
 
     private static String getMountainDesc(double mount) {
-        if (mount > 0.27) return "Lancuch gorski (Mountains peak)";
-        if (mount > 0.10) return "Wzgorza i przedgorza";
-        return "Niziny i plaskowyze";
+        boolean pl = I18n.getCurrentLanguage().startsWith("pl");
+        if (mount > 0.27) return pl ? "Lancuch gorski (Mountains peak)" : "Mountain range (Peaks)";
+        if (mount > 0.10) return pl ? "Wzgorza i przedgorza" : "Hills & foothills";
+        return pl ? "Niziny i plaskowyze" : "Lowlands & plateaus";
     }
 
     private static String getBiomeDiagnosticReason(Biome biome, double cont, double temp, double hum, double mount) {
+        boolean pl = I18n.getCurrentLanguage().startsWith("pl");
         if (cont < -0.22) {
-            return String.format("K (%.3f) < -0.22 -> Gleboki Ocean", cont);
+            return pl ? String.format("K (%.3f) < -0.22 -> Gleboki Ocean", cont)
+                      : String.format("C (%.3f) < -0.22 -> Deep Ocean", cont);
         }
         if (cont < -0.05) {
             return (temp < -0.16)
-                    ? String.format("K (%.3f) < -0.05 && T (%.3f) < -0.16 -> Zamarzniety Ocean", cont, temp)
-                    : String.format("K (%.3f) < -0.05 -> Zwykly Ocean", cont);
+                    ? (pl ? String.format("K (%.3f) < -0.05 && T (%.3f) < -0.16 -> Zamarzniety Ocean", cont, temp)
+                          : String.format("C (%.3f) < -0.05 && T (%.3f) < -0.16 -> Frozen Ocean", cont, temp))
+                    : (pl ? String.format("K (%.3f) < -0.05 -> Zwykly Ocean", cont)
+                          : String.format("C (%.3f) < -0.05 -> Ocean", cont));
         }
         if (biome == Biome.BEACH) {
-            return String.format("Strefa przybrzezna oceanu: K (%.3f) && Woda <= 3 bl. -> Plaza morska", cont);
+            return pl ? String.format("Strefa przybrzezna oceanu: K (%.3f) && Woda <= 3 bl. -> Plaza morska", cont)
+                      : String.format("Coastal zone: C (%.3f) && Water <= 3 bl. -> Beach", cont);
         }
         if (mount > 0.27) {
-            return String.format("Szum gorski M (%.3f) > 0.27 -> Lancuch gorski (Gory)", mount);
+            return pl ? String.format("Szum gorski M (%.3f) > 0.27 -> Lancuch gorski (Gory)", mount)
+                      : String.format("Mountain noise M (%.3f) > 0.27 -> Mountain range (Mountains)", mount);
         }
         if (temp < -0.16) {
             return (hum < -0.02)
-                    ? String.format("Klimat mrozny: T (%.3f) < -0.16 && W (%.3f) < -0.02 -> Sniezna tundra", temp, hum)
-                    : String.format("Klimat mrozny: T (%.3f) < -0.16 && W (%.3f) >= -0.02 -> Tajga iglasta", temp, hum);
+                    ? (pl ? String.format("Klimat mrozny: T (%.3f) < -0.16 && W (%.3f) < -0.02 -> Sniezna tundra", temp, hum)
+                          : String.format("Freezing climate: T (%.3f) < -0.16 && H (%.3f) < -0.02 -> Snowy Tundra", temp, hum))
+                    : (pl ? String.format("Klimat mrozny: T (%.3f) < -0.16 && W (%.3f) >= -0.02 -> Tajga iglasta", temp, hum)
+                          : String.format("Freezing climate: T (%.3f) < -0.16 && H (%.3f) >= -0.02 -> Taiga", temp, hum));
         }
         if (temp > 0.24) {
-            if (hum < -0.14) return String.format("Goracy arid: T (%.3f) > 0.24 && W (%.3f) < -0.14 -> Pustynia", temp, hum);
-            if (hum < -0.03) return String.format("Goracy suchy: T (%.3f) > 0.24 && W (%.3f) < -0.03 -> Mesa (Badlands)", temp, hum);
-            if (hum < 0.12) return String.format("Goracy bufor: T (%.3f) > 0.24 && W (%.3f) < 0.12 -> Rownina (Plains)", temp, hum);
-            return String.format("Goracy wilgotny: T (%.3f) > 0.24 && W (%.3f) >= 0.12 -> Jungla", temp, hum);
+            if (hum < -0.14) return pl ? String.format("Goracy arid: T (%.3f) > 0.24 && W (%.3f) < -0.14 -> Pustynia", temp, hum)
+                                       : String.format("Hot arid: T (%.3f) > 0.24 && H (%.3f) < -0.14 -> Desert", temp, hum);
+            if (hum < -0.03) return pl ? String.format("Goracy suchy: T (%.3f) > 0.24 && W (%.3f) < -0.03 -> Mesa (Badlands)", temp, hum)
+                                       : String.format("Hot dry: T (%.3f) > 0.24 && H (%.3f) < -0.03 -> Badlands (Mesa)", temp, hum);
+            if (hum < 0.12) return pl ? String.format("Goracy bufor: T (%.3f) > 0.24 && W (%.3f) < 0.12 -> Rownina (Plains)", temp, hum)
+                                      : String.format("Hot buffer: T (%.3f) > 0.24 && H (%.3f) < 0.12 -> Plains", temp, hum);
+            return pl ? String.format("Goracy wilgotny: T (%.3f) > 0.24 && W (%.3f) >= 0.12 -> Jungla", temp, hum)
+                      : String.format("Hot humid: T (%.3f) > 0.24 && H (%.3f) >= 0.12 -> Jungle", temp, hum);
         }
         // Temperate
         if (hum < 0.06) {
-            return String.format("Klimat umiarkowany: W (%.3f) < 0.06 -> Rownina (Plains)", hum);
+            return pl ? String.format("Klimat umiarkowany: W (%.3f) < 0.06 -> Rownina (Plains)", hum)
+                      : String.format("Temperate climate: H (%.3f) < 0.06 -> Plains", hum);
         }
         if (hum < 0.16) {
-            return String.format("Klimat umiarkowany: W (%.3f) < 0.16 -> Las brzozowy", hum);
+            return pl ? String.format("Klimat umiarkowany: W (%.3f) < 0.16 -> Las brzozowy", hum)
+                      : String.format("Temperate climate: H (%.3f) < 0.16 -> Birch Forest", hum);
         }
-        return String.format("Klimat umiarkowany: W (%.3f) >= 0.16 -> Las debowy", hum);
+        return pl ? String.format("Klimat umiarkowany: W (%.3f) >= 0.16 -> Las debowy", hum)
+                  : String.format("Temperate climate: H (%.3f) >= 0.16 -> Oak Forest", hum);
     }
 
     public void onResize(int screenW, int screenH) {

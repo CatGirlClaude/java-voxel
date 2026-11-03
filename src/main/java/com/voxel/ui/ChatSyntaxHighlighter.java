@@ -29,7 +29,7 @@ public final class ChatSyntaxHighlighter {
             "survival", "creative", "adventure", "spectator",
             "clear", "rain", "thunder", "live", "start", "stop",
             "same", "random", "dump", "physics", "water", "fog",
-            "modern", "preclassic", "terraria", "minecraft",
+            "modern", "preclassic", "terraria",
             "on", "off", "true", "false", "toggle",
             "info", "warn", "error", "debug"
         };

@@ -164,7 +164,7 @@ public class PauseMenu {
         String pauseTitle = I18n.t("pause.title") + " (ESC)";
         hud.getTextRenderer().drawTextWithShadow(ortho, pauseTitle, winX + 16.0f, winY + 10.0f, 2.0f,
                 new Vector4f(1.0f, 0.92f, 0.40f, 1.0f));
-        String worldInfo = String.format("World: %s | Seed: %d", WorldSaveManager.getCurrentSaveName(), world.getSeed());
+        String worldInfo = I18n.t("pause.world_info", WorldSaveManager.getCurrentSaveName(), world.getSeed());
         hud.getTextRenderer().drawTextWithShadow(ortho, worldInfo, winX + 16.0f, winY + 32.0f, 1.2f,
                 new Vector4f(0.70f, 0.85f, 0.95f, 0.90f));
 

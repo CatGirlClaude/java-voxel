@@ -19,7 +19,7 @@ public record BenchmarkResult(
 ) {
     public String getFormattedSummary() {
         return String.format(
-                "Benchmark [%d chunkow, %d watkow CPU]: Czas: %.1f ms | Generacja: %.0f ch/s (%.2f ms/ch) | Siatki: %.0f mesh/s (%.2f ms/m) | Laczna wydajnosc: %.0f ch/s | Ocena: %s",
+                "Benchmark [%d chunks, %d CPU threads]: Time: %.1f ms | Generation: %.0f ch/s (%.2f ms/ch) | Meshing: %.0f mesh/s (%.2f ms/m) | Total Rate: %.0f ch/s | Rating: %s",
                 chunkCount, workerThreads, totalTimeMs, terrainGenRate, avgTerrainGenMs, meshingRate, avgMeshingMs, totalRate, performanceRating
         );
     }

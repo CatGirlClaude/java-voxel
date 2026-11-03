@@ -311,7 +311,7 @@ public class MainMenu {
             WorldSaveManager.SaveInfo selected = getSelectedSave();
             if (selected != null) {
                 WorldSaveManager.deleteSave(selected.name());
-                statusMessage = "Usunieto swiat: " + selected.name();
+                statusMessage = I18n.t("menu.deleted", selected.name());
                 statusTimer = 2.5f;
                 refreshSaves();
             }
@@ -403,12 +403,12 @@ public class MainMenu {
         hud.getTextRenderer().drawTextWithShadow(ortho, title, (screenW - tw) * 0.5f, screenH * 0.18f, 4.0f,
                 new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
 
-        String sub = "Nieskonczony Swiat 3D | Cubic Chunks 16x16x16 | OpenGL 3.3 Core";
+        String sub = I18n.t("menu.subtitle");
         float subW = hud.getTextRenderer().getTextWidth(sub, 1.5f);
         hud.getTextRenderer().drawTextWithShadow(ortho, sub, (screenW - subW) * 0.5f, screenH * 0.18f + 46.0f, 1.5f,
                 new Vector4f(0.70f, 0.85f, 0.95f, 0.85f));
 
-        // Buttons: Wybierz Swiat, Opcje, Wyjdz (styl Minecraft)
+        // Buttons: Select World, Options, Quit
         float btnW = 360.0f;
         float btnH = 46.0f;
         float btnX = (screenW - btnW) * 0.5f;
@@ -442,14 +442,14 @@ public class MainMenu {
         }
 
         // Footer info
-        String footer = "Sterowanie: [WSAD] Ruch, [Spacja/Shift] Skok/Latanie, [E] Ekwipunek, [M] Diagnostyka, [ESC] Menu";
+        String footer = I18n.t("menu.footer");
         float footW = hud.getTextRenderer().getTextWidth(footer, 1.2f);
         hud.getTextRenderer().drawTextWithShadow(ortho, footer, (screenW - footW) * 0.5f, screenH - 30.0f, 1.2f,
                 new Vector4f(0.55f, 0.65f, 0.75f, 0.70f));
     }
 
     private void renderSavesScreen(HudRenderer hud, Matrix4f ortho, int screenW, int screenH, float mx, float my) {
-        String title = "WYBIERZ SWIAT / ZAPISY";
+        String title = I18n.t("menu.saves_title");
         float tw = hud.getTextRenderer().getTextWidth(title, 2.5f);
         hud.getTextRenderer().drawTextWithShadow(ortho, title, (screenW - tw) * 0.5f, 36.0f, 2.5f,
                 new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
@@ -463,7 +463,7 @@ public class MainMenu {
         float rowStep = itemH + itemSpacing;
 
         if (saveList == null || saveList.isEmpty()) {
-            String empty = "Brak zapisanych swiatow. Utworz nowy swiat!";
+            String empty = I18n.t("menu.empty_saves");
             float ew = hud.getTextRenderer().getTextWidth(empty, 1.6f);
             hud.getTextRenderer().drawTextWithShadow(ortho, empty, (screenW - ew) * 0.5f, screenH * 0.40f, 1.6f,
                     new Vector4f(0.8f, 0.8f, 0.8f, 0.8f));
@@ -499,7 +499,7 @@ public class MainMenu {
 
                 String line1 = String.format("%s (Seed: %d)", info.name(), info.seed());
                 String dateStr = DATE_FORMAT.format(new Date(info.lastModifiedTime()));
-                String line2 = String.format("Pozycja: (%.1f, %.1f, %.1f) | Format: %s | Data: %s",
+                String line2 = I18n.t("menu.save_details",
                         info.posX(), info.posY(), info.posZ(), info.formatName(), dateStr);
 
                 hud.getTextRenderer().drawTextWithShadow(ortho, line1, listX + 12.0f, iy + 8.0f, 1.6f,
@@ -553,7 +553,7 @@ public class MainMenu {
     }
 
     private void renderNewWorldScreen(HudRenderer hud, Matrix4f ortho, int screenW, int screenH, float mx, float my) {
-        String title = "STWORZ NOWY SWIAT";
+        String title = I18n.t("menu.create_title");
         float tw = hud.getTextRenderer().getTextWidth(title, 2.5f);
         hud.getTextRenderer().drawTextWithShadow(ortho, title, (screenW - tw) * 0.5f, 50.0f, 2.5f,
                 new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
@@ -595,8 +595,9 @@ public class MainMenu {
         hud.drawRect2D(boxX, f2Y, boxW, 36.0f);
         hud.getColorShader().unbind();
 
+        String seedPlaceholder = I18n.t("menu.seed_random");
         String seedVal = inputSeed.toString() + (activeInputField == 1 && (System.currentTimeMillis() / 400) % 2 == 0 ? "_" : "");
-        hud.getTextRenderer().drawTextWithShadow(ortho, seedVal.isEmpty() ? "(random seed)" : seedVal, boxX + 10.0f, f2Y + 9.0f, 1.8f,
+        hud.getTextRenderer().drawTextWithShadow(ortho, seedVal.isEmpty() ? seedPlaceholder : seedVal, boxX + 10.0f, f2Y + 9.0f, 1.8f,
                 seedVal.isEmpty() ? new Vector4f(0.5f, 0.5f, 0.5f, 0.8f) : new Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
         // Action buttons

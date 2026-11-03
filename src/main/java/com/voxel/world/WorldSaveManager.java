@@ -39,7 +39,7 @@ public final class WorldSaveManager {
         }
 
         public String formatName() {
-            return isRegionFormat() ? "Regiony (.mca)" : "Roznice (.dat)";
+            return isRegionFormat() ? com.voxel.i18n.I18n.t("menu.format_regions") : com.voxel.i18n.I18n.t("menu.format_diffs");
         }
     }
 
@@ -94,7 +94,7 @@ public final class WorldSaveManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Blad listowania zapisow: " + e.getMessage());
+            com.voxel.util.Logger.error("SaveManager", "Error listing saves: " + e.getMessage());
         }
 
         list.sort((a, b) -> Long.compare(b.lastModifiedTime(), a.lastModifiedTime()));
@@ -161,7 +161,7 @@ public final class WorldSaveManager {
             }
             return true;
         } catch (IOException e) {
-            System.err.println("Blad usuwania zapisu: " + e.getMessage());
+            com.voxel.util.Logger.error("SaveManager", "Error deleting save: " + e.getMessage());
         }
         return false;
     }
@@ -358,7 +358,7 @@ public final class WorldSaveManager {
 
             return true;
         } catch (IOException e) {
-            System.err.println("Blad odczytu swiata: " + e.getMessage());
+            com.voxel.util.Logger.error("SaveManager", "Error loading world: " + e.getMessage());
             return false;
         }
     }

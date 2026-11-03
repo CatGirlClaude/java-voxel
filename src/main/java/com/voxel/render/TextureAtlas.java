@@ -272,11 +272,11 @@ public class TextureAtlas {
                     case 9 -> { // Water (Minecraft-style clean semi-transparent blue with seamless periodic ripples)
                         double fx = x * (2.0 * Math.PI / 16.0);
                         double fy = y * (2.0 * Math.PI / 16.0);
-                        int wave = (int) (Math.sin(fx + fy) * 12.0 + Math.sin(fx * 2.0 - fy) * 8.0 + Math.cos(fx - fy * 2.0) * 6.0);
-                        r = clamp(42 + wave / 3);
-                        g = clamp(88 + wave / 2);
-                        b = clamp(215 + wave);
-                        a = 185;
+                        double w = Math.sin(fx + fy) * 0.5 + Math.cos(fx * 2.0 - fy) * 0.3 + Math.sin(fx - fy * 2.0) * 0.2;
+                        r = clamp((int) (58 + w * 12));
+                        g = clamp((int) (110 + w * 20));
+                        b = clamp((int) (220 + w * 18));
+                        a = 210;
                     }
                     case 10 -> { // Wooden Planks
                         boolean seam = (y % 4 == 0) || ((x + (y / 4) * 7) % 16 == 0);

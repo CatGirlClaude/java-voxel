@@ -919,10 +919,11 @@ public class World {
         double totalRate = (totalMs > 0) ? (chunkCount / (totalMs / 1000.0)) : 0;
 
         String rating;
-        if (totalRate >= 2000) rating = "A+ (WYBITNA / ULTRA)";
-        else if (totalRate >= 1200) rating = "A (BARDZO DOBRA / FAST)";
-        else if (totalRate >= 600) rating = "B (DOBRA / MEDIUM)";
-        else rating = "C (WYSTARCZAJACA / BASIC)";
+        boolean pl = com.voxel.i18n.I18n.getCurrentLanguage().startsWith("pl");
+        if (totalRate >= 2000) rating = pl ? "A+ (WYBITNA / ULTRA)" : "A+ (Ultra)";
+        else if (totalRate >= 1200) rating = pl ? "A (BARDZO DOBRA / FAST)" : "A (Fast)";
+        else if (totalRate >= 600) rating = pl ? "B (DOBRA / MEDIUM)" : "B (Medium)";
+        else rating = pl ? "C (WYSTARCZAJACA / BASIC)" : "C (Basic)";
 
         return new BenchmarkResult(chunkCount, threads, genMs, genRate, avgGen,
                 toMesh.size(), meshMs, meshRate, avgMesh, totalMs, totalRate, rating);

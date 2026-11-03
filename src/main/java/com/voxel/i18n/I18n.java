@@ -33,6 +33,10 @@ public final class I18n {
         return currentLang;
     }
 
+    public static String getCurrentLanguage() {
+        return currentLang;
+    }
+
     public static String getLanguageDisplayName(String code) {
         for (int i = 0; i < SUPPORTED_LANGS.length; i++) {
             if (SUPPORTED_LANGS[i].equalsIgnoreCase(code)) {

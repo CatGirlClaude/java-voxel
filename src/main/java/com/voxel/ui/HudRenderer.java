@@ -83,8 +83,8 @@ public class HudRenderer {
         uiTexShader = ShaderProgram.createUiTextureShader();
         textRenderer = new TextRenderer();
 
-        String r = "Nieznany";
-        String v = "Nieznany";
+        String r = "Unknown";
+        String v = "Unknown";
         try {
             String gr = glGetString(GL_RENDERER);
             if (gr != null && !gr.isBlank()) r = gr.trim();
@@ -291,7 +291,7 @@ public class HudRenderer {
                     i == selectedIdx ? new Vector4f(1.0f, 0.9f, 0.3f, 1.0f) : new Vector4f(0.85f, 0.85f, 0.85f, 0.85f));
         }
 
-        String selLabel = "Wybrany blok: " + player.getSelectedBlock().name;
+        String selLabel = I18n.t("creative.block_selected", player.getSelectedBlock().getDisplayName());
         float selW = textRenderer.getTextWidth(selLabel, 2.0f);
         textRenderer.drawTextWithShadow(ortho, selLabel, (screenW - selW) * 0.5f, barY - 22.0f, 2.0f,
                 new Vector4f(1.0f, 0.95f, 0.65f, 0.95f));
@@ -709,27 +709,27 @@ public class HudRenderer {
         float pad = 10.0f;
 
         if (lastBenchmark != null) {
-            String title = String.format("BENCHMARK SILNIKA VOXEL [%d CHUNKOW, %d WATKOW CPU]",
+            String title = I18n.t("benchmark.card_title",
                     lastBenchmark.chunkCount(), lastBenchmark.workerThreads());
             textRenderer.drawTextWithShadow(ortho, title, startX + pad, startY + pad, scale,
                     new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
 
-            String genStr = String.format("Generacja terenu : %.1f ms  (%.0f ch/s | %.3f ms/chunk)",
+            String genStr = I18n.t("benchmark.terrain_gen",
                     lastBenchmark.terrainGenMs(), lastBenchmark.terrainGenRate(), lastBenchmark.avgTerrainGenMs());
             textRenderer.drawTextWithShadow(ortho, genStr, startX + pad, startY + pad + lineH, scale,
                     new Vector4f(0.85f, 0.95f, 1.0f, 1.0f));
 
-            String meshStr = String.format("Budowa siatek    : %.1f ms  (%.0f mesh/s | %.3f ms/mesh)",
+            String meshStr = I18n.t("benchmark.meshing",
                     lastBenchmark.meshingMs(), lastBenchmark.meshingRate(), lastBenchmark.avgMeshingMs());
             textRenderer.drawTextWithShadow(ortho, meshStr, startX + pad, startY + pad + lineH * 2, scale,
                     new Vector4f(0.85f, 0.95f, 1.0f, 1.0f));
 
-            String totalStr = String.format("Calkowite tempo  : %.0f chunkow/s  (Czas: %.1f ms)",
+            String totalStr = I18n.t("benchmark.total_rate",
                     lastBenchmark.totalRate(), lastBenchmark.totalTimeMs());
             textRenderer.drawTextWithShadow(ortho, totalStr, startX + pad, startY + pad + lineH * 3, scale,
                     new Vector4f(0.40f, 0.98f, 0.60f, 1.0f));
 
-            String ratingStr = "Ocena: " + lastBenchmark.performanceRating();
+            String ratingStr = I18n.t("benchmark.rating", lastBenchmark.performanceRating());
             float rW = textRenderer.getTextWidth(ratingStr, scale);
             textRenderer.drawTextWithShadow(ortho, ratingStr, startX + cardW - rW - pad, startY + pad, scale,
                     accentCol);
@@ -740,13 +740,13 @@ public class HudRenderer {
             int workers = world.getWorkerThreadCount();
             double throughput = (genMs > 0 ? (1000.0 / genMs) * workers : 0);
 
-            textRenderer.drawTextWithShadow(ortho, "LIVE BENCHMARK VOXEL (CIAGLY POMIAR)", startX + pad, startY + pad, scale,
+            textRenderer.drawTextWithShadow(ortho, I18n.t("benchmark.live_title"), startX + pad, startY + pad, scale,
                     new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));
-            textRenderer.drawTextWithShadow(ortho, String.format("Generacja terenu : %.3f ms/chunk | Watki CPU: %d", genMs, workers),
+            textRenderer.drawTextWithShadow(ortho, I18n.t("benchmark.live_gen", genMs, workers),
                     startX + pad, startY + pad + lineH, scale, new Vector4f(0.85f, 0.95f, 1.0f, 1.0f));
-            textRenderer.drawTextWithShadow(ortho, String.format("Budowa siatek    : %.3f ms/mesh  | GPU: %.3f ms/upload", meshMs, uploadMs),
+            textRenderer.drawTextWithShadow(ortho, I18n.t("benchmark.live_mesh", meshMs, uploadMs),
                     startX + pad, startY + pad + lineH * 2, scale, new Vector4f(0.85f, 0.95f, 1.0f, 1.0f));
-            textRenderer.drawTextWithShadow(ortho, String.format("Przepustowosc    : %.0f chunkow/sekunde", throughput),
+            textRenderer.drawTextWithShadow(ortho, I18n.t("benchmark.live_throughput", throughput),
                     startX + pad, startY + pad + lineH * 3, scale, new Vector4f(0.40f, 0.98f, 0.60f, 1.0f));
         }
     }

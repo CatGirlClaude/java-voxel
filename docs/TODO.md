@@ -324,6 +324,24 @@ Sekcja ta zawiera precyzyjne specyfikacje techniczne dla agentów implementując
     - Receptury kształtowe 2x2 (4 deski -> drewno, 4 bruk -> 4 kamień, 4 kamień -> 4 cegły, 4 piasek -> piaskowiec, 4 czerwony piasek -> terakota, 4 śnieg -> lód, 4 szkło -> jasnogłaz).
     - Receptury kształtowe 3x3 stołu rzemieślniczego (pierścień 8 bruku -> 8 cegieł, pierścień 8 desek -> 8 drewna, pełne 9 bruku -> 9 gładkiego kamienia).
   - Wzbogacono interfejs o interaktywną listę przepisów (kliknięcie automatycznie uzupełnia siatkę składnikami), paletę szybkiego wyboru składników, przycisk natychmiastowego czyszczenia siatki `[Clear]` oraz bezpośrednie odbieranie wytworzonych przedmiotów do aktywnego slotu hotbara.
+- [x] **#61. Proceduralny system audio (Dźwięki bloków, kroków, pluskania i rzemiosła):**
+  - W [`SoundSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/audio/SoundSystem.java) zaimplementowano w pełni proceduralną syntezę audio w czasie rzeczywistym (16-bit PCM, 22050 Hz mono):
+    - Dźwięki niszczenia i stawiania bloków z podziałem na materiały (`STONE`, `WOOD`, `SAND`, `GRAVEL`, `GLASS`, `PLANT`, `GRASS`, `WATER`).
+    - Dźwięk kroków podczas chodzenia i sprintu oraz realistyczny plusk zanurzenia w wodzie.
+    - Dźwięk wytworzenia przedmiotu w warsztacie rzemieślniczym.
+    - Suwak głośności ogólnej (`Master Volume: 0% - 100%`) zintegrowany w [`OptionsMenu.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/ui/OptionsMenu.java) oraz utrwalany w `GameSettings`.
+- [x] **#62. System cząsteczek i upuszczania przedmiotów (Particles, ItemEntity & Drop):**
+  - W [`ParticleSystem.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/particle/ParticleSystem.java) stworzono dynamiczny system cząsteczek z buforowaniem VBO/VAO:
+    - Odłamki niszczonych bloków (debris) próbkujące mikroteksturę 4x4 kafelka wraz z tintem biomowym trawy.
+    - Cząsteczki pluskania wody i kurzu kroków podczas sprintu.
+  - W [`ItemEntity.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/ItemEntity.java) i [`ItemEntityManager.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/entity/ItemEntityManager.java) zaimplementowano lewitujące encje upuszczonych przedmiotów:
+    - Wyrzucanie klawiszem `[Q]` z fizyką odbić, wypornością w wodzie i grawitacją.
+    - Płynne unoszenie (sinusoidalny hovering), obrót wokół osi Y oraz magnetyczne przyciąganie do gracza z odtwarzaniem dźwięku podniesienia.
+- [x] **#63. Wizualia wody w stylu Minecraft oraz całościowa lokalizacja językowa:**
+  - W [`ShaderProgram.java`](file:///c:/Users/september/Desktop/ja/antigravity/java%20voxel/src/main/java/com/voxel/render/ShaderProgram.java) usunięto sztuczne formuły specular glare pow(..., 6.0) i mocnego rozjaśniania słońcem, które tworzyły duże białe plamy na wodzie. Ustawiono czystą przezroczystość Minecrafta (`texColor.a = 0.68`) z zachowaniem organicznego falowania wierzchołków (`relPos.y += wave1 + wave2`) i animacji UV.
+  - Wygenerowano czystą, powtarzalną teksturę 16x16 `water.png` w klasycznej palecie barwnej Minecrafta bez jaskrawych, białych pikseli.
+  - Przeprowadzono gruntowny audyt wszystkich ciągów znaków: interfejsy menu, HUD, komunikaty konsoli czatu (`ChatSystem`), nazwy bloków (`BlockType`) i biomów (`Biome`) domyślnie posiadają angielskie identyfikatory i nazwy oraz są zlokalizowane poprzez `I18n.t(...)` z zachowaniem 100% parytetu kluczy między `en_us.json` i `pl_pl.json`.
+
 
 
 

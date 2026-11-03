@@ -65,3 +65,8 @@
 - [x] 60. Ekwipunek i Crafting: Rozbudowa ekranu ekwipunku [E] o siatke tworzenia przedmiotow (crafting 2x2 i stol rzemieslniczy 3x3), zakladki Creative / Crafting Workshop, ksiege przepisow oraz palete skladnikow
 - [x] 61. Proceduralny system audio dla blokow, krokow, wody i rzemiosla (SoundSystem pcm synthesis bez zewnetrznych bibliotek, dzwiek niszczenia i stawiania blokow z podzialem na materialy STONE/WOOD/SAND/GRAVEL/GLASS/PLANT/GRASS/WATER, dzwiek krokow i pluskania w wodzie, dzwiek craftingu, suwak Master Volume w opcjach)
 - [x] 62. System czasteczek niszczenia blokow (debris), pluskania wody i kurzu krokow oraz upuszczania i zbierania przedmiotow (ParticleSystem, ItemEntity, wyrzucanie [Q] z fizyka grawitacji/odbicia i plynnego przyciagania magnetycznego do gracza)
+- [x] 63. Wizualia wody Minecraft (usuniecie bialej plamy specular, gladka przezroczystosc alpha=0.68, zachowanie falowania wierzcholkow) oraz pelna weryfikacja i unifikacja jezykowa stringow (100% angielski fallback / localized we wszystkich modulach)
+- [ ] 64. Dodaj lepszy system do modularnego tworzenia komend zamiast trzymac wszystkie w jednym switch case (komendy obiektowe)
+- [ ] 65. Rosliny powinny dac sie stackowac tylko jesli postawiony blok jest na szczycie rosliny
+- [ ] 66. Zamiast "tickFluid" sprawdzajacy kazdy blok po kolei, powinien wywolywac funkcje tick() w kazdym bloku fluid
+- Zamiast uzywac ogromnych checkow np. czy blok pod trawa to STONE || SAND || etc. dodaj tagi bloków, zeby bloki na ktorych rosnie trawa posiadaly tag w stylu "grass_can_grow_on"

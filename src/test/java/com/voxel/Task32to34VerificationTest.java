@@ -83,7 +83,7 @@ public class Task32to34VerificationTest {
     }
 
     private static void testModernWaterSpreadsCoTick() {
-        com.voxel.config.GameSettings.waterPhysicsMode = "minecraft";
+        com.voxel.config.GameSettings.waterPhysicsMode = "modern";
         com.voxel.config.GameSettings.blockPhysicsEnabled = true;
         World world = new World(8888);
 

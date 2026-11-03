@@ -54,33 +54,42 @@ public class OptionsMenu {
     private float hudScroll = 0.0f;
 
     public enum KeyAction {
-        FORWARD("Forward:"),
-        BACK("Back:"),
-        LEFT("Left:"),
-        RIGHT("Right:"),
-        JUMP("Jump / Up:"),
-        CROUCH("Crouch / Down:"),
-        SPRINT("Sprint:"),
-        INVENTORY("Inventory / Creative:"),
-        DROP("Drop Item [Q]:"),
-        CHAT("Open Chat:"),
-        COMMAND("Command (/):"),
-        NOISE_MAP("Biome Map [M]:"),
-        DEBUG("Debug HUD [F3]:"),
-        TOGGLE_HUD("Toggle HUD [F1]:"),
-        PAUSE("Pause [ESC]:"),
-        SLOT_1("Hotbar Slot 1:"),
-        SLOT_2("Hotbar Slot 2:"),
-        SLOT_3("Hotbar Slot 3:"),
-        SLOT_4("Hotbar Slot 4:"),
-        SLOT_5("Hotbar Slot 5:"),
-        SLOT_6("Hotbar Slot 6:"),
-        SLOT_7("Hotbar Slot 7:"),
-        SLOT_8("Hotbar Slot 8:"),
-        SLOT_9("Hotbar Slot 9:");
+        FORWARD("Forward:", "options.key.forward"),
+        BACK("Back:", "options.key.back"),
+        LEFT("Left:", "options.key.left"),
+        RIGHT("Right:", "options.key.right"),
+        JUMP("Jump / Up:", "options.key.jump"),
+        CROUCH("Crouch / Down:", "options.key.crouch"),
+        SPRINT("Sprint:", "options.key.sprint"),
+        INVENTORY("Inventory / Creative:", "options.key.inventory"),
+        DROP("Drop Item [Q]:", "options.key.drop"),
+        CHAT("Open Chat:", "options.key.chat"),
+        COMMAND("Command (/):", "options.key.command"),
+        NOISE_MAP("Biome Map [M]:", "options.key.noise_map"),
+        DEBUG("Debug HUD [F3]:", "options.key.debug"),
+        TOGGLE_HUD("Toggle HUD [F1]:", "options.key.toggle_hud"),
+        PAUSE("Pause [ESC]:", "options.key.pause"),
+        SLOT_1("Hotbar Slot 1:", "options.key.slot_1"),
+        SLOT_2("Hotbar Slot 2:", "options.key.slot_2"),
+        SLOT_3("Hotbar Slot 3:", "options.key.slot_3"),
+        SLOT_4("Hotbar Slot 4:", "options.key.slot_4"),
+        SLOT_5("Hotbar Slot 5:", "options.key.slot_5"),
+        SLOT_6("Hotbar Slot 6:", "options.key.slot_6"),
+        SLOT_7("Hotbar Slot 7:", "options.key.slot_7"),
+        SLOT_8("Hotbar Slot 8:", "options.key.slot_8"),
+        SLOT_9("Hotbar Slot 9:", "options.key.slot_9");
 
         public final String label;
-        KeyAction(String label) { this.label = label; }
+        public final String key;
+        KeyAction(String label, String key) {
+            this.label = label;
+            this.key = key;
+        }
+
+        public String getDisplayName() {
+            String val = I18n.t(key);
+            return val.startsWith("options.key.") ? label : val;
+        }
     }
 
     private KeyAction rebindingAction = null;
@@ -196,7 +205,7 @@ public class OptionsMenu {
     // Available max FPS limits
     private static final int[] FPS_LIMITS = {0, 30, 60, 90, 120, 144, 240};
     // Available fog modes
-    private static final String[] FOG_MODES = {"WYLACZONA", "BLISKA", "NORMALNA", "DALEKA"};
+    private static final String[] FOG_MODES = {"OFF", "NEAR", "NORMAL", "FAR"};
     // Log levels
     private static final String[] LOG_LEVELS = {"INFO", "DEBUG", "TRACE"};
     // Time presets (0.30=Day, 0.50=Noon, 0.77=Sunset, 0.0=Night)
@@ -244,12 +253,12 @@ public class OptionsMenu {
         if (rebindingAction != null) {
             if (key == GLFW_KEY_ESCAPE) {
                 rebindingAction = null;
-                showStatus("Keybinding cancelled");
+                showStatus(I18n.t("options.keybind_cancelled"));
                 return true;
             }
             setBoundKey(rebindingAction, key);
             String kName = GameSettings.getKeyName(key);
-            showStatus("Bound " + rebindingAction.label + " " + kName);
+            showStatus(I18n.t("options.keybind_bound", rebindingAction.getDisplayName(), kName));
             rebindingAction = null;
             GameSettings.save();
             return true;
@@ -812,7 +821,7 @@ public class OptionsMenu {
                 ctx.put("Selected Block", player.getSelectedBlock().name);
             }
             Path path = Logger.dumpCrashReport("Manual Diagnostics Dump", null, ctx);
-            showStatus("Dump saved: " + path.getFileName());
+            showStatus(I18n.t("options.dump_saved", path.getFileName()));
         }
     }
 
@@ -881,7 +890,7 @@ public class OptionsMenu {
             }
             rebindingAction = null;
             GameSettings.save();
-            showStatus("Reset keybinds to defaults!");
+            showStatus(I18n.t("options.reset_keybinds_done"));
         }
     }
 
@@ -1200,7 +1209,7 @@ public class OptionsMenu {
 
         // Row 3: Day Cycle override
         String cycleStatus = !GameSettings.overrideDayCycle ? I18n.t("options.overrides.default")
-                : (GameSettings.overrideDayCycleValue ? "FORCE PAUSED" : "FORCE RUNNING");
+                : (GameSettings.overrideDayCycleValue ? I18n.t("options.overrides.force_paused") : I18n.t("options.overrides.force_running"));
         String cycleStr = "< " + I18n.t("options.overrides.daycycle", cycleStatus) + " >";
         drawOptionButton(hud, ortho, btnX, startY + stepY * 3 + 4.0f, btnW, btnH, cycleStr, mx, my);
 
@@ -1334,7 +1343,7 @@ public class OptionsMenu {
     }
 
     private void drawKeyRow(HudRenderer hud, Matrix4f ortho, float x, float y, float w, KeyAction action, float mx, float my) {
-        hud.getTextRenderer().drawTextWithShadow(ortho, action.label, x, y + 4.0f, 1.2f, new Vector4f(0.80f, 0.88f, 0.95f, 0.90f));
+        hud.getTextRenderer().drawTextWithShadow(ortho, action.getDisplayName(), x, y + 4.0f, 1.2f, new Vector4f(0.80f, 0.88f, 0.95f, 0.90f));
 
         float kw = 120.0f;
         float kx = x + w - kw;
@@ -1357,7 +1366,7 @@ public class OptionsMenu {
         hud.drawRect2D(kx, y, kw, kh);
         hud.getColorShader().unbind();
 
-        String keyText = rebinding ? "> PRESS KEY <" : GameSettings.getKeyName(getBoundKey(action));
+        String keyText = rebinding ? I18n.t("options.press_key") : GameSettings.getKeyName(getBoundKey(action));
         Vector4f textCol = rebinding
                 ? new Vector4f(1.0f, 0.92f, 0.30f, 1.0f)
                 : (hover ? new Vector4f(1.0f, 1.0f, 1.0f, 1.0f) : new Vector4f(1.0f, 0.90f, 0.35f, 1.0f));

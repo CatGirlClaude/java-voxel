@@ -250,7 +250,7 @@ public class ChatSystem {
                         }
                     }
                 } else if (parts.length == 3 && (parts[1].equalsIgnoreCase("water") || parts[1].equalsIgnoreCase("woda"))) {
-                    String[] waterModes = {"modern", "preclassic", "terraria", "minecraft"};
+                    String[] waterModes = {"modern", "preclassic", "terraria"};
                     for (String m : waterModes) {
                         if (m.startsWith(argToken)) {
                             suggestions.add(new Suggestion(prefix + m, m, "Water simulation mode"));
@@ -343,7 +343,7 @@ public class ChatSystem {
             case "spawn" -> {
                 long sy = world.findSpawnY(0, 0);
                 teleportPlayer(world, player, 0.5, sy, 0.5);
-                addMessage(String.format("Przeteleportowano na spawn: (0.5, %d.0, 0.5)", sy), COLOR_SUCCESS);
+                addMessage(I18n.t("chat.spawn_tp", sy), COLOR_SUCCESS);
             }
             case "fly" -> {
                 player.flying = !player.flying;
@@ -351,7 +351,7 @@ public class ChatSystem {
                     player.noclip = false;
                 }
                 player.velocity.y = 0;
-                addMessage("Tryb latania: " + (player.flying ? "WLACZONY" : "WYLACZONY"), COLOR_SUCCESS);
+                addMessage(I18n.t("chat.fly_mode", player.flying ? I18n.t("options.on") : I18n.t("options.off")), COLOR_SUCCESS);
             }
             case "noclip", "nc" -> {
                 player.noclip = !player.noclip;
@@ -359,15 +359,15 @@ public class ChatSystem {
                     player.flying = true;
                 }
                 player.velocity.set(0, 0, 0);
-                addMessage("Tryb noclip (przenikanie przez bloki): " + (player.noclip ? "WLACZONY" : "WYLACZONY"), COLOR_SUCCESS);
+                addMessage(I18n.t("chat.noclip_mode", player.noclip ? I18n.t("options.on") : I18n.t("options.off")), COLOR_SUCCESS);
             }
             case "debug" -> {
                 hud.showDebug = !hud.showDebug;
-                addMessage("Panel debugowania: " + (hud.showDebug ? "WLACZONY" : "WYLACZONY"), COLOR_INFO);
+                addMessage(I18n.t("chat.debug_panel", hud.showDebug ? I18n.t("options.on") : I18n.t("options.off")), COLOR_INFO);
             }
             case "time" -> {
                 if (parts.length < 2) {
-                    addMessage("Uzycie: /time <day|noon|sunset|night|pause|resume|0..24>", COLOR_ERROR);
+                    addMessage(I18n.t("chat.time_usage"), COLOR_ERROR);
                 } else {
                     String arg = parts[1].toLowerCase();
                     if (arg.equals("set") && parts.length >= 3) {
@@ -376,35 +376,35 @@ public class ChatSystem {
                     switch (arg) {
                         case "day", "morning", "rano", "dzien" -> {
                             world.timeOfDay = 0.30f;
-                            addMessage("Ustawiono pore dnia na poranek (07:12).", COLOR_SUCCESS);
+                            addMessage(I18n.t("chat.time_morning"), COLOR_SUCCESS);
                         }
                         case "noon", "poludnie" -> {
                             world.timeOfDay = 0.50f;
-                            addMessage("Ustawiono pore dnia na poludnie (12:00).", COLOR_SUCCESS);
+                            addMessage(I18n.t("chat.time_noon"), COLOR_SUCCESS);
                         }
                         case "sunset", "zachod" -> {
                             world.timeOfDay = 0.77f;
-                            addMessage("Ustawiono pore dnia na zachod slonca (18:28).", COLOR_SUCCESS);
+                            addMessage(I18n.t("chat.time_sunset"), COLOR_SUCCESS);
                         }
                         case "night", "noc", "midnight" -> {
                             world.timeOfDay = 0.0f;
-                            addMessage("Ustawiono pore dnia na polnoc (00:00).", COLOR_SUCCESS);
+                            addMessage(I18n.t("chat.time_night"), COLOR_SUCCESS);
                         }
                         case "pause", "stop", "pauza" -> {
                             world.dayCyclePaused = true;
-                            addMessage("Cykl dnia i nocy: ZATRZYMANY.", COLOR_INFO);
+                            addMessage(I18n.t("chat.time_paused"), COLOR_INFO);
                         }
                         case "resume", "start", "wznow" -> {
                             world.dayCyclePaused = false;
-                            addMessage("Cykl dnia i nocy: WZNOWIONY.", COLOR_INFO);
+                            addMessage(I18n.t("chat.time_resumed"), COLOR_INFO);
                         }
                         default -> {
                             try {
                                 float hour = Float.parseFloat(arg);
                                 world.timeOfDay = ((hour % 24.0f) + 24.0f) % 24.0f / 24.0f;
-                                addMessage(String.format("Ustawiono godzine na %.1f:00.", hour), COLOR_SUCCESS);
+                                addMessage(I18n.t("chat.time_hour", hour), COLOR_SUCCESS);
                             } catch (NumberFormatException e) {
-                                addMessage("Nieznana opcja: " + arg + ". Uzyj day, noon, sunset, night, pause, resume lub 0..24.", COLOR_ERROR);
+                                addMessage(I18n.t("chat.time_unknown", arg), COLOR_ERROR);
                             }
                         }
                     }
@@ -413,40 +413,40 @@ public class ChatSystem {
             case "benchmark", "bench", "perf" -> handleBenchmark(parts, world, player, hud);
             case "save" -> {
                 if (world.saveWorld(player)) {
-                    addMessage("Zapisano swiat do saves/world.dat!", COLOR_SUCCESS);
+                    addMessage(I18n.t("chat.save_success", com.voxel.world.WorldSaveManager.getCurrentSaveName()), COLOR_SUCCESS);
                 } else {
-                    addMessage("Blad podczas zapisywania swiata!", COLOR_ERROR);
+                    addMessage(I18n.t("chat.save_error"), COLOR_ERROR);
                 }
             }
             case "load" -> {
                 if (world.loadWorld(player)) {
-                    addMessage("Wczytano swiat z saves/world.dat!", COLOR_SUCCESS);
+                    addMessage(I18n.t("chat.load_success", com.voxel.world.WorldSaveManager.getCurrentSaveName()), COLOR_SUCCESS);
                 } else {
-                    addMessage("Brak zapisanego swiata (saves/world.dat)!", COLOR_ERROR);
+                    addMessage(I18n.t("chat.load_not_found", com.voxel.world.WorldSaveManager.getCurrentSaveName()), COLOR_ERROR);
                 }
             }
             case "setblock" -> handleSetBlock(parts, world, player);
             case "reset", "new", "regen", "restart" -> handleResetWorld(parts, world, player);
             case "clear", "cls" -> messages.clear();
-            case "pos", "where" -> addMessage(String.format("Twoja pozycja: X=%.1f, Y=%.1f, Z=%.1f",
+            case "pos", "where" -> addMessage(I18n.t("chat.pos",
                     player.position.x, player.position.y, player.position.z), COLOR_INFO);
             case "locate", "biome", "biom" -> handleLocateBiome(parts, world, player);
             case "help", "?" -> {
-                addMessage("=== Dostepne komendy ===", COLOR_HELP);
-                addMessage("/setblock <x> <y> <z> <blok> - Ustawia blok (wspiera ~ np. /setblock ~ ~-1 ~ stone)", COLOR_HELP);
-                addMessage("/tp <x> <y> <z> - Teleportacja (wspiera ~ np. /tp ~ ~15 ~, bez limitu 30M)", COLOR_HELP);
-                addMessage("/tp <x> <z>     - Teleportacja na powierzchnie terenu w punkcie (x, z)", COLOR_HELP);
-                addMessage("/locate <biom>  - Znajduje najblizszy biom (ocean, deep_ocean, frozen_ocean, desert, mesa, snow, taiga, jungle, birch, forest, plains, mountains)", COLOR_HELP);
-                addMessage("/reset [seed|same] - Resetuje swiat (nowy losowy seed, podany seed lub 'same')", COLOR_HELP);
-                addMessage("/noclip (/nc)   - Przenikanie przez sciany i podloze", COLOR_HELP);
-                addMessage("/fly            - Przelaczanie trybu latania", COLOR_HELP);
-                addMessage("/spawn          - Powrot na punkt startowy (0, Y, 0)", COLOR_HELP);
-                addMessage("/time <day|noon|sunset|night|pause|resume|0..24> - Pora dnia", COLOR_HELP);
-                addMessage("/debug          - Pokaz/ukryj panel debugowania w lewym gornym rogu", COLOR_HELP);
-                addMessage("/save | /load | /clear - Zapis, odczyt swiata, wyczyszczenie czatu", COLOR_HELP);
-                addMessage("/worldsetting [water|physics] - Ustawienia fizyki plynow i grawitacji", COLOR_HELP);
-                addMessage("/bench [chunki|live] - Uruchamia in-game benchmark wydajnosci lub przelacza live overlay", COLOR_HELP);
-                addMessage("/logs [ile|dump] - Pokaz ostatnie logi z pliku lub wykonaj pelny zrzut awaryjny", COLOR_HELP);
+                addMessage(I18n.t("chat.help_header"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_setblock"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_tp_xyz"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_tp_xz"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_locate"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_reset"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_noclip"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_fly"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_spawn"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_time"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_debug"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_saveload"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_worldsetting"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_bench"), COLOR_HELP);
+                addMessage(I18n.t("chat.help_logs"), COLOR_HELP);
             }
             case "worldsetting", "ws" -> handleWorldSetting(parts, world);
             case "logs", "log" -> {
@@ -469,7 +469,7 @@ public class ChatSystem {
                     }
                 }
             }
-            default -> addMessage("Nieznana komenda: /" + cmd + ". Wpisz /help po liste komend.", COLOR_ERROR);
+            default -> addMessage(I18n.t("chat.unknown_cmd", cmd), COLOR_ERROR);
         }
     }
 
@@ -486,7 +486,7 @@ public class ChatSystem {
         if (sub.equals("water") || sub.equals("woda")) {
             if (parts.length > 2) {
                 String mode = parts[2].toLowerCase();
-                if (mode.equals("modern") || mode.equals("minecraft") || mode.equals("mc")) {
+                if (mode.equals("modern")) {
                     com.voxel.config.GameSettings.waterPhysicsMode = "modern";
                     com.voxel.config.GameSettings.save();
                     addMessage("Water physics mode set to: MODERN MINECRAFT (Flow levels 1..7 & sources).", COLOR_SUCCESS);
@@ -534,34 +534,29 @@ public class ChatSystem {
             String arg = parts[1].toLowerCase();
             if (arg.equals("live") || arg.equals("hud") || arg.equals("toggle")) {
                 hud.showBenchmarkOverlay = !hud.showBenchmarkOverlay;
-                addMessage("Wskaznik benchmarku HUD: " + (hud.showBenchmarkOverlay ? "WLACZONY" : "WYLACZONY"), COLOR_INFO);
+                addMessage(I18n.t("chat.bench_hud", hud.showBenchmarkOverlay ? I18n.t("options.on") : I18n.t("options.off")), COLOR_INFO);
                 return;
             }
             try {
                 count = Math.max(32, Math.min(4096, Integer.parseInt(parts[1])));
             } catch (NumberFormatException ignored) {}
         }
-        addMessage(String.format("Uruchamianie benchmarku [%d chunkow, %d watkow CPU]...",
-                count, world.getWorkerThreadCount()), COLOR_INFO);
+        addMessage(I18n.t("chat.bench_running", count, world.getWorkerThreadCount()), COLOR_INFO);
         final int finalCount = count;
         world.runBenchmarkAsync(finalCount, result -> {
             hud.setBenchmarkResult(result);
-            addMessage("=== WYNIKI BENCHMARKU SILNIKA VOXEL ===", COLOR_HELP);
-            addMessage(String.format("Przetestowano: %d chunkow | Watki CPU: %d",
-                    result.chunkCount(), result.workerThreads()), COLOR_INFO);
-            addMessage(String.format("Generacja terenu: %.1f ms | %.0f ch/s (%.3f ms/chunk)",
-                    result.terrainGenMs(), result.terrainGenRate(), result.avgTerrainGenMs()), COLOR_SUCCESS);
-            addMessage(String.format("Budowa siatek (Meshing): %.1f ms | %.0f mesh/s (%.3f ms/mesh)",
-                    result.meshingMs(), result.meshingRate(), result.avgMeshingMs()), COLOR_SUCCESS);
-            addMessage(String.format("Calkowite tempo: %.0f chunkow/sekunde | Czas: %.1f ms",
-                    result.totalRate(), result.totalTimeMs()), COLOR_INFO);
-            addMessage(String.format("Ocena wydajnosci: %s", result.performanceRating()), COLOR_HELP);
+            addMessage(I18n.t("chat.bench_complete"), COLOR_HELP);
+            addMessage(I18n.t("chat.bench_tested", result.chunkCount(), result.workerThreads()), COLOR_INFO);
+            addMessage(I18n.t("chat.bench_gen", result.terrainGenMs(), result.terrainGenRate(), result.avgTerrainGenMs()), COLOR_SUCCESS);
+            addMessage(I18n.t("chat.bench_mesh", result.meshingMs(), result.meshingRate(), result.avgMeshingMs()), COLOR_SUCCESS);
+            addMessage(I18n.t("chat.bench_total", result.totalRate(), result.totalTimeMs()), COLOR_INFO);
+            addMessage(I18n.t("chat.bench_rating", result.performanceRating()), COLOR_HELP);
         });
     }
 
     private void handleSetBlock(String[] parts, World world, Player player) {
         if (parts.length < 5) {
-            addMessage("Uzycie: /setblock <x> <y> <z> <blok> (np. /setblock ~ ~-1 ~ stone lub /setblock 10 30 -50 water)", COLOR_ERROR);
+            addMessage(I18n.t("chat.setblock_usage"), COLOR_ERROR);
             return;
         }
         try {
@@ -570,16 +565,16 @@ public class ChatSystem {
             double targetZ = parseCoordinate(parts[3], player.position.z);
             com.voxel.block.BlockType bt = com.voxel.block.BlockType.byName(parts[4]);
             if (bt == null) {
-                addMessage("Nieznany typ bloku: '" + parts[4] + "'. Dostepne np.: stone, water, air, grass, dirt, wood, glowstone...", COLOR_ERROR);
+                addMessage(I18n.t("chat.setblock_unknown", parts[4]), COLOR_ERROR);
                 return;
             }
             long bx = (long) Math.floor(targetX);
             long by = (long) Math.floor(targetY);
             long bz = (long) Math.floor(targetZ);
             world.setBlock(bx, by, bz, bt.id, true);
-            addMessage(String.format("Ustawiono blok %s [%d] na pozycji (%d, %d, %d)", bt.name, bt.id, bx, by, bz), COLOR_SUCCESS);
+            addMessage(I18n.t("chat.setblock_success", bt.getDisplayName(), bt.id, bx, by, bz), COLOR_SUCCESS);
         } catch (NumberFormatException e) {
-            addMessage("Blad wspolrzednych! Uzyj liczb lub ~ (np. /setblock ~ ~-1 ~ stone)", COLOR_ERROR);
+            addMessage(I18n.t("chat.coords_error"), COLOR_ERROR);
         }
     }
 
@@ -601,8 +596,7 @@ public class ChatSystem {
         }
 
         world.resetWorld(player, newSeed);
-        addMessage(String.format("Zresetowano swiat! Nowy seed: %d, Spawn: (0.5, %.1f, 0.5)",
-                newSeed, player.position.y), COLOR_SUCCESS);
+        addMessage(I18n.t("chat.reset_done", newSeed, player.position.y), COLOR_SUCCESS);
     }
 
     private void handleLocateBiome(String[] parts, World world, Player player) {
@@ -610,7 +604,7 @@ public class ChatSystem {
         long bz = (long) Math.floor(player.position.z);
         if (parts.length < 2) {
             Biome cur = world.getBiome(bx, bz);
-            addMessage("Aktualny biom: " + cur.displayName + ". Uzyj /locate <ocean|deep_ocean|frozen_ocean|desert|mesa|snow|taiga|jungle|birch|forest|plains|mountains>", COLOR_INFO);
+            addMessage(I18n.t("chat.locate_current", cur.getDisplayName()), COLOR_INFO);
             return;
         }
         String arg = parts[1].toLowerCase();
@@ -631,16 +625,15 @@ public class ChatSystem {
             default -> null;
         };
         if (target == null) {
-            addMessage("Nieznany biom: " + arg + ". Dostepne: ocean, deep_ocean, frozen_ocean, desert, mesa, snow, taiga, jungle, birch, forest, plains, mountains", COLOR_ERROR);
+            addMessage(I18n.t("chat.locate_unknown", arg), COLOR_ERROR);
             return;
         }
         long[] found = world.locateBiome(target, bx, bz);
         if (found != null) {
             long sy = world.findSpawnY(found[0], found[1]);
-            addMessage(String.format("Najblizszy biom [%s] znajduje sie w: X=%d, Y=%d, Z=%d (wpisz /tp %d %d %d)",
-                    target.displayName, found[0], sy, found[1], found[0], sy, found[1]), COLOR_SUCCESS);
+            addMessage(I18n.t("chat.locate_found", target.getDisplayName(), found[0], sy, found[1], found[0], sy, found[1]), COLOR_SUCCESS);
         } else {
-            addMessage("Nie znaleziono biomu " + target.displayName + " w promieniu 16000 blokow.", COLOR_ERROR);
+            addMessage(I18n.t("chat.locate_not_found", target.getDisplayName()), COLOR_ERROR);
         }
     }
 
@@ -653,9 +646,9 @@ public class ChatSystem {
                 long bz = (long) Math.floor(targetZ);
                 long surfaceY = world.findSpawnY(bx, bz);
                 teleportPlayer(world, player, targetX, surfaceY, targetZ);
-                addMessage(String.format("Przeteleportowano do: (%.1f, %.1f, %.1f)", targetX, (double) surfaceY, targetZ), COLOR_SUCCESS);
+                addMessage(I18n.t("chat.tp_success", targetX, (double) surfaceY, targetZ), COLOR_SUCCESS);
             } catch (NumberFormatException e) {
-                addMessage("Blad wspolrzednych! Uzycie: /tp <x> <y> <z> lub /tp <x> <z>", COLOR_ERROR);
+                addMessage(I18n.t("chat.coords_error"), COLOR_ERROR);
             }
         } else if (parts.length >= 4) {
             try {
@@ -663,12 +656,12 @@ public class ChatSystem {
                 double targetY = parseCoordinate(parts[2], player.position.y);
                 double targetZ = parseCoordinate(parts[3], player.position.z);
                 teleportPlayer(world, player, targetX, targetY, targetZ);
-                addMessage(String.format("Przeteleportowano do: (%.1f, %.1f, %.1f)", targetX, targetY, targetZ), COLOR_SUCCESS);
+                addMessage(I18n.t("chat.tp_success", targetX, targetY, targetZ), COLOR_SUCCESS);
             } catch (NumberFormatException e) {
-                addMessage("Blad wspolrzednych! Uzycie: /tp <x> <y> <z> (np. /tp 100 -250 -50 lub /tp ~ ~-50 ~)", COLOR_ERROR);
+                addMessage(I18n.t("chat.coords_error"), COLOR_ERROR);
             }
         } else {
-            addMessage("Uzycie: /tp <x> <y> <z> lub /tp <x> <z> (wspiera ~ dla relatywnych pozycji)", COLOR_ERROR);
+            addMessage(I18n.t("chat.tp_usage"), COLOR_ERROR);
         }
     }
 
