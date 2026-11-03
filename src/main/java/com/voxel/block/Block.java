@@ -175,6 +175,8 @@ public class Block {
 
     public void onBroken(World world, long x, long y, long z) {}
 
+    public void tick(World world, long x, long y, long z) {}
+
     @Override
     public String toString() {
         return identifier.toString();

@@ -587,25 +587,27 @@ public class Main {
                     || toPlace == BlockType.CACTUS
                     || (toPlace != BlockType.SEAGRASS && Blocks.get(toPlace.id) != null && Blocks.get(toPlace.id).isStackable()));
 
-            // Stacking on top of the same plant block
+            // Stacking on top of the same plant block (Task 65: only allowed when placing directly on the top of the top segment)
             if (isStackable && hitBlock == toPlace) {
-                long targetX = hit.x();
-                long targetY = hit.y() + 1;
-                long targetZ = hit.z();
-                while (world.getBlock(targetX, targetY, targetZ) == toPlace.id) {
-                    targetY++;
-                }
-                byte atTarget = world.getBlock(targetX, targetY, targetZ);
-                boolean canOccupy = BlockType.isUnderwaterPlant(toPlace.id)
-                        ? BlockType.isWater(atTarget)
-                        : (atTarget == BlockType.AIR.id);
-                if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetX, targetY, targetZ))) {
-                    if (Blocks.get(toPlace.id).canSurvive(world, targetX, targetY, targetZ)) {
-                        world.setBlock(targetX, targetY, targetZ, toPlace.id, true);
-                        com.voxel.audio.SoundSystem.playPlaceSound(toPlace);
+                boolean isTopFace = (px == hit.x() && pz == hit.z() && py == hit.y() + 1);
+                boolean isTopOfStack = (world.getBlock(hit.x(), hit.y() + 1, hit.z()) != toPlace.id);
+                if (isTopFace && isTopOfStack) {
+                    long targetX = hit.x();
+                    long targetY = hit.y() + 1;
+                    long targetZ = hit.z();
+                    byte atTarget = world.getBlock(targetX, targetY, targetZ);
+                    boolean canOccupy = BlockType.isUnderwaterPlant(toPlace.id)
+                            ? BlockType.isWater(atTarget)
+                            : (atTarget == BlockType.AIR.id);
+                    if (canOccupy && (!toPlace.solid || !player.intersectsBlock(targetX, targetY, targetZ))) {
+                        if (Blocks.get(toPlace.id).canSurvive(world, targetX, targetY, targetZ)) {
+                            world.setBlock(targetX, targetY, targetZ, toPlace.id, true);
+                            com.voxel.audio.SoundSystem.playPlaceSound(toPlace);
+                        }
                     }
+                    return;
                 }
-                return;
+                // If not clicking the top of the top segment, do not auto-stack to the top; fall through to standard placement.
             }
 
             boolean isReplaceable = (hitBlock == BlockType.TALL_GRASS);

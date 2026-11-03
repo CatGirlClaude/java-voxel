@@ -96,6 +96,13 @@ public final class Blocks {
     public static final FallingBlock GRAVEL = register(46, "gravel", new FallingBlock(Identifier.of("gravel"), 46, Block.Properties.of().textures(46)));
     public static final SolidBlock CLAY = register(47, "clay", new SolidBlock(Identifier.of("clay"), 47, Block.Properties.of().textures(47)));
 
+    static {
+        // Map flow levels (35..41) to WATER fluid block so tick() and block properties dispatch to FluidBlock
+        for (int i = 35; i <= 41; i++) {
+            byId[i] = WATER;
+        }
+    }
+
     private Blocks() {}
 
     private static <T extends Block> T register(int rawId, String name, T block) {
